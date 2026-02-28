@@ -161,7 +161,7 @@ begin
         for c in 0..4 loop
           sq := sq || (new_flat->(r*5+c));
         end loop;
-        flat := flat || sq;
+        flat := flat || jsonb_build_array(sq);
       end loop;
       new_flat := flat;
     end if;
