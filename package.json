@@ -12,6 +12,8 @@
     "test:run": "vitest run"
   },
   "dependencies": {
+    "@sentry/node": "^10.40.0",
+    "@sentry/react": "^10.40.0",
     "@supabase/supabase-js": "^2.97.0",
     "autoprefixer": "^10.4.27",
     "postcss": "^8.5.6",
