@@ -1,0 +1,9 @@
+# Build and publish
+[build]
+  command = "npm run build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+# Scheduled function: poll mock stats and mark cards (cron is minute granularity; run every minute)
+[functions."poll-stats"]
+  schedule = "* * * * *"
