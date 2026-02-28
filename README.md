@@ -2,6 +2,23 @@
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
+## Push to GitHub
+
+```bash
+git remote add origin https://github.com/jack-ferrence/sports-bingo.git
+git branch -M main
+git push -u origin main
+```
+
+If you already added a remote with the wrong URL (e.g. "your username"), fix it with:
+
+```bash
+git remote set-url origin https://github.com/jack-ferrence/sports-bingo.git
+git push -u origin main
+```
+
+---
+
 Currently, two official plugins are available:
 
 - [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
