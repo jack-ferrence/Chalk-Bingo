@@ -4,31 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth.jsx'
 import BingoCard from '../components/BingoCard.jsx'
 import RecentEvents from '../components/RecentEvents.jsx'
-import { generateCard } from '../game/cardGenerator.js'
 import { checkBingo } from '../game/statProcessor.js'
-
-const MOCK_PLAYERS = [
-  { id: 'player_lebron', name: 'LeBron James' },
-  { id: 'player_curry', name: 'Stephen Curry' },
-  { id: 'player_giannis', name: 'Giannis Antetokounmpo' },
-  { id: 'player_jokic', name: 'Nikola Jokić' },
-  { id: 'player_durant', name: 'Kevin Durant' },
-  { id: 'player_tatum', name: 'Jayson Tatum' },
-  { id: 'player_doncic', name: 'Luka Dončić' },
-  { id: 'player_embiid', name: 'Joel Embiid' },
-  { id: 'player_booker', name: 'Devin Booker' },
-  { id: 'player_mitchell', name: 'Donovan Mitchell' },
-]
-
-const DEFAULT_STAT_TYPES = [
-  'points_10',
-  'points_15',
-  'three_pointer',
-  'rebound',
-  'assist',
-  'steal',
-  'block',
-]
 
 function GamePage() {
   const { roomId } = useParams()
@@ -158,53 +134,17 @@ function GamePage() {
       setLoadingCard(true)
       setError('')
 
-      const { data, error: cardError } = await supabase
-        .from('cards')
-        .select('*')
-        .eq('room_id', roomId)
-        .eq('user_id', user.id)
-        .maybeSingle()
-
-      if (cardError) {
-        setError(cardError.message)
-        setLoadingCard(false)
-        return
-      }
-
-      if (data) {
-        setCard(data)
-        setLoadingCard(false)
-        return
-      }
-
-      const generatedFlat = generateCard(MOCK_PLAYERS, DEFAULT_STAT_TYPES)
-      const generatedGrid = [
-        generatedFlat.slice(0, 5),
-        generatedFlat.slice(5, 10),
-        generatedFlat.slice(10, 15),
-        generatedFlat.slice(15, 20),
-        generatedFlat.slice(20, 25),
-      ]
-
-      const { data: inserted, error: insertError } = await supabase
-        .from('cards')
-        .insert({
-          room_id: roomId,
-          user_id: user.id,
-          squares: generatedGrid,
-          lines_completed: 0,
-          squares_marked: 1, // free space
-        })
-        .select()
+      const { data, error: rpcError } = await supabase
+        .rpc('generate_card_for_room', { p_room_id: roomId })
         .single()
 
-      if (insertError) {
-        setError(insertError.message)
+      if (rpcError) {
+        setError(rpcError.message)
         setLoadingCard(false)
         return
       }
 
-      setCard(inserted)
+      setCard(data)
       setLoadingCard(false)
     }
 
