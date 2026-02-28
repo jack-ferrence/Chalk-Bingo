@@ -11,51 +11,43 @@ const randomId = () => {
   )
 }
 
-function buildDisplay(playerName, statType) {
+function getLastName(fullName) {
+  const parts = (fullName ?? '').trim().split(/\s+/)
+  return parts.length > 1 ? parts.slice(1).join(' ') : parts[0] || ''
+}
+
+function buildDisplay(player, statType) {
+  const label = player.lastName || getLastName(player.name)
+
   if (statType.startsWith('points_')) {
     const threshold = Number(statType.split('_')[1]) || 0
-    return {
-      threshold,
-      displayText: `${playerName} ${threshold}+ PTS`,
-    }
+    return { threshold, displayText: `${label} ${threshold}+ PTS` }
+  }
+
+  if (statType.startsWith('rebound_')) {
+    const threshold = Number(statType.split('_')[1]) || 0
+    return { threshold, displayText: `${label} ${threshold}+ REB` }
+  }
+
+  if (statType.startsWith('assist_')) {
+    const threshold = Number(statType.split('_')[1]) || 0
+    return { threshold, displayText: `${label} ${threshold}+ AST` }
   }
 
   switch (statType) {
     case 'three_pointer':
-      return {
-        threshold: 1,
-        displayText: `${playerName} 1+ 3PM`,
-      }
-    case 'rebound':
-      return {
-        threshold: 5,
-        displayText: `${playerName} 5+ REB`,
-      }
-    case 'assist':
-      return {
-        threshold: 5,
-        displayText: `${playerName} 5+ AST`,
-      }
+      return { threshold: 1, displayText: `${label} 1+ 3PM` }
     case 'steal':
-      return {
-        threshold: 1,
-        displayText: `${playerName} 1+ STL`,
-      }
+      return { threshold: 1, displayText: `${label} 1+ STL` }
     case 'block':
-      return {
-        threshold: 1,
-        displayText: `${playerName} 1+ BLK`,
-      }
+      return { threshold: 1, displayText: `${label} 1+ BLK` }
     default:
-      return {
-        threshold: 1,
-        displayText: `${playerName} ${statType}`,
-      }
+      return { threshold: 1, displayText: `${label} ${statType}` }
   }
 }
 
 function createSquare(player, statType) {
-  const { threshold, displayText } = buildDisplay(player.name, statType)
+  const { threshold, displayText } = buildDisplay(player, statType)
 
   return {
     id: randomId(),

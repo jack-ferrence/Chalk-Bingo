@@ -1,24 +1,51 @@
-import { Routes, Route, Link } from 'react-router-dom'
+import { Routes, Route, Link, useMatch } from 'react-router-dom'
 import { useAuth } from './hooks/useAuth.jsx'
 import LobbyPage from './pages/LobbyPage.jsx'
+import GameBrowserPage from './pages/GameBrowserPage.jsx'
 import GamePage from './pages/GamePage.jsx'
 
 function App() {
   const { user, loading } = useAuth()
+  const isGameRoute = useMatch('/room/:roomId')
 
-  return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
-      <header className="border-b border-slate-800">
-        <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4">
+  if (isGameRoute) {
+    return (
+      <div className="h-screen bg-bg-primary text-text-primary flex flex-col">
+        <header className="flex h-16 shrink-0 items-center justify-between border-b border-border-subtle bg-bg-secondary px-4">
           <Link to="/" className="text-lg font-semibold tracking-tight">
-            <span className="text-sky-400">sports</span>
-            <span className="text-slate-100">-bingo</span>
+            <span className="text-accent-green">sports</span>
+            <span className="text-text-primary">-bingo</span>
           </Link>
           <div className="flex items-center gap-3 text-sm">
             {loading ? (
-              <span className="text-slate-400">Loading...</span>
+              <span className="text-text-muted">Loading...</span>
             ) : user ? (
-              <span className="text-slate-400">Playing as guest</span>
+              <span className="text-text-secondary">Playing as guest</span>
+            ) : null}
+          </div>
+        </header>
+        <main className="flex-1 overflow-hidden">
+          <Routes>
+            <Route path="/room/:roomId" element={<GamePage />} />
+          </Routes>
+        </main>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-bg-primary text-text-primary flex flex-col">
+      <header className="border-b border-border-subtle bg-bg-secondary">
+        <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4">
+          <Link to="/" className="text-lg font-semibold tracking-tight">
+            <span className="text-accent-green">sports</span>
+            <span className="text-text-primary">-bingo</span>
+          </Link>
+          <div className="flex items-center gap-3 text-sm">
+            {loading ? (
+              <span className="text-text-muted">Loading...</span>
+            ) : user ? (
+              <span className="text-text-secondary">Playing as guest</span>
             ) : null}
           </div>
         </div>
@@ -28,7 +55,7 @@ function App() {
         <div className="mx-auto max-w-5xl px-4 py-8">
           <Routes>
             <Route path="/" element={<LobbyPage />} />
-            <Route path="/room/:roomId" element={<GamePage />} />
+            <Route path="/games" element={<GameBrowserPage />} />
           </Routes>
         </div>
       </main>

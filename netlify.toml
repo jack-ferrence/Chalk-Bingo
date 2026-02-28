@@ -1,9 +1,24 @@
-# Build and publish
 [build]
   command = "npm run build"
   publish = "dist"
   functions = "netlify/functions"
 
-# Scheduled function: poll mock stats and mark cards (cron is minute granularity; run every minute)
+[build.environment]
+  NODE_VERSION = "20"
+
+[functions]
+  node_bundler = "esbuild"
+
+# SPA fallback — serve index.html for all client-side routes
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Scheduled function: poll stats every minute (lock prevents overlap)
 [functions."poll-stats"]
   schedule = "* * * * *"
+
+# Scheduled function: room cleanup daily at 04:00 UTC
+[functions."room-cleanup"]
+  schedule = "0 4 * * *"

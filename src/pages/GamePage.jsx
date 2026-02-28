@@ -1,10 +1,9 @@
-import { useEffect, useState, useMemo, useRef } from 'react'
+import { useEffect, useState, useMemo, useRef, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth.jsx'
-import BingoCard from '../components/BingoCard.jsx'
-import RecentEvents from '../components/RecentEvents.jsx'
-import { checkBingo } from '../game/statProcessor.js'
+import { useRoomChannel } from '../hooks/useRoomChannel.js'
+import GameRoom from '../components/game/GameRoom.jsx'
 
 function GamePage() {
   const { roomId } = useParams()
@@ -16,61 +15,56 @@ function GamePage() {
   const [loadingCard, setLoadingCard] = useState(true)
   const [error, setError] = useState('')
   const [gameStartedNotification, setGameStartedNotification] = useState(false)
-  const [leaderboard, setLeaderboard] = useState(null)
   const prevStatusRef = useRef(null)
 
+  const {
+    roomPatch,
+    cardPatch,
+    leaderboardCards,
+    chatMessages,
+    statEvents,
+    participantJoined,
+    initChatMessages,
+    resetStatEvents,
+  } = useRoomChannel(roomId, room?.game_id, card?.id)
+
+  // Apply room patches from the consolidated channel
+  useEffect(() => {
+    if (roomPatch && roomPatch.id === room?.id) {
+      setRoom((prev) => ({ ...prev, ...roomPatch }))
+    }
+  }, [roomPatch])
+
+  // Apply card patches from the consolidated channel
+  useEffect(() => {
+    if (cardPatch && cardPatch.id === card?.id) {
+      setCard((prev) => ({ ...prev, ...cardPatch }))
+    }
+  }, [cardPatch])
+
+  // Load room
   useEffect(() => {
     if (!roomId) return
-
     const loadRoom = async () => {
       setLoadingRoom(true)
       setError('')
-
       const { data, error: roomError } = await supabase
         .from('rooms')
         .select('*')
         .eq('id', roomId)
         .maybeSingle()
-
       if (roomError) {
         setError(roomError.message)
         setLoadingRoom(false)
         return
       }
-
       setRoom(data)
       setLoadingRoom(false)
     }
-
     loadRoom()
   }, [roomId])
 
-  // Realtime: subscribe to this room so all participants see status changes
-  useEffect(() => {
-    if (!roomId) return
-
-    const channel = supabase
-      .channel(`room:${roomId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'rooms',
-          filter: `id=eq.${roomId}`,
-        },
-        (payload) => {
-          setRoom((prev) => (prev?.id === payload.new?.id ? { ...prev, ...payload.new } : prev))
-        }
-      )
-      .subscribe()
-
-    return () => {
-      supabase.removeChannel(channel)
-    }
-  }, [roomId])
-
-  // Show "Game Started!" when status transitions to live
+  // "Game Started!" notification on status transition
   useEffect(() => {
     const prev = prevStatusRef.current
     const next = room?.status
@@ -82,60 +76,35 @@ function GamePage() {
     }
   }, [room?.status])
 
-  // Fetch leaderboard when game is finished
+  // Load or create card
   useEffect(() => {
-    if (room?.status !== 'finished' || !roomId) return
-
-    const fetchLeaderboard = async () => {
-      const { data: participants } = await supabase
-        .from('room_participants')
-        .select('user_id')
-        .eq('room_id', roomId)
-
-      if (!participants?.length) {
-        setLeaderboard([])
-        return
-      }
-
-      const userIds = participants.map((p) => p.user_id)
-      const { data: cardsData } = await supabase
-        .from('cards')
-        .select('user_id, lines_completed, squares_marked')
-        .eq('room_id', roomId)
-        .in('user_id', userIds)
-
-      const { data: profilesData } = await supabase
-        .from('profiles')
-        .select('id, username')
-        .in('id', userIds)
-
-      const profileMap = Object.fromEntries((profilesData ?? []).map((p) => [p.id, p.username]))
-      const cardMap = Object.fromEntries(
-        (cardsData ?? []).map((c) => [c.user_id, { lines_completed: c.lines_completed, squares_marked: c.squares_marked }])
-      )
-
-      const rows = userIds.map((uid) => ({
-        user_id: uid,
-        username: profileMap[uid] ?? 'Guest',
-        lines_completed: cardMap[uid]?.lines_completed ?? 0,
-        squares_marked: cardMap[uid]?.squares_marked ?? 0,
-      }))
-      rows.sort((a, b) => b.lines_completed - a.lines_completed)
-      setLeaderboard(rows)
-    }
-
-    fetchLeaderboard()
-  }, [room?.status, roomId])
-
-  useEffect(() => {
-    if (!roomId || !user || authLoading) return
-
+    if (!roomId || !user || authLoading || !room) return
     const loadOrCreateCard = async () => {
       setLoadingCard(true)
       setError('')
 
+      let players = null
+      if (room.game_id) {
+        try {
+          const res = await fetch(`/.netlify/functions/get-roster?game_id=${room.game_id}`)
+          if (res.ok) {
+            const roster = await res.json()
+            players = (roster.players ?? []).map((p) => ({
+              id: p.id,
+              name: p.name,
+              lastName: p.lastName,
+            }))
+          }
+        } catch {
+          // roster fetch failed — RPC will use its fallback roster
+        }
+      }
+
+      const rpcParams = { p_room_id: roomId }
+      if (players && players.length > 0) rpcParams.p_players = players
+
       const { data, error: rpcError } = await supabase
-        .rpc('generate_card_for_room', { p_room_id: roomId })
+        .rpc('generate_card_for_room', rpcParams)
         .single()
 
       if (rpcError) {
@@ -143,262 +112,79 @@ function GamePage() {
         setLoadingCard(false)
         return
       }
-
       setCard(data)
       setLoadingCard(false)
     }
-
     loadOrCreateCard()
-  }, [roomId, user, authLoading])
+  }, [roomId, user, authLoading, room?.id])
 
-  // Realtime: subscribe to this card's row so we get live square updates
-  useEffect(() => {
-    if (!card?.id) return
-
-    const channel = supabase
-      .channel(`card:${card.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'cards',
-          filter: `id=eq.${card.id}`,
-        },
-        (payload) => {
-          setCard((prev) => (prev?.id === payload.new?.id ? { ...prev, ...payload.new } : prev))
-        }
-      )
-      .subscribe()
-
-    return () => {
-      supabase.removeChannel(channel)
-    }
-  }, [card?.id])
-
-  // Derive bingo state from current card squares
   const flatSquares = useMemo(() => {
     if (!card?.squares) return []
     return Array.isArray(card.squares[0]) ? card.squares.flat() : card.squares.slice(0, 25)
   }, [card?.squares])
 
-  const bingoResult = useMemo(
-    () => (flatSquares.length >= 25 ? checkBingo(card.squares) : { hasBingo: false, winningLines: [] }),
-    [card?.squares, flatSquares.length]
-  )
-
-  const winningSquareIds = useMemo(() => {
-    const ids = new Set()
-    for (const line of bingoResult.winningLines || []) {
-      for (const idx of line) {
-        const sq = flatSquares[idx]
-        if (sq?.id) ids.add(sq.id)
-      }
+  const squareMap = useMemo(() => {
+    const m = new Map()
+    for (const sq of flatSquares) {
+      if (sq?.id) m.set(sq.id, sq)
     }
-    return Array.from(ids)
-  }, [bingoResult.winningLines, flatSquares])
+    return m
+  }, [flatSquares])
 
   const isCreator = room?.created_by === user?.id
 
-  const handleStartGame = async () => {
+  const handleStartGame = useCallback(async () => {
     if (!roomId || !isCreator) return
     setError('')
-    const { error: updateError } = await supabase
-      .from('rooms')
-      .update({ status: 'live' })
-      .eq('id', roomId)
-    if (updateError) setError(updateError.message)
-  }
+    const { error: e } = await supabase.from('rooms').update({ status: 'live' }).eq('id', roomId)
+    if (e) setError(e.message)
+  }, [roomId, isCreator])
 
-  const handleEndGame = async () => {
+  const handleEndGame = useCallback(async () => {
     if (!roomId || !isCreator) return
     setError('')
-    const { error: updateError } = await supabase
-      .from('rooms')
-      .update({ status: 'finished' })
-      .eq('id', roomId)
-    if (updateError) setError(updateError.message)
+    const { error: e } = await supabase.from('rooms').update({ status: 'finished' }).eq('id', roomId)
+    if (e) setError(e.message)
+  }, [roomId, isCreator])
+
+  if (loadingRoom || authLoading) {
+    return (
+      <div className="flex h-[calc(100vh-4rem)] items-center justify-center bg-bg-primary">
+        <span className="text-sm text-text-secondary">Loading room...</span>
+      </div>
+    )
   }
 
-  const roomStatusLabel =
-    room?.status === 'live'
-      ? 'Live'
-      : room?.status === 'finished'
-        ? 'Finished'
-        : 'Lobby'
-
-  const roomStatusClasses =
-    room?.status === 'live'
-      ? 'bg-emerald-500/10 text-emerald-300 ring-1 ring-emerald-500/40'
-      : room?.status === 'finished'
-        ? 'bg-slate-700/40 text-slate-300 ring-1 ring-slate-600/60'
-        : 'bg-sky-500/10 text-sky-300 ring-1 ring-sky-500/40'
+  if (!room) {
+    return (
+      <div className="flex h-[calc(100vh-4rem)] items-center justify-center bg-bg-primary">
+        <span className="text-sm text-accent-red">Room not found.</span>
+      </div>
+    )
+  }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-50">
-            {room?.name || 'Game room'}
-          </h1>
-          <p className="mt-1 text-sm text-slate-400">
-            Room ID:{' '}
-            <span className="font-mono text-slate-200">{roomId}</span>
-          </p>
-          {room?.game_id && (
-            <p className="mt-1 text-xs text-slate-500">
-              Game ID:{' '}
-              <span className="font-mono text-slate-300">
-                {room.game_id}
-              </span>
-            </p>
-          )}
-        </div>
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-          {isCreator && room?.status !== 'finished' && (
-            <div className="flex gap-2">
-              {room?.status === 'lobby' && (
-                <button
-                  type="button"
-                  onClick={handleStartGame}
-                  className="rounded-md bg-emerald-500 px-3 py-1.5 text-xs font-medium text-emerald-950 shadow-sm hover:bg-emerald-400"
-                >
-                  Start Game
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={handleEndGame}
-                className="rounded-md border border-slate-600 bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-200 hover:bg-slate-700"
-              >
-                End Game
-              </button>
-            </div>
-          )}
-          <span
-            className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide ${roomStatusClasses}`}
-          >
-            {roomStatusLabel}
-          </span>
-        </div>
-      </div>
-
-      {gameStartedNotification && (
-        <div
-          className="rounded-lg border border-emerald-500/50 bg-emerald-500/20 px-4 py-3 text-center text-sm font-medium text-emerald-200 animate-in-from-top"
-          role="status"
-          aria-live="polite"
-        >
-          Game Started!
-        </div>
-      )}
-
-      {error && (
-        <div className="rounded-md border border-red-500/40 bg-red-950/40 px-3 py-2 text-sm text-red-200">
-          {error}
-        </div>
-      )}
-
-      <div className="grid gap-6 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-6">
-          <h2 className="text-sm font-medium uppercase tracking-wide text-slate-400">
-            Your bingo card
-          </h2>
-          <p className="mt-1 text-xs text-slate-500">
-            Generated from a mock roster. In production, this will use the
-            live game&apos;s players and stat events.
-          </p>
-
-          <div className="mt-4 flex items-center justify-center">
-            {loadingCard ? (
-              <div className="text-sm text-slate-400">
-                Loading your card...
-              </div>
-            ) : card ? (
-              <div className="relative">
-                <BingoCard
-                  squares={card.squares}
-                  winningSquares={winningSquareIds}
-                />
-                {bingoResult.hasBingo && (
-                  <div
-                    className="absolute inset-0 flex flex-col items-center justify-center rounded-2xl bg-slate-950/90 backdrop-blur-sm"
-                    role="alert"
-                    aria-live="polite"
-                  >
-                    <div className="animate-bounce text-2xl font-bold tracking-wide text-amber-400">
-                      BINGO!
-                    </div>
-                    <p className="mt-2 text-sm text-slate-300">
-                      {bingoResult.winningLines?.length ?? 0} line
-                      {(bingoResult.winningLines?.length ?? 0) === 1 ? '' : 's'} completed
-                    </p>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="text-sm text-slate-400">
-                No card available.
-              </div>
-            )}
-          </div>
-        </div>
-
-        <aside className="space-y-4 rounded-2xl border border-slate-800 bg-slate-900/40 p-6">
-          <RecentEvents gameId={room?.game_id} />
-          <div>
-            <h2 className="text-sm font-medium uppercase tracking-wide text-slate-400">
-              Player
-            </h2>
-            <p className="mt-1 text-sm text-slate-200">
-              {user?.email ?? 'Unknown player'}
-            </p>
-          </div>
-
-          <div>
-            <h2 className="text-sm font-medium uppercase tracking-wide text-slate-400">
-              Game status
-            </h2>
-            <p className="mt-1 text-sm text-slate-300">
-              {bingoResult.hasBingo
-                ? `${bingoResult.winningLines?.length ?? 0} line(s) completed — Bingo!`
-                : 'Winning lines and live stats appear here as the game progresses.'}
-            </p>
-          </div>
-        </aside>
-      </div>
-
-      {room?.status === 'finished' && leaderboard && (
-        <div
-          className="fixed inset-0 z-40 flex items-center justify-center bg-black/80 p-4"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Final leaderboard"
-        >
-          <div className="w-full max-w-md rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
-            <h2 className="text-lg font-semibold text-slate-100">Final Leaderboard</h2>
-            <p className="mt-1 text-xs text-slate-400">Ranked by lines completed</p>
-            <ul className="mt-4 space-y-2">
-              {leaderboard.map((row, i) => (
-                <li
-                  key={row.user_id}
-                  className="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-950/80 px-3 py-2"
-                >
-                  <span className="font-medium text-slate-200">
-                    {i + 1}. {row.username}
-                  </span>
-                  <span className="text-sm text-slate-400">
-                    {row.lines_completed} line{(row.lines_completed === 1 ? '' : 's')} · {row.squares_marked} marked
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      )}
-    </div>
+    <GameRoom
+      room={room}
+      card={card}
+      loadingCard={loadingCard}
+      flatSquares={flatSquares}
+      squareMap={squareMap}
+      user={user}
+      roomId={roomId}
+      isCreator={isCreator}
+      onStartGame={handleStartGame}
+      onEndGame={handleEndGame}
+      gameStartedNotification={gameStartedNotification}
+      error={error}
+      leaderboardCards={leaderboardCards}
+      chatMessages={chatMessages}
+      statEvents={statEvents}
+      participantJoined={participantJoined}
+      initChatMessages={initChatMessages}
+      resetStatEvents={resetStatEvents}
+    />
   )
 }
 
 export default GamePage
-

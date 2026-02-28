@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth.jsx'
@@ -32,11 +32,6 @@ function LobbyPage() {
   const [joiningRoomId, setJoiningRoomId] = useState(null)
   const [error, setError] = useState('')
 
-  const [createOpen, setCreateOpen] = useState(false)
-  const [createName, setCreateName] = useState('')
-  const [createGameId, setCreateGameId] = useState('')
-  const [createLoading, setCreateLoading] = useState(false)
-
   const hasRooms = useMemo(() => rooms.length > 0, [rooms])
 
   const loadRooms = async () => {
@@ -44,7 +39,7 @@ function LobbyPage() {
     setError('')
 
     const { data, error: roomsError } = await supabase
-      .from('rooms')
+      .from('rooms_with_counts')
       .select('*')
       .in('status', ['lobby', 'live'])
       .order('created_at', { ascending: false })
@@ -55,28 +50,7 @@ function LobbyPage() {
       return
     }
 
-    const withCounts =
-      data && data.length > 0
-        ? await Promise.all(
-            data.map(async (room) => {
-              const { count, error: countError } = await supabase
-                .from('room_participants')
-                .select('*', { count: 'exact', head: true })
-                .eq('room_id', room.id)
-
-              if (countError) {
-                console.error('Error counting participants', countError)
-              }
-
-              return {
-                ...room,
-                participantCount: typeof count === 'number' ? count : 0,
-              }
-            }),
-          )
-        : []
-
-    setRooms(withCounts)
+    setRooms(data ?? [])
     setLoadingRooms(false)
   }
 
@@ -84,7 +58,12 @@ function LobbyPage() {
     loadRooms()
   }, [])
 
-  // Realtime: refresh room list (and participant counts) when anyone joins/leaves
+  const debounceRef = useRef(null)
+  const debouncedLoadRooms = useCallback(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => loadRooms(), 500)
+  }, [])
+
   useEffect(() => {
     const channel = supabase
       .channel('lobby-room_participants')
@@ -96,15 +75,16 @@ function LobbyPage() {
           table: 'room_participants',
         },
         () => {
-          loadRooms()
+          debouncedLoadRooms()
         }
       )
       .subscribe()
 
     return () => {
       supabase.removeChannel(channel)
+      if (debounceRef.current) clearTimeout(debounceRef.current)
     }
-  }, [])
+  }, [debouncedLoadRooms])
 
   const handleJoinRoom = async (roomId) => {
     if (!user) return
@@ -132,61 +112,6 @@ function LobbyPage() {
     navigate(`/room/${roomId}`)
   }
 
-  const handleCreateRoom = async (e) => {
-    e.preventDefault()
-    if (!user) return
-
-    setError('')
-    setCreateLoading(true)
-
-    const { data, error: roomError } = await supabase
-      .from('rooms')
-      .insert({
-        name: createName.trim(),
-        game_id: createGameId.trim(),
-        status: 'lobby',
-        created_by: user.id,
-      })
-      .select()
-      .single()
-
-    if (roomError) {
-      setError(roomError.message)
-      setCreateLoading(false)
-      return
-    }
-
-    const roomId = data.id
-
-    const { error: joinError } = await supabase
-      .from('room_participants')
-      .insert({
-        room_id: roomId,
-        user_id: user.id,
-      })
-
-    setCreateLoading(false)
-
-    if (joinError) {
-      setError(joinError.message)
-      return
-    }
-
-    setRooms((prev) => [
-      {
-        ...data,
-        participantCount: 1,
-      },
-      ...prev,
-    ])
-
-    setCreateName('')
-    setCreateGameId('')
-    setCreateOpen(false)
-
-    navigate(`/room/${roomId}`)
-  }
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -200,10 +125,10 @@ function LobbyPage() {
         </div>
         <button
           type="button"
-          onClick={() => setCreateOpen(true)}
+          onClick={() => navigate('/games')}
           className="inline-flex items-center justify-center rounded-md bg-sky-500 px-4 py-2 text-sm font-medium text-white shadow-sm shadow-sky-500/30 transition hover:bg-sky-400"
         >
-          Create Room
+          Browse Games &amp; Create Room
         </button>
       </div>
 
@@ -239,7 +164,7 @@ function LobbyPage() {
                       {room.name}
                     </h2>
                     <p className="mt-1 text-xs text-slate-400">
-                      Game ID:{' '}
+                      ESPN Game:{' '}
                       <span className="font-mono text-slate-300">
                         {room.game_id}
                       </span>
@@ -257,10 +182,10 @@ function LobbyPage() {
                 <div className="mt-4 flex items-center justify-between">
                   <div className="text-xs text-slate-400">
                     <span className="text-slate-100">
-                      {room.participantCount ?? 0}
+                      {room.participant_count ?? 0}
                     </span>{' '}
                     player
-                    {(room.participantCount ?? 0) === 1 ? '' : 's'} in room
+                    {(room.participant_count ?? 0) === 1 ? '' : 's'} in room
                   </div>
                   <button
                     type="button"
@@ -280,88 +205,21 @@ function LobbyPage() {
               No live or lobby rooms yet.
             </p>
             <p className="text-xs text-slate-500">
-              Be the first to tip off a new game.
+              Be the first —{' '}
+              <button
+                type="button"
+                onClick={() => navigate('/games')}
+                className="text-sky-400 underline underline-offset-2 hover:text-sky-300"
+              >
+                browse today&apos;s games
+              </button>{' '}
+              to tip off a new room.
             </p>
           </div>
         )}
       </div>
-
-      {createOpen && (
-        <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/70 px-4">
-          <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-950 p-6 shadow-2xl shadow-black/70">
-            <h2 className="text-lg font-semibold tracking-tight text-slate-50">
-              Create a room
-            </h2>
-            <p className="mt-1 text-xs text-slate-400">
-              Name your room and link it to an NBA game identifier.
-            </p>
-
-            <form onSubmit={handleCreateRoom} className="mt-4 space-y-4">
-              <div>
-                <label
-                  htmlFor="room-name"
-                  className="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-400"
-                >
-                  Room name
-                </label>
-                <input
-                  id="room-name"
-                  type="text"
-                  required
-                  value={createName}
-                  onChange={(e) => setCreateName(e.target.value)}
-                  className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-50 placeholder:text-slate-500 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
-                  placeholder="Friday Night Doubleheader"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="game-id"
-                  className="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-400"
-                >
-                  Game ID
-                </label>
-                <input
-                  id="game-id"
-                  type="text"
-                  required
-                  value={createGameId}
-                  onChange={(e) => setCreateGameId(e.target.value)}
-                  className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-50 placeholder:text-slate-500 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
-                  placeholder="nba-2026-02-26-lal-bos"
-                />
-              </div>
-
-              <div className="mt-2 flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (!createLoading) {
-                      setCreateOpen(false)
-                      setCreateName('')
-                      setCreateGameId('')
-                    }
-                  }}
-                  className="rounded-md px-3 py-1.5 text-xs font-medium text-slate-300 hover:bg-slate-800"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={createLoading}
-                  className="rounded-md bg-sky-500 px-4 py-1.5 text-xs font-medium text-white shadow-sm shadow-sky-500/30 hover:bg-sky-400 disabled:cursor-not-allowed disabled:opacity-70"
-                >
-                  {createLoading ? 'Creating...' : 'Create & Join'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
 
 export default LobbyPage
-
