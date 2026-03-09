@@ -3,11 +3,25 @@
 -- Ensure required extension for gen_random_uuid (usually enabled by default on Supabase)
 create extension if not exists "pgcrypto";
 
--- profiles
 create table if not exists public.profiles (
   id uuid primary key references auth.users (id),
   username text unique not null,
-  created_at timestamptz default now()
+  is_supporter boolean default false,
+  supporter_since timestamptz,
+  name_color text default '#FFFFFF',
+  name_font text default 'default',
+  ui_theme text default 'default',
+  username_changes_remaining int default 0,
+  created_at timestamptz default now(),
+  constraint profiles_name_font_check check (
+    name_font in ('default','mono','display','serif','rounded')
+  ),
+  constraint profiles_ui_theme_check check (
+    ui_theme in ('default','midnight','crimson','ocean','emerald')
+  ),
+  constraint profiles_name_color_check check (
+    name_color ~ '^#[0-9A-Fa-f]{6}$'
+  )
 );
 
 -- rooms
@@ -133,5 +147,12 @@ create policy "profiles_insert_own"
   on public.profiles
   for insert
   to authenticated
+  with check (id = auth.uid());
+
+create policy "profiles_update_own"
+  on public.profiles
+  for update
+  to authenticated
+  using (id = auth.uid())
   with check (id = auth.uid());
 

@@ -1,0 +1,85 @@
+/* Cowbell brand system (Palette 01 as primary).
+ * Source: cowbell-brand.css (imported for global use).
+ */
+/* ============================================================
+   COWBELL — Complete Brand Identity System
+   Version 1.0 | Built for Cursor Integration
+   
+   Usage: Import this file at the root of your project.
+   All palettes available as CSS custom properties.
+   Primary brand palette is :root. Others are data-theme scoped.
+   ============================================================ */
+
+/* ============================================================
+   PALETTE 1 — THE CHALLENGER (PRIMARY BRAND)
+   Golden Amber + Ink Black
+   Use: Main app UI, logo, all primary brand touchpoints
+   ============================================================ */
+:root {
+  /* Core Brand */
+  --cb-primary:        #F5A623; /* Golden Amber — the cowbell */
+  --cb-primary-light:  #F7BC57; /* Hover states, highlights */
+  --cb-primary-dark:   #D4891A; /* Pressed states, depth */
+  --cb-secondary:      #111111; /* Ink Black — anchor */
+  --cb-white:          #FAFAFA; /* Clean White */
+  --cb-sand:           #FDF6EC; /* Warm Sand — light mode base */
+
+  /* Live / Alert States */
+  --cb-live:           #FF3B3B; /* Electric Red — live game, bingo win */
+  --cb-live-glow:      rgba(255, 59, 59, 0.25);
+
+  /* Bingo Card States */
+  --cb-marked:         #F5A623; /* Marked square = primary amber */
+  --cb-unmarked:       #FAFAFA; /* Unmarked square = white */
+  --cb-free:           #111111; /* Free space = black */
+  --cb-free-text:      #F5A623; /* FREE text = amber */
+
+  /* UI Neutrals */
+  --cb-gray-100:       #F7F3EE;
+  --cb-gray-200:       #EDE7DC;
+  --cb-gray-300:       #D4C9B8;
+  --cb-gray-400:       #A89880;
+  --cb-gray-500:       #7A6A56;
+  --cb-gray-600:       #4A3D2E;
+  --cb-gray-700:       #2C2218;
+  --cb-gray-800:       #1A1410;
+  --cb-gray-900:       #0D0A07;
+
+  /* Typography */
+  --cb-font-display:   'Bebas Neue', 'Anton', sans-serif;
+  --cb-font-heading:   'DM Sans', 'Outfit', sans-serif;
+  --cb-font-body:      'DM Sans', 'Outfit', sans-serif;
+  --cb-font-mono:      'JetBrains Mono', monospace;
+
+  /* Spacing Scale */
+  --cb-radius-sm:      4px;
+  --cb-radius-md:      8px;
+  --cb-radius-lg:      16px;
+  --cb-radius-xl:      24px;
+  --cb-radius-pill:    999px;
+
+  /* Shadows */
+  --cb-shadow-sm:      0 1px 3px rgba(17,17,17,0.12);
+  --cb-shadow-md:      0 4px 16px rgba(17,17,17,0.16);
+  --cb-shadow-lg:      0 8px 32px rgba(17,17,17,0.20);
+  --cb-shadow-amber:   0 4px 20px rgba(245,166,35,0.35);
+  --cb-shadow-live:    0 0 20px rgba(255,59,59,0.40);
+
+  /* Gradients */
+  --cb-gradient-primary:   linear-gradient(135deg, #F5A623 0%, #D4891A 100%);
+  --cb-gradient-dark:      linear-gradient(135deg, #1A1410 0%, #111111 100%);
+  --cb-gradient-hero:      linear-gradient(135deg, #111111 0%, #2C2218 50%, #1A1410 100%);
+  --cb-gradient-glow:      radial-gradient(ellipse at center, rgba(245,166,35,0.15) 0%, transparent 70%);
+
+  /* Animation */
+  --cb-ease-bounce:    cubic-bezier(0.34, 1.56, 0.64, 1);
+  --cb-ease-smooth:    cubic-bezier(0.4, 0, 0.2, 1);
+  --cb-duration-fast:  150ms;
+  --cb-duration-base:  250ms;
+  --cb-duration-slow:  400ms;
+}
+
+/* Additional palettes and utility classes omitted for brevity.
+ * If you want all palettes, bring over the full cowbell-brand.css.
+ */
+
