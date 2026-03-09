@@ -28,41 +28,61 @@ function LobbyPage() {
   const navigate = useNavigate()
 
   const [rooms, setRooms] = useState([])
+  const [myRooms, setMyRooms] = useState([])
   const [loadingRooms, setLoadingRooms] = useState(true)
   const [joiningRoomId, setJoiningRoomId] = useState(null)
   const [error, setError] = useState('')
 
   const hasRooms = useMemo(() => rooms.length > 0, [rooms])
 
-  const loadRooms = async () => {
+  const loadRooms = useCallback(async () => {
     setLoadingRooms(true)
     setError('')
 
-    const { data, error: roomsError } = await supabase
-      .from('rooms_with_counts')
-      .select('*')
-      .in('status', ['lobby', 'live'])
-      .order('created_at', { ascending: false })
+    const [{ data, error: roomsError }, myParticipantsResult] = await Promise.all([
+      supabase
+        .from('rooms_with_counts')
+        .select('*')
+        .in('status', ['lobby', 'live'])
+        .order('created_at', { ascending: false }),
+      user
+        ? supabase
+            .from('room_participants')
+            .select('room_id')
+            .eq('user_id', user.id)
+        : Promise.resolve({ data: [], error: null }),
+    ])
 
     if (roomsError) {
       setError(roomsError.message)
+      setRooms([])
+      setMyRooms([])
       setLoadingRooms(false)
       return
     }
 
-    setRooms(data ?? [])
+    const allRooms = data ?? []
+    setRooms(allRooms)
+
+    if (user && !myParticipantsResult.error) {
+      const joinedIds = new Set((myParticipantsResult.data ?? []).map((p) => p.room_id))
+      setMyRooms(allRooms.filter((r) => joinedIds.has(r.id)))
+    } else {
+      setMyRooms([])
+    }
+
     setLoadingRooms(false)
-  }
+  }, [user])
 
   useEffect(() => {
     loadRooms()
-  }, [])
+  }, [loadRooms])
 
   const debounceRef = useRef(null)
   const debouncedLoadRooms = useCallback(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(() => loadRooms(), 500)
-  }, [])
+  }, [loadRooms])
 
   useEffect(() => {
     const channel = supabase
@@ -94,12 +114,15 @@ function LobbyPage() {
 
     const { error: joinError } = await supabase
       .from('room_participants')
-      .upsert(
+      .insert(
         {
           room_id: roomId,
           user_id: user.id,
         },
-        { onConflict: 'room_id,user_id' },
+        {
+          onConflict: 'room_id,user_id',
+          ignoreDuplicates: true,
+        },
       )
 
     setJoiningRoomId(null)
@@ -146,77 +169,153 @@ function LobbyPage() {
         .
       </div>
 
-      <div className="rounded-2xl border border-slate-900 bg-gradient-to-b from-slate-950 to-slate-900/80 p-6 shadow-xl shadow-black/50">
-        {loadingRooms ? (
-          <div className="flex min-h-[150px] items-center justify-center text-slate-400">
-            Loading rooms...
-          </div>
-        ) : hasRooms ? (
-          <div className="grid gap-4 md:grid-cols-2">
-            {rooms.map((room) => (
-              <div
-                key={room.id}
-                className="flex flex-col justify-between rounded-xl border border-slate-800 bg-slate-950/60 p-4 shadow-sm shadow-black/40"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <h2 className="text-sm font-medium text-slate-100 sm:text-base">
-                      {room.name}
+      <div className="space-y-6">
+        <div className="rounded-2xl border border-slate-900 bg-gradient-to-b from-slate-950 to-slate-900/80 p-6 shadow-xl shadow-black/50">
+          {loadingRooms ? (
+            <div className="flex min-h-[150px] items-center justify-center text-slate-400">
+              Loading rooms...
+            </div>
+          ) : (
+            <>
+              {myRooms.length > 0 && (
+                <div className="mb-6">
+                  <div className="mb-3 flex items-center justify-between">
+                    <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                      My Rooms
                     </h2>
-                    <p className="mt-1 text-xs text-slate-400">
-                      ESPN Game:{' '}
-                      <span className="font-mono text-slate-300">
-                        {room.game_id}
-                      </span>
-                    </p>
+                    <span className="text-[10px] text-slate-500">
+                      Continue games you&apos;ve already joined.
+                    </span>
                   </div>
-                  <span
-                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${statusClasses(
-                      room.status,
-                    )}`}
-                  >
-                    {statusLabel(room.status)}
-                  </span>
-                </div>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {myRooms.map((room) => (
+                      <div
+                        key={room.id}
+                        className="flex flex-col justify-between rounded-xl border border-slate-800 bg-slate-950/80 p-4 shadow-sm shadow-black/40"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <h3 className="text-sm font-medium text-slate-100 sm:text-base">
+                              {room.name}
+                            </h3>
+                            <p className="mt-1 text-xs text-slate-400">
+                              ESPN Game:{' '}
+                              <span className="font-mono text-slate-300">
+                                {room.game_id}
+                              </span>
+                            </p>
+                          </div>
+                          <span
+                            className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${statusClasses(
+                              room.status,
+                            )}`}
+                          >
+                            {statusLabel(room.status)}
+                          </span>
+                        </div>
 
-                <div className="mt-4 flex items-center justify-between">
-                  <div className="text-xs text-slate-400">
-                    <span className="text-slate-100">
-                      {room.participant_count ?? 0}
-                    </span>{' '}
-                    player
-                    {(room.participant_count ?? 0) === 1 ? '' : 's'} in room
+                        <div className="mt-4 flex items-center justify-between">
+                          <div className="text-xs text-slate-400">
+                            <span className="text-slate-100">
+                              {room.participant_count ?? 0}
+                            </span>{' '}
+                            player
+                            {(room.participant_count ?? 0) === 1 ? '' : 's'} in room
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleJoinRoom(room.id)}
+                            disabled={joiningRoomId === room.id}
+                            className="inline-flex items-center justify-center rounded-md bg-emerald-500 px-3 py-1.5 text-xs font-medium text-emerald-950 shadow-sm shadow-emerald-500/30 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-70"
+                          >
+                            {joiningRoomId === room.id ? 'Joining...' : 'Continue'}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => handleJoinRoom(room.id)}
-                    disabled={joiningRoomId === room.id}
-                    className="inline-flex items-center justify-center rounded-md bg-emerald-500 px-3 py-1.5 text-xs font-medium text-emerald-950 shadow-sm shadow-emerald-500/30 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-70"
-                  >
-                    {joiningRoomId === room.id ? 'Joining...' : 'Join Room'}
-                  </button>
                 </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="flex min-h-[150px] flex-col items-center justify-center gap-3 text-center">
-            <p className="text-sm text-slate-300">
-              No live or lobby rooms yet.
-            </p>
-            <p className="text-xs text-slate-500">
-              Be the first —{' '}
-              <button
-                type="button"
-                onClick={() => navigate('/games')}
-                className="text-sky-400 underline underline-offset-2 hover:text-sky-300"
-              >
-                browse today&apos;s games
-              </button>{' '}
-              to tip off a new room.
-            </p>
-          </div>
-        )}
+              )}
+
+              {hasRooms ? (
+                <div>
+                  <div className="mb-3 flex items-center justify-between">
+                    <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                      All Rooms
+                    </h2>
+                    <span className="text-[10px] text-slate-500">
+                      Join a live room or create a new one.
+                    </span>
+                  </div>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {rooms.map((room) => (
+                      <div
+                        key={room.id}
+                        className="flex flex-col justify-between rounded-xl border border-slate-800 bg-slate-950/60 p-4 shadow-sm shadow-black/40"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <h3 className="text-sm font-medium text-slate-100 sm:text-base">
+                              {room.name}
+                            </h3>
+                            <p className="mt-1 text-xs text-slate-400">
+                              ESPN Game:{' '}
+                              <span className="font-mono text-slate-300">
+                                {room.game_id}
+                              </span>
+                            </p>
+                          </div>
+                          <span
+                            className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${statusClasses(
+                              room.status,
+                            )}`}
+                          >
+                            {statusLabel(room.status)}
+                          </span>
+                        </div>
+
+                        <div className="mt-4 flex items-center justify-between">
+                          <div className="text-xs text-slate-400">
+                            <span className="text-slate-100">
+                              {room.participant_count ?? 0}
+                            </span>{' '}
+                            player
+                            {(room.participant_count ?? 0) === 1 ? '' : 's'} in room
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleJoinRoom(room.id)}
+                            disabled={joiningRoomId === room.id}
+                            className="inline-flex items-center justify-center rounded-md bg-emerald-500 px-3 py-1.5 text-xs font-medium text-emerald-950 shadow-sm shadow-emerald-500/30 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-70"
+                          >
+                            {joiningRoomId === room.id ? 'Joining...' : 'Join Room'}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="flex min-h-[150px] flex-col items-center justify-center gap-3 text-center">
+                  <p className="text-sm text-slate-300">
+                    No live or lobby rooms yet.
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    Be the first —{' '}
+                    <button
+                      type="button"
+                      onClick={() => navigate('/games')}
+                      className="text-sky-400 underline underline-offset-2 hover:text-sky-300"
+                    >
+                      browse today&apos;s games
+                    </button>{' '}
+                    to tip off a new room.
+                  </p>
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   )
