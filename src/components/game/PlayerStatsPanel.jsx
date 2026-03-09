@@ -69,13 +69,6 @@ function PlayerStatsPanel({ playerId, playerName, playerSquares, gameId, realtim
     return [...newForPlayer, ...events]
   }, [events, realtimeStatEvents, playerId])
 
-  // Keep events state in sync when realtime adds new ones
-  useEffect(() => {
-    if (playerEvents !== events && playerEvents.length > events.length) {
-      setEvents(playerEvents)
-    }
-  }, [playerEvents])
-
   const statSummary = useMemo(() => {
     return STAT_KEYS.map((cat) => ({
       ...cat,

@@ -18,6 +18,9 @@ function RegisterPage() {
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        data: { username },
+      },
     })
 
     if (signUpError) {
@@ -26,21 +29,8 @@ function RegisterPage() {
       return
     }
 
-    const user = data?.user ?? data?.session?.user
-
-    if (!user) {
-      setError('Unable to complete signup. Please check your email.')
-      setLoading(false)
-      return
-    }
-
-    const { error: profileError } = await supabase.from('profiles').insert({
-      id: user.id,
-      username,
-    })
-
-    if (profileError) {
-      setError(profileError.message)
+    if (!data?.session) {
+      setError('Check your email to confirm your account, then log in.')
       setLoading(false)
       return
     }

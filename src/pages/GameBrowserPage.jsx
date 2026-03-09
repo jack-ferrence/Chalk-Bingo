@@ -47,7 +47,12 @@ function GameBrowserPage() {
     setCreateError('')
     setCreateLoading(true)
 
-    const roomName = customName.trim() || `${game.away.abbr} @ ${game.home.abbr}`
+    const roomName = (customName.trim() || `${game.away.abbr} @ ${game.home.abbr}`).slice(0, 50)
+    if (roomName.length < 3) {
+      setCreateError('Room name must be 3–50 characters.')
+      setCreateLoading(false)
+      return
+    }
 
     const { data, error: roomError } = await supabase
       .from('rooms')
@@ -200,6 +205,8 @@ function GameBrowserPage() {
                   id="room-name"
                   type="text"
                   required
+                  minLength={3}
+                  maxLength={50}
                   value={customName}
                   onChange={(e) => setCustomName(e.target.value)}
                   className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-50 placeholder:text-slate-500 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"

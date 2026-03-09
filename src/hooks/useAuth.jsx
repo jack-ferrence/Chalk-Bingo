@@ -9,6 +9,11 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     let isMounted = true
+    // Prevent onAuthStateChange from advancing state while init() is still
+    // running. signInAnonymously() triggers the listener mid-init, so init()
+    // owns the first loading -> false transition to avoid duplicate state
+    // updates during boot.
+    let initializing = true
 
     const init = async () => {
       const { data, error } = await supabase.auth.getSession()
@@ -22,29 +27,23 @@ export function AuthProvider({ children }) {
         const { data: anonData } = await supabase.auth.signInAnonymously()
         if (anonData?.session) session = anonData.session
       }
-      if (session?.user?.id && session.user.is_anonymous) {
-        await supabase
-          .from('profiles')
-          .upsert(
-            {
-              id: session.user.id,
-              username: `Guest_${session.user.id.slice(0, 8)}`,
-            },
-            { onConflict: 'id' }
-          )
-      }
+      if (!isMounted) return
+      initializing = false
       setSession(session)
       setLoading(false)
     }
 
-    init()
-
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      // Skip events that fire during init() — the anonymous sign-in above
+      // triggers this callback before init() finishes.
+      if (initializing) return
       setSession(newSession)
       setLoading(false)
     })
+
+    init()
 
     return () => {
       isMounted = false

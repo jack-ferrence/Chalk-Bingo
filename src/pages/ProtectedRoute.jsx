@@ -1,24 +1,22 @@
-import { Navigate, Outlet, useLocation } from 'react-router-dom'
+import { Navigate, Outlet } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth.jsx'
 
 function ProtectedRoute() {
-  const { session, loading } = useAuth()
-  const location = useLocation()
+  const { user, loading } = useAuth()
 
   if (loading) {
     return (
-      <div className="flex min-h-[50vh] items-center justify-center text-slate-400">
-        Checking your session...
+      <div className="flex min-h-[40vh] items-center justify-center">
+        <span className="text-sm text-text-secondary">Loading...</span>
       </div>
     )
   }
 
-  if (!session) {
-    return <Navigate to="/login" replace state={{ from: location }} />
+  if (!user) {
+    return <Navigate to="/login" replace />
   }
 
   return <Outlet />
 }
 
 export default ProtectedRoute
-

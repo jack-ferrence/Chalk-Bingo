@@ -14,13 +14,27 @@ function parsePlayerStats(athlete, period) {
   if (!pid) return events
 
   const stats = athlete.stats ?? []
-  // ESPN box score stat order (standard): MIN PTS REB AST STL BLK TO FG 3PT FT +/- (varies slightly)
-  // We'll use the stat labels from the header to be safe, but also provide a positional fallback.
+
+  // Require at least 6 values to have meaningful data (MIN PTS REB AST STL BLK).
+  // Fewer than that means the array is truncated or malformed — skip the player.
+  if (stats.length < 6) {
+    console.warn(`statsProvider: skipping ${pname} (${pid}) — stats array too short (${stats.length}) for positional parsing`)
+    return events
+  }
+
+  // ESPN standard order: MIN PTS REB AST STL BLK TO FG 3PT FT +/-
+  // This is a best-effort fallback; mapStatsByLabel() is preferred.
+  console.warn(
+    `statsProvider: using positional fallback for ${pname} (${pid}) — ` +
+    'labels were missing or unrecognised. Check ESPN response for this game.'
+  )
+
   const pts = Number(stats[1]) || 0
   const reb = Number(stats[2]) || 0
   const ast = Number(stats[3]) || 0
   const stl = Number(stats[4]) || 0
   const blk = Number(stats[5]) || 0
+  // Index 8 is 3PT in the standard layout; fall back to index 7 if absent.
   const threes = parseThreePointers(stats[8] ?? stats[7] ?? '0')
 
   for (const threshold of STAT_THRESHOLDS.points) {
@@ -91,6 +105,8 @@ async function fetchEspnStats(espnGameId) {
       if (mapped.length) {
         events.push(...mapped)
       } else {
+        // Labels were empty or player had no qualifying stats via label path.
+        // parsePlayerStats() will warn if it resorts to positional indexing.
         events.push(...parsePlayerStats(athlete, period))
       }
     }
@@ -99,8 +115,41 @@ async function fetchEspnStats(espnGameId) {
   return events
 }
 
+// ---------------------------------------------------------------------------
+// Label aliases: maps every known ESPN variant to a single canonical key.
+// Keeps mapStatsByLabel() robust against ESPN API inconsistencies.
+// ---------------------------------------------------------------------------
+const LABEL_ALIASES = {
+  // Points
+  PTS: 'PTS', POINTS: 'PTS',
+  // Rebounds (total)
+  REB: 'REB', REBS: 'REB', TRB: 'REB', TR: 'REB',
+  // Offensive / defensive rebounds — summed into REB when REB is absent
+  OR: 'OREB', OREB: 'OREB', OFF: 'OREB',
+  DR: 'DREB', DREB: 'DREB', DEF: 'DREB',
+  // Assists
+  AST: 'AST', ASSISTS: 'AST', AS: 'AST',
+  // Steals
+  STL: 'STL', STEALS: 'STL', ST: 'STL',
+  // Blocks
+  BLK: 'BLK', BLOCKS: 'BLK', BS: 'BLK',
+  // Three-pointers made (all ESPN variants)
+  '3PT': '3PM', '3PM': '3PM', '3P': '3PM', FG3: '3PM', '3FGM': '3PM',
+  // Field goals (not directly used, but normalised to avoid confusion
+  // with positional slots when labels are iterated)
+  FGM: 'FGM', FGA: 'FGA', FG: 'FGM',
+  FTM: 'FTM', FTA: 'FTA', FT: 'FTM',
+  // Turnovers / plus-minus — captured so they don't shadow other slots
+  TO: 'TO', TOV: 'TO', TU: 'TO',
+  '+/-': 'PM', PM: 'PM',
+  // Minutes
+  MIN: 'MIN',
+}
+
 /**
  * Label-aware stat mapping. More reliable than positional indexing.
+ * Returns an empty array only when pid is missing — never due to label
+ * variants, thanks to LABEL_ALIASES normalisation above.
  */
 function mapStatsByLabel(athlete, labels, period) {
   const events = []
@@ -108,17 +157,28 @@ function mapStatsByLabel(athlete, labels, period) {
   const pname = athlete.athlete?.displayName ?? ''
   if (!pid || !labels.length) return events
 
+  // Build a normalised stat map keyed by canonical label names.
   const statMap = {}
   labels.forEach((label, i) => {
-    statMap[label.toUpperCase()] = athlete.stats[i] ?? '0'
+    const canonical = LABEL_ALIASES[label.toUpperCase()] ?? label.toUpperCase()
+    // First occurrence wins; don't let a later duplicate overwrite.
+    if (!(canonical in statMap)) {
+      statMap[canonical] = athlete.stats[i] ?? '0'
+    }
   })
 
   const pts = Number(statMap['PTS']) || 0
-  const reb = Number(statMap['REB']) || 0
-  const ast = Number(statMap['AST']) || 0
   const stl = Number(statMap['STL']) || 0
   const blk = Number(statMap['BLK']) || 0
-  const threes = parseThreePointers(statMap['3PT'] ?? statMap['3PM'] ?? '0')
+  const threes = parseThreePointers(statMap['3PM'] ?? '0')
+
+  // Prefer the explicit total rebounds label; fall back to OR + DR sum.
+  let reb = Number(statMap['REB']) || 0
+  if (!reb && (statMap['OREB'] !== undefined || statMap['DREB'] !== undefined)) {
+    reb = (Number(statMap['OREB']) || 0) + (Number(statMap['DREB']) || 0)
+  }
+
+  const ast = Number(statMap['AST']) || 0
 
   for (const threshold of STAT_THRESHOLDS.points) {
     if (pts >= threshold) {
@@ -245,7 +305,7 @@ async function getStatsForGame(gameId, source = 'mock') {
   return generateMockEvents(gameId)
 }
 
-module.exports = {
+export {
   getStatsForGame,
   fetchLiveEspnGames,
   generateMockEvents,

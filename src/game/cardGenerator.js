@@ -2,6 +2,22 @@ const TOTAL_SQUARES = 25
 const CENTER_INDEX = 12
 const NON_CENTER_SQUARES = TOTAL_SQUARES - 1
 
+// Canonical stat_type strings — must match statsProvider.js output exactly.
+// The RPC (005_generate_card_rpc.sql) uses the same list.
+export const STAT_TYPES = [
+  'points_10',
+  'points_15',
+  'points_20',
+  'points_25',
+  'rebound_5',
+  'rebound_10',
+  'assist_5',
+  'assist_10',
+  'three_pointer',
+  'steal',
+  'block',
+]
+
 const randomId = () => {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
     return crypto.randomUUID()

@@ -1,27 +1,27 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 
+// Keys are ESPN numeric player IDs (the player_id stored in stat_events).
 const PLAYER_NAMES = {
-  player_lebron: 'LeBron James',
-  player_curry: 'Stephen Curry',
-  player_giannis: 'Giannis Antetokounmpo',
-  player_jokic: 'Nikola Jokić',
-  player_durant: 'Kevin Durant',
-  player_tatum: 'Jayson Tatum',
-  player_doncic: 'Luka Dončić',
-  player_embiid: 'Joel Embiid',
-  player_booker: 'Devin Booker',
-  player_mitchell: 'Donovan Mitchell',
+  '2544':    'LeBron James',
+  '3975':    'Stephen Curry',
+  '3032977': 'Giannis Antetokounmpo',
+  '3112335': 'Nikola Jokić',
+  '3202':    'Kevin Durant',
+  '4065648': 'Jayson Tatum',
+  '3945274': 'Luka Dončić',
+  '3059318': 'Joel Embiid',
+  '3136193': 'Devin Booker',
+  '3908809': 'Donovan Mitchell',
 }
 
 function statTypeLabel(statType) {
-  if (statType === 'points_10') return '10+ PTS'
-  if (statType === 'points_15') return '15+ PTS'
-  if (statType === 'three_pointer') return '3PT Made'
-  if (statType === 'rebound') return 'Rebound'
-  if (statType === 'assist') return 'Assist'
-  if (statType === 'steal') return 'Steal'
-  if (statType === 'block') return 'Block'
+  if (statType.startsWith('points_'))  return `${statType.split('_')[1]}+ PTS`
+  if (statType.startsWith('rebound_')) return `${statType.split('_')[1]}+ REB`
+  if (statType.startsWith('assist_'))  return `${statType.split('_')[1]}+ AST`
+  if (statType === 'three_pointer') return '1+ 3PM'
+  if (statType === 'steal')         return '1+ STL'
+  if (statType === 'block')         return '1+ BLK'
   return statType
 }
 

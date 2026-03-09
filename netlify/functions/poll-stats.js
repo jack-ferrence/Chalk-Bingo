@@ -1,6 +1,6 @@
-const Sentry = require('@sentry/node')
-const { createClient } = require('@supabase/supabase-js')
-const { getStatsForGame } = require('../../src/lib/statsProvider')
+import * as Sentry from '@sentry/node'
+import { createClient } from '@supabase/supabase-js'
+import { getStatsForGame } from '../../src/lib/statsProvider.js'
 
 const LOCK_KEY = 'poll-stats'
 const LOCK_TTL_SECONDS = 50
@@ -30,7 +30,7 @@ if (process.env.SENTRY_DSN) {
  *   STATS_SOURCE              — "espn" | "mock" (default: "mock")
  *   SENTRY_DSN                — Sentry DSN for error monitoring
  */
-exports.handler = async function () {
+export async function handler() {
   const url = process.env.SUPABASE_URL
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
   const statsSource = (process.env.STATS_SOURCE || 'mock').toLowerCase()

@@ -141,7 +141,7 @@ function LobbyPage() {
       <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 text-xs text-slate-400 sm:text-sm">
         Signed in as{' '}
         <span className="font-medium text-sky-400">
-          {user?.email ?? 'unknown'}
+          {user?.is_anonymous ? `Guest_${user.id.slice(0, 8)}` : (user?.email ?? 'Guest')}
         </span>
         .
       </div>
