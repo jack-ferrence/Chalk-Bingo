@@ -26,20 +26,18 @@ function GamePage() {
     participantJoined,
     initChatMessages,
     resetStatEvents,
-  } = useRoomChannel(roomId, room?.game_id, card?.id)
+  } = useRoomChannel(roomId, room?.game_id, user?.id)
 
   // Apply room patches from the consolidated channel
   useEffect(() => {
-    if (roomPatch && roomPatch.id === room?.id) {
-      setRoom((prev) => ({ ...prev, ...roomPatch }))
-    }
+    if (!roomPatch) return
+    setRoom((prev) => (prev ? { ...prev, ...roomPatch } : prev))
   }, [roomPatch])
 
   // Apply card patches from the consolidated channel
   useEffect(() => {
-    if (cardPatch && cardPatch.id === card?.id) {
-      setCard((prev) => ({ ...prev, ...cardPatch }))
-    }
+    if (!cardPatch) return
+    setCard((prev) => (prev ? { ...prev, ...cardPatch } : prev))
   }, [cardPatch])
 
   // Load room
@@ -103,9 +101,17 @@ function GamePage() {
       const rpcParams = { p_room_id: roomId }
       if (players && players.length > 0) rpcParams.p_players = players
 
-      const { data, error: rpcError } = await supabase
+      let { data, error: rpcError } = await supabase
         .rpc('generate_card_for_room', rpcParams)
         .single()
+
+      if (rpcError && rpcError.message?.toLowerCase().includes('function') && rpcParams.p_players) {
+        // Deployed function predates p_players parameter — retry without it.
+        console.warn('generate_card_for_room: p_players rejected; retrying without roster. Run run_all_migrations.sql to fix.', rpcError)
+        ;({ data, error: rpcError } = await supabase
+          .rpc('generate_card_for_room', { p_room_id: roomId })
+          .single())
+      }
 
       if (rpcError) {
         setError(rpcError.message)
@@ -122,14 +128,6 @@ function GamePage() {
     if (!card?.squares) return []
     return Array.isArray(card.squares[0]) ? card.squares.flat() : card.squares.slice(0, 25)
   }, [card?.squares])
-
-  const squareMap = useMemo(() => {
-    const m = new Map()
-    for (const sq of flatSquares) {
-      if (sq?.id) m.set(sq.id, sq)
-    }
-    return m
-  }, [flatSquares])
 
   const isCreator = room?.created_by === user?.id
 
@@ -169,7 +167,6 @@ function GamePage() {
       card={card}
       loadingCard={loadingCard}
       flatSquares={flatSquares}
-      squareMap={squareMap}
       user={user}
       roomId={roomId}
       isCreator={isCreator}

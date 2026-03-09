@@ -8,8 +8,12 @@ const MAX_CHAT = 100
  * Single multiplexed Supabase Realtime channel per room.
  * Listens to: rooms, cards, stat_events, chat_messages, room_participants.
  * Returns dispatched data + stable callbacks for child components.
+ *
+ * userId should be the authenticated user's UUID (from useAuth), not
+ * card?.id. The user id is stable from the moment auth resolves, so the
+ * channel never needs to re-subscribe when the card loads asynchronously.
  */
-export function useRoomChannel(roomId, gameId, cardId) {
+export function useRoomChannel(roomId, gameId, userId) {
   const [roomPatch, setRoomPatch] = useState(null)
   const [cardPatch, setCardPatch] = useState(null)
   const [leaderboardCards, setLeaderboardCards] = useState([])
@@ -20,6 +24,8 @@ export function useRoomChannel(roomId, gameId, cardId) {
   const statBufferRef = useRef([])
   const statFlushTimerRef = useRef(null)
   const chatInitializedRef = useRef(false)
+  const userIdRef = useRef(userId)
+  userIdRef.current = userId
 
   const flushStatBuffer = useCallback(() => {
     statFlushTimerRef.current = null
@@ -66,7 +72,8 @@ export function useRoomChannel(roomId, gameId, cardId) {
         (payload) => {
           const row = payload.new
           if (!row?.user_id) return
-          if (cardId && row.id === cardId) {
+          const currentUserId = userIdRef.current
+          if (currentUserId && row.user_id === currentUserId) {
             setCardPatch(row)
           }
           setLeaderboardCards((prev) => {
@@ -117,7 +124,7 @@ export function useRoomChannel(roomId, gameId, cardId) {
       }
       chatInitializedRef.current = false
     }
-  }, [roomId, gameId, cardId, flushStatBuffer, appendChatMessage])
+  }, [roomId, gameId, flushStatBuffer, appendChatMessage])
 
   return {
     roomPatch,

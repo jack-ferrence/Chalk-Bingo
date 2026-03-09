@@ -119,12 +119,15 @@ create policy "stat_events_select_all"
   to authenticated
   using (true);
 
--- profiles: users can read and insert their own profile row
-create policy "profiles_select_own"
+-- All authenticated users can read all profiles.
+-- Usernames are not sensitive; leaderboard and chat both need to resolve
+-- other players' usernames. See also 011_fix_profiles_rls.sql for the
+-- migration that updates existing databases provisioned from this file.
+create policy "profiles_select_all"
   on public.profiles
   for select
   to authenticated
-  using (id = auth.uid());
+  using (true);
 
 create policy "profiles_insert_own"
   on public.profiles

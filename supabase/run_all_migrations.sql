@@ -61,7 +61,14 @@ alter table public.stat_events enable row level security;
 alter table public.room_participants enable row level security;
 
 create policy "rooms_select_all" on public.rooms for select to authenticated using (true);
-create policy "cards_select_own" on public.cards for select to authenticated using (user_id = auth.uid());
+-- cards_select_own intentionally replaced by cards_select_same_room (see 010_cards_rls_leaderboard.sql).
+-- Participants can read all cards in rooms they have joined (required for the leaderboard).
+create policy "cards_select_same_room" on public.cards for select to authenticated
+  using (
+    room_id in (
+      select rp.room_id from public.room_participants rp where rp.user_id = auth.uid()
+    )
+  );
 create policy "cards_insert_own" on public.cards for insert to authenticated with check (user_id = auth.uid());
 create policy "cards_update_own" on public.cards for update to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
 create policy "cards_delete_own" on public.cards for delete to authenticated using (user_id = auth.uid());
@@ -430,10 +437,17 @@ alter table public.polling_locks enable row level security;
 -- No policies = no access for anon/authenticated roles. Service-role bypasses RLS.
 
 -- ── Chat message pruning trigger ─────────────────────────────────────────────
--- Keeps at most 200 messages per room. Fires after each INSERT.
+-- Keeps at most 200 messages per room. Only runs when count > 250 to avoid
+-- expensive delete on every insert in busy rooms.
 create or replace function public.prune_chat_messages()
 returns trigger language plpgsql security definer set search_path = public as $$
+declare
+  v_count int;
 begin
+  select count(*)::int into v_count from chat_messages where room_id = NEW.room_id;
+  if v_count <= 250 then
+    return NEW;
+  end if;
   delete from chat_messages
   where room_id = NEW.room_id
     and id not in (
@@ -504,6 +518,70 @@ begin
     'participants_deleted', v_participants
   );
 end; $$;
+
+-- -----------------------------------------------------------------------------
+-- 010_cards_rls_leaderboard
+-- Replaces cards_select_own with cards_select_same_room so leaderboard
+-- queries can read all cards in a room the user has joined.
+-- (Already applied inline above; this block is a no-op on fresh installs.)
+-- -----------------------------------------------------------------------------
+drop policy if exists "cards_select_own" on public.cards;
+
+-- cards_select_same_room is already created above; guard against re-running.
+do $$ begin
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'public'
+      and tablename  = 'cards'
+      and policyname = 'cards_select_same_room'
+  ) then
+    execute $p$
+      create policy "cards_select_same_room" on public.cards
+        for select to authenticated
+        using (
+          room_id in (
+            select rp.room_id from public.room_participants rp where rp.user_id = auth.uid()
+          )
+        )
+    $p$;
+  end if;
+end $$;
+
+-- -----------------------------------------------------------------------------
+-- 012_auto_create_profile
+-- Automatically creates a profile row for every new auth.users row.
+-- Reads the requested username from raw_user_meta_data, falling back to
+-- Guest_<first8> for anonymous users or users without metadata.
+-- -----------------------------------------------------------------------------
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.profiles (id, username)
+  values (
+    NEW.id,
+    coalesce(
+      NEW.raw_user_meta_data->>'username',
+      'Guest_' || left(NEW.id::text, 8)
+    )
+  )
+  on conflict (id) do update
+  set username = coalesce(
+    excluded.username,
+    profiles.username
+  );
+
+  return NEW;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_new_user();
 
 -- =============================================================================
 -- For EXISTING projects only (you already ran an older version of this file)
