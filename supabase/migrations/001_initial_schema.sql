@@ -1,4 +1,4 @@
--- Initial schema for sports-bingo
+-- Initial schema for Cowbell
 
 -- Ensure required extension for gen_random_uuid (usually enabled by default on Supabase)
 create extension if not exists "pgcrypto";
@@ -12,6 +12,7 @@ create table if not exists public.profiles (
   name_font text default 'default',
   ui_theme text default 'default',
   username_changes_remaining int default 0,
+  user_theme text default 'challenger',
   created_at timestamptz default now(),
   constraint profiles_name_font_check check (
     name_font in ('default','mono','display','serif','rounded')
@@ -31,7 +32,8 @@ create table if not exists public.rooms (
   game_id text not null,
   status text default 'lobby',
   created_at timestamptz default now(),
-  starts_at timestamptz
+  starts_at timestamptz,
+  room_theme text default null
 );
 
 -- cards

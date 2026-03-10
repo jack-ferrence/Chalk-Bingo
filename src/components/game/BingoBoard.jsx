@@ -52,7 +52,7 @@ function BingoBoard({ squares = [], winningSquares = [], winningLines = [], hasB
         {/* Header strip */}
         <div className="mb-2 flex items-center justify-center">
           <span className="font-display text-[10px] font-bold uppercase tracking-[0.25em] text-accent-gold/60">
-            Sports Bingo
+            Chalk
           </span>
         </div>
 

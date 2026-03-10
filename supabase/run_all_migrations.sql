@@ -1,5 +1,5 @@
 -- =============================================================================
--- Sports Bingo — full schema for Supabase SQL Editor (run once on a fresh project)
+-- Cowbell — full schema for Supabase SQL Editor (run once on a fresh project)
 -- Combines migrations 001–005 + Realtime publication.
 -- Cards are stored as FLAT 25-element JSON arrays (not 5×5 grids).
 -- =============================================================================
@@ -18,6 +18,7 @@ create table if not exists public.profiles (
   name_font text default 'default',
   ui_theme text default 'default',
   username_changes_remaining int default 0,
+   user_theme text default 'challenger',
   created_at timestamptz default now(),
   constraint profiles_name_font_check check (
     name_font in ('default','mono','display','serif','rounded')
@@ -36,7 +37,8 @@ create table if not exists public.rooms (
   game_id text not null,
   status text default 'lobby' check (status in ('lobby', 'live', 'finished')),
   created_at timestamptz default now(),
-  starts_at timestamptz
+  starts_at timestamptz,
+  room_theme text default null
 );
 
 create table if not exists public.cards (

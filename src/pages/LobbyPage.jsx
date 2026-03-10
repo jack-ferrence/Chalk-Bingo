@@ -10,17 +10,70 @@ function statusLabel(status) {
   return status
 }
 
-function statusClasses(status) {
+function StatusBadge({ status }) {
   if (status === 'live') {
-    return 'bg-emerald-500/10 text-emerald-300 ring-1 ring-emerald-500/40'
+    return (
+      <span
+        className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5"
+        style={{
+          background: 'rgba(255,59,59,0.12)',
+          color: 'var(--ch-live)',
+          border: '1px solid rgba(255,59,59,0.3)',
+          fontSize: 10,
+          fontWeight: 700,
+          letterSpacing: '0.15em',
+          textTransform: 'uppercase',
+        }}
+      >
+        <span
+          className="inline-block h-1.5 w-1.5 rounded-full"
+          style={{ background: 'var(--ch-live)', animation: 'ch-pulse 1.5s ease-in-out infinite' }}
+        />
+        Live
+      </span>
+    )
   }
   if (status === 'lobby') {
-    return 'bg-sky-500/10 text-sky-300 ring-1 ring-sky-500/40'
+    return (
+      <span
+        className="inline-flex items-center rounded-full px-2.5 py-0.5"
+        style={{
+          background: 'rgba(245,166,35,0.1)',
+          color: 'var(--ch-primary)',
+          border: '1px solid rgba(245,166,35,0.25)',
+          fontSize: 10,
+          fontWeight: 700,
+          letterSpacing: '0.15em',
+          textTransform: 'uppercase',
+        }}
+      >
+        Lobby
+      </span>
+    )
   }
   if (status === 'finished') {
-    return 'bg-slate-700/40 text-slate-300 ring-1 ring-slate-600/60'
+    return (
+      <span
+        className="inline-flex items-center rounded-full px-2.5 py-0.5"
+        style={{
+          background: 'var(--ch-gray-800)',
+          color: 'var(--ch-gray-400)',
+          border: '1px solid var(--ch-gray-700)',
+          fontSize: 10,
+          fontWeight: 700,
+          letterSpacing: '0.15em',
+          textTransform: 'uppercase',
+        }}
+      >
+        Finished
+      </span>
+    )
   }
-  return 'bg-slate-700/40 text-slate-300 ring-1 ring-slate-600/60'
+  return (
+    <span className="inline-flex items-center rounded-full px-2.5 py-0.5" style={{ fontSize: 10, fontWeight: 700, color: 'var(--ch-gray-400)' }}>
+      {statusLabel(status)}
+    </span>
+  )
 }
 
 function LobbyPage() {
@@ -106,6 +159,8 @@ function LobbyPage() {
     }
   }, [debouncedLoadRooms])
 
+  const handleContinue = (roomId) => navigate(`/room/${roomId}`)
+
   const handleJoinRoom = async (roomId) => {
     if (!user) return
 
@@ -114,20 +169,15 @@ function LobbyPage() {
 
     const { error: joinError } = await supabase
       .from('room_participants')
-      .insert(
-        {
-          room_id: roomId,
-          user_id: user.id,
-        },
-        {
-          onConflict: 'room_id,user_id',
-          ignoreDuplicates: true,
-        },
+      .upsert(
+        { room_id: roomId, user_id: user.id },
+        { onConflict: 'room_id,user_id', ignoreDuplicates: true },
       )
 
     setJoiningRoomId(null)
 
     if (joinError) {
+      console.error('Join room error:', joinError)
       setError(joinError.message)
       return
     }
@@ -135,187 +185,213 @@ function LobbyPage() {
     navigate(`/room/${roomId}`)
   }
 
+  const cardStyle = {
+    background: '#1A1410',
+    border: '1px solid rgba(245,166,35,0.1)',
+    borderRadius: 'var(--ch-radius-lg)',
+    transition: 'all 0.2s ease',
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-50">
+          <h1 style={{ fontFamily: 'var(--ch-font-display)', fontSize: 56, color: 'var(--ch-white)', lineHeight: 1 }}>
             Lobby
           </h1>
-          <p className="mt-1 text-sm text-slate-400">
+          <p className="mt-2" style={{ color: 'var(--ch-gray-400)', fontSize: 15 }}>
             Join a live NBA room or create your own bingo game.
           </p>
         </div>
         <button
           type="button"
           onClick={() => navigate('/games')}
-          className="inline-flex items-center justify-center rounded-md bg-sky-500 px-4 py-2 text-sm font-medium text-white shadow-sm shadow-sky-500/30 transition hover:bg-sky-400"
+          className="cursor-pointer hover:underline"
+          style={{ color: 'var(--ch-primary)', fontWeight: 600, fontSize: 14, background: 'none', border: 'none' }}
         >
-          Browse Games &amp; Create Room
+          Browse Games &amp; Create Room →
         </button>
       </div>
 
       {error && (
-        <div className="rounded-md border border-red-500/40 bg-red-950/40 px-3 py-2 text-sm text-red-200">
+        <div className="px-3 py-2 text-sm" style={{ background: 'rgba(255,59,59,0.08)', border: '1px solid rgba(255,59,59,0.3)', borderRadius: 'var(--ch-radius-md)', color: 'var(--ch-live)' }}>
           {error}
         </div>
       )}
 
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 text-xs text-slate-400 sm:text-sm">
+      <div
+        className="p-4 text-sm"
+        style={{
+          background: '#1A1410',
+          borderLeft: '3px solid var(--ch-primary)',
+          borderRadius: 'var(--ch-radius-md)',
+          color: 'var(--ch-gray-400)',
+        }}
+      >
         Signed in as{' '}
-        <span className="font-medium text-sky-400">
+        <span style={{ color: 'var(--ch-primary)', fontWeight: 600 }}>
           {user?.is_anonymous ? `Guest_${user.id.slice(0, 8)}` : (user?.email ?? 'Guest')}
         </span>
-        .
       </div>
 
       <div className="space-y-6">
-        <div className="rounded-2xl border border-slate-900 bg-gradient-to-b from-slate-950 to-slate-900/80 p-6 shadow-xl shadow-black/50">
-          {loadingRooms ? (
-            <div className="flex min-h-[150px] items-center justify-center text-slate-400">
-              Loading rooms...
-            </div>
-          ) : (
-            <>
-              {myRooms.length > 0 && (
-                <div className="mb-6">
-                  <div className="mb-3 flex items-center justify-between">
-                    <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                      My Rooms
-                    </h2>
-                    <span className="text-[10px] text-slate-500">
-                      Continue games you&apos;ve already joined.
-                    </span>
-                  </div>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    {myRooms.map((room) => (
-                      <div
-                        key={room.id}
-                        className="flex flex-col justify-between rounded-xl border border-slate-800 bg-slate-950/80 p-4 shadow-sm shadow-black/40"
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <h3 className="text-sm font-medium text-slate-100 sm:text-base">
-                              {room.name}
-                            </h3>
-                            <p className="mt-1 text-xs text-slate-400">
-                              ESPN Game:{' '}
-                              <span className="font-mono text-slate-300">
-                                {room.game_id}
-                              </span>
-                            </p>
-                          </div>
-                          <span
-                            className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${statusClasses(
-                              room.status,
-                            )}`}
-                          >
-                            {statusLabel(room.status)}
-                          </span>
-                        </div>
-
-                        <div className="mt-4 flex items-center justify-between">
-                          <div className="text-xs text-slate-400">
-                            <span className="text-slate-100">
-                              {room.participant_count ?? 0}
-                            </span>{' '}
-                            player
-                            {(room.participant_count ?? 0) === 1 ? '' : 's'} in room
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => handleJoinRoom(room.id)}
-                            disabled={joiningRoomId === room.id}
-                            className="inline-flex items-center justify-center rounded-md bg-emerald-500 px-3 py-1.5 text-xs font-medium text-emerald-950 shadow-sm shadow-emerald-500/30 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-70"
-                          >
-                            {joiningRoomId === room.id ? 'Joining...' : 'Continue'}
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+        {loadingRooms ? (
+          <div className="flex min-h-[200px] items-center justify-center" style={{ color: 'var(--ch-gray-500)' }}>
+            Loading rooms...
+          </div>
+        ) : (
+          <>
+            {myRooms.length > 0 && (
+              <div>
+                <div className="mb-3 flex items-center justify-between">
+                  <h2 style={{ fontFamily: 'var(--ch-font-body)', fontWeight: 700, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--ch-primary)' }}>
+                    My Rooms
+                  </h2>
+                  <span style={{ fontSize: 11, color: 'var(--ch-gray-500)' }}>
+                    Continue games you&apos;ve already joined.
+                  </span>
                 </div>
-              )}
-
-              {hasRooms ? (
-                <div>
-                  <div className="mb-3 flex items-center justify-between">
-                    <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                      All Rooms
-                    </h2>
-                    <span className="text-[10px] text-slate-500">
-                      Join a live room or create a new one.
-                    </span>
-                  </div>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    {rooms.map((room) => (
-                      <div
-                        key={room.id}
-                        className="flex flex-col justify-between rounded-xl border border-slate-800 bg-slate-950/60 p-4 shadow-sm shadow-black/40"
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <h3 className="text-sm font-medium text-slate-100 sm:text-base">
-                              {room.name}
-                            </h3>
-                            <p className="mt-1 text-xs text-slate-400">
-                              ESPN Game:{' '}
-                              <span className="font-mono text-slate-300">
-                                {room.game_id}
-                              </span>
-                            </p>
-                          </div>
-                          <span
-                            className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${statusClasses(
-                              room.status,
-                            )}`}
-                          >
-                            {statusLabel(room.status)}
-                          </span>
-                        </div>
-
-                        <div className="mt-4 flex items-center justify-between">
-                          <div className="text-xs text-slate-400">
-                            <span className="text-slate-100">
-                              {room.participant_count ?? 0}
-                            </span>{' '}
-                            player
-                            {(room.participant_count ?? 0) === 1 ? '' : 's'} in room
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => handleJoinRoom(room.id)}
-                            disabled={joiningRoomId === room.id}
-                            className="inline-flex items-center justify-center rounded-md bg-emerald-500 px-3 py-1.5 text-xs font-medium text-emerald-950 shadow-sm shadow-emerald-500/30 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-70"
-                          >
-                            {joiningRoomId === room.id ? 'Joining...' : 'Join Room'}
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <div className="flex min-h-[150px] flex-col items-center justify-center gap-3 text-center">
-                  <p className="text-sm text-slate-300">
-                    No live or lobby rooms yet.
-                  </p>
-                  <p className="text-xs text-slate-500">
-                    Be the first —{' '}
-                    <button
-                      type="button"
-                      onClick={() => navigate('/games')}
-                      className="text-sky-400 underline underline-offset-2 hover:text-sky-300"
+                <div className="grid gap-4 md:grid-cols-2">
+                  {myRooms.map((room) => (
+                    <div
+                      key={room.id}
+                      className="group flex flex-col justify-between p-4"
+                      style={cardStyle}
+                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(245,166,35,0.3)'; e.currentTarget.style.boxShadow = 'var(--ch-shadow-amber)' }}
+                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(245,166,35,0.1)'; e.currentTarget.style.boxShadow = 'none' }}
                     >
-                      browse today&apos;s games
-                    </button>{' '}
-                    to tip off a new room.
-                  </p>
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <h3 style={{ color: 'var(--ch-white)', fontWeight: 700, fontSize: 17 }}>
+                            {room.name}
+                          </h3>
+                          <p className="mt-1" style={{ color: 'var(--ch-gray-500)', fontSize: 13 }}>
+                            ESPN Game:{' '}
+                            <span className="font-mono" style={{ color: 'var(--ch-gray-400)' }}>
+                              {room.game_id}
+                            </span>
+                          </p>
+                        </div>
+                        <StatusBadge status={room.status} />
+                      </div>
+
+                      <div className="mt-4 flex items-center justify-between">
+                        <div style={{ color: 'var(--ch-gray-400)', fontSize: 13 }}>
+                          <span style={{ color: 'var(--ch-white)' }}>
+                            {room.participant_count ?? 0}
+                          </span>{' '}
+                          player
+                          {(room.participant_count ?? 0) === 1 ? '' : 's'} in room
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleContinue(room.id)}
+                          className="inline-flex items-center justify-center px-4 py-1.5 cursor-pointer"
+                          style={{
+                            background: 'var(--ch-gradient-primary)',
+                            color: 'var(--ch-secondary)',
+                            borderRadius: 'var(--ch-radius-md)',
+                            fontWeight: 700,
+                            fontSize: 13,
+                            border: 'none',
+                            boxShadow: 'var(--ch-shadow-amber)',
+                          }}
+                        >
+                          Continue
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              )}
-            </>
-          )}
-        </div>
+              </div>
+            )}
+
+            {hasRooms ? (
+              <div>
+                <div className="mb-3 flex items-center justify-between">
+                  <h2 style={{ fontFamily: 'var(--ch-font-body)', fontWeight: 700, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--ch-primary)' }}>
+                    All Rooms
+                  </h2>
+                  <span style={{ fontSize: 11, color: 'var(--ch-gray-500)' }}>
+                    Join a live room or create a new one.
+                  </span>
+                </div>
+                <div className="grid gap-4 md:grid-cols-2">
+                  {rooms.map((room) => (
+                    <div
+                      key={room.id}
+                      className="group flex flex-col justify-between p-4"
+                      style={cardStyle}
+                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(245,166,35,0.3)'; e.currentTarget.style.boxShadow = 'var(--ch-shadow-amber)' }}
+                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(245,166,35,0.1)'; e.currentTarget.style.boxShadow = 'none' }}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <h3 style={{ color: 'var(--ch-white)', fontWeight: 700, fontSize: 17 }}>
+                            {room.name}
+                          </h3>
+                          <p className="mt-1" style={{ color: 'var(--ch-gray-500)', fontSize: 13 }}>
+                            ESPN Game:{' '}
+                            <span className="font-mono" style={{ color: 'var(--ch-gray-400)' }}>
+                              {room.game_id}
+                            </span>
+                          </p>
+                        </div>
+                        <StatusBadge status={room.status} />
+                      </div>
+
+                      <div className="mt-4 flex items-center justify-between">
+                        <div style={{ color: 'var(--ch-gray-400)', fontSize: 13 }}>
+                          <span style={{ color: 'var(--ch-white)' }}>
+                            {room.participant_count ?? 0}
+                          </span>{' '}
+                          player
+                          {(room.participant_count ?? 0) === 1 ? '' : 's'} in room
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleJoinRoom(room.id)}
+                          disabled={joiningRoomId === room.id}
+                          className="inline-flex items-center justify-center px-4 py-1.5 cursor-pointer transition-colors disabled:cursor-not-allowed disabled:opacity-70"
+                          style={{
+                            background: 'transparent',
+                            color: 'var(--ch-primary)',
+                            border: '2px solid var(--ch-primary)',
+                            borderRadius: 'var(--ch-radius-md)',
+                            fontWeight: 700,
+                            fontSize: 13,
+                          }}
+                          onMouseEnter={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.background = 'var(--ch-primary)'; e.currentTarget.style.color = 'var(--ch-secondary)' } }}
+                          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--ch-primary)' }}
+                        >
+                          {joiningRoomId === room.id ? 'Joining...' : 'Join Room'}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="flex min-h-[200px] flex-col items-center justify-center gap-3 text-center">
+                <p style={{ color: 'var(--ch-gray-300)', fontSize: 14 }}>
+                  No live or lobby rooms yet.
+                </p>
+                <p style={{ color: 'var(--ch-gray-500)', fontSize: 13 }}>
+                  Be the first —{' '}
+                  <button
+                    type="button"
+                    onClick={() => navigate('/games')}
+                    className="underline underline-offset-2 cursor-pointer hover:opacity-80"
+                    style={{ color: 'var(--ch-primary)', background: 'none', border: 'none' }}
+                  >
+                    browse today&apos;s games
+                  </button>{' '}
+                  to tip off a new room.
+                </p>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   )
