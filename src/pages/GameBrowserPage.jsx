@@ -128,8 +128,8 @@ function GameBrowserPage() {
               className="relative flex flex-col justify-between rounded-xl border border-slate-800 bg-slate-950/60 p-5 shadow-sm shadow-black/40"
             >
               {game.isLive && (
-                <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-cb-amber/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-cb-amber ring-1 ring-cb-amber/40">
-                  <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-cb-amber-light" />
+                <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-ch-amber/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-ch-amber ring-1 ring-ch-amber/40">
+                  <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-ch-amber-light" />
                   Live
                 </span>
               )}
@@ -162,7 +162,7 @@ function GameBrowserPage() {
                       setCreatingGameId(game.id)
                       setCustomName(`${game.away.abbr} @ ${game.home.abbr}`)
                     }}
-                    className="rounded-md bg-cb-amber px-3 py-1.5 text-xs font-medium text-cb-ink shadow-sm shadow-cb-amber transition hover:bg-cb-amber-light"
+                    className="rounded-md bg-ch-amber px-3 py-1.5 text-xs font-medium text-ch-ink shadow-sm shadow-ch-amber transition hover:bg-ch-amber-light"
                   >
                     Create Room
                   </button>
@@ -256,7 +256,7 @@ function GameBrowserPage() {
                 <button
                   type="submit"
                   disabled={createLoading}
-                  className="rounded-md bg-cb-amber px-4 py-1.5 text-xs font-medium text-cb-ink shadow-sm shadow-cb-amber hover:bg-cb-amber-light disabled:cursor-not-allowed disabled:opacity-70"
+                  className="rounded-md bg-ch-amber px-4 py-1.5 text-xs font-medium text-ch-ink shadow-sm shadow-ch-amber hover:bg-ch-amber-light disabled:cursor-not-allowed disabled:opacity-70"
                 >
                   {createLoading ? 'Creating...' : 'Create & Join'}
                 </button>

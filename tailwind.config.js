@@ -5,7 +5,7 @@ export default {
     extend: {
       colors: {
         // ── PRIMARY BRAND: THE CHALLENGER ──────────────────
-        cb: {
+        ch: {
           // Amber scale
           amber: {
             light:   '#F7BC57',
@@ -101,55 +101,55 @@ export default {
       },
 
       backgroundImage: {
-        'cb-primary':  'linear-gradient(135deg, #F5A623 0%, #D4891A 100%)',
-        'cb-hero':     'linear-gradient(135deg, #111111 0%, #2C2218 50%, #1A1410 100%)',
-        'cb-glow':     'radial-gradient(ellipse at center, rgba(245,166,35,0.15) 0%, transparent 70%)',
+        'ch-primary':  'linear-gradient(135deg, #F5A623 0%, #D4891A 100%)',
+        'ch-hero':     'linear-gradient(135deg, #111111 0%, #2C2218 50%, #1A1410 100%)',
+        'ch-glow':     'radial-gradient(ellipse at center, rgba(245,166,35,0.15) 0%, transparent 70%)',
         'sunrise-ad':  'linear-gradient(135deg, #FF6B35 0%, #FFBE0B 100%)',
         'neon-dark':   'linear-gradient(135deg, #0A0F2C 0%, #060A1E 100%)',
         'outsider-dark':'linear-gradient(135deg, #2D0A4E 0%, #1A0630 100%)',
       },
 
       boxShadow: {
-        'cb-sm':    '0 1px 3px rgba(17,17,17,0.12)',
-        'cb-md':    '0 4px 16px rgba(17,17,17,0.16)',
-        'cb-lg':    '0 8px 32px rgba(17,17,17,0.20)',
-        'cb-amber': '0 4px 20px rgba(245,166,35,0.35)',
-        'cb-live':  '0 0 20px rgba(255,59,59,0.40)',
-        'cb-gold':  '0 4px 20px rgba(201,168,76,0.30)',
-        'cb-coral': '0 4px 20px rgba(255,107,53,0.35)',
+        'ch-sm':    '0 1px 3px rgba(17,17,17,0.12)',
+        'ch-md':    '0 4px 16px rgba(17,17,17,0.16)',
+        'ch-lg':    '0 8px 32px rgba(17,17,17,0.20)',
+        'ch-amber': '0 4px 20px rgba(245,166,35,0.35)',
+        'ch-live':  '0 0 20px rgba(255,59,59,0.40)',
+        'ch-gold':  '0 4px 20px rgba(201,168,76,0.30)',
+        'ch-coral': '0 4px 20px rgba(255,107,53,0.35)',
       },
 
       borderRadius: {
-        'cb-sm': '4px',
-        'cb-md': '8px',
-        'cb-lg': '16px',
-        'cb-xl': '24px',
+        'ch-sm': '4px',
+        'ch-md': '8px',
+        'ch-lg': '16px',
+        'ch-xl': '24px',
       },
 
       animation: {
-        'cb-pulse':     'cb-pulse 1.5s ease-in-out infinite',
-        'cb-mark':      'cb-mark 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
-        'cb-bingo':     'cb-bingo 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)',
-        'cb-ring':      'cb-ring 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)',
+        'ch-pulse':     'ch-pulse 1.5s ease-in-out infinite',
+        'ch-mark':      'ch-mark 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+        'ch-bingo':     'ch-bingo 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)',
+        'ch-ring':      'ch-ring 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)',
       },
 
       keyframes: {
-        'cb-pulse': {
+        'ch-pulse': {
           '0%, 100%': { opacity: '1' },
           '50%':      { opacity: '0.5' },
         },
-        'cb-mark': {
+        'ch-mark': {
           '0%':   { transform: 'scale(0.8)', opacity: '0' },
           '60%':  { transform: 'scale(1.1)' },
           '100%': { transform: 'scale(1)',   opacity: '1' },
         },
-        'cb-bingo': {
+        'ch-bingo': {
           '0%':   { transform: 'scale(1)' },
           '30%':  { transform: 'scale(1.05)' },
           '60%':  { transform: 'scale(0.97)' },
           '100%': { transform: 'scale(1)' },
         },
-        'cb-ring': {
+        'ch-ring': {
           '0%':   { transform: 'rotate(-15deg)' },
           '25%':  { transform: 'rotate(15deg)' },
           '50%':  { transform: 'rotate(-10deg)' },
@@ -160,4 +160,3 @@ export default {
     },
   },
 };
-

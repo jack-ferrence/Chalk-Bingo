@@ -1,11 +1,11 @@
-# Cowbell
+# Chalk
 
 Live sports bingo app — built with React, Vite, Supabase, and Tailwind.
 
 ## Push to GitHub
 
 ```bash
-git remote add origin https://github.com/jack-ferrence/cowbell.git
+git remote add origin https://github.com/jack-ferrence/chalk.git
 git branch -M main
 git push -u origin main
 ```
@@ -13,7 +13,7 @@ git push -u origin main
 If you already added a remote with the wrong URL, fix it with:
 
 ```bash
-git remote set-url origin https://github.com/jack-ferrence/cowbell.git
+git remote set-url origin https://github.com/jack-ferrence/chalk.git
 git push -u origin main
 ```
 

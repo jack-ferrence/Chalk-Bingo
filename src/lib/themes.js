@@ -1,11 +1,11 @@
-// Cowbell theme definitions
+// Chalk theme definitions
 // --------------------------
 // Each key here is used in:
 //   - profiles.user_theme
 //   - rooms.room_theme
 //   - ThemePicker / ThemeContext
 //
-// The `dataTheme` value maps to the CSS selectors in cowbell-brand.css:
+// The `dataTheme` value maps to the CSS selectors in chalk-brand.css:
 //   :root                           → challenger (no data-theme attribute)
 //   [data-theme="loud-fan"]         → loudFan
 //   [data-theme="late-night"]       → lateNight

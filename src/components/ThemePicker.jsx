@@ -8,17 +8,17 @@ export default function ThemePicker({ onClose }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4" onClick={onClose}>
       <div
-        className="w-full max-w-md rounded-2xl border border-[var(--cb-gray-200)] bg-[var(--cb-sand)] p-6 shadow-2xl"
+        className="w-full max-w-md rounded-2xl border border-[var(--ch-gray-200)] bg-[var(--ch-sand)] p-6 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-lg font-semibold tracking-tight text-[var(--cb-secondary)]">
+          <h2 className="text-lg font-semibold tracking-tight text-[var(--ch-secondary)]">
             Choose Theme
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="text-[var(--cb-gray-400)] hover:text-[var(--cb-secondary)] transition text-xl leading-none"
+            className="text-[var(--ch-gray-400)] hover:text-[var(--ch-secondary)] transition text-xl leading-none"
             aria-label="Close"
           >
             &times;
@@ -36,8 +36,8 @@ export default function ThemePicker({ onClose }) {
                 className={`
                   group relative flex flex-col items-start gap-2 rounded-xl border p-3 text-left transition
                   ${isActive
-                    ? 'border-[var(--cb-primary)] ring-2 ring-[var(--cb-primary)]/30 bg-[var(--cb-white)]'
-                    : 'border-[var(--cb-gray-200)] bg-[var(--cb-white)] hover:border-[var(--cb-gray-300)]'}
+                    ? 'border-[var(--ch-primary)] ring-2 ring-[var(--ch-primary)]/30 bg-[var(--ch-white)]'
+                    : 'border-[var(--ch-gray-200)] bg-[var(--ch-white)] hover:border-[var(--ch-gray-300)]'}
                 `}
               >
                 <div className="flex gap-1">
@@ -49,11 +49,11 @@ export default function ThemePicker({ onClose }) {
                     />
                   ))}
                 </div>
-                <span className="text-xs font-medium text-[var(--cb-secondary)]">
+                <span className="text-xs font-medium text-[var(--ch-secondary)]">
                   {theme.label}
                 </span>
                 {isActive && (
-                  <span className="absolute right-2 top-2 text-[10px] font-bold uppercase tracking-wider text-[var(--cb-primary)]">
+                  <span className="absolute right-2 top-2 text-[10px] font-bold uppercase tracking-wider text-[var(--ch-primary)]">
                     Active
                   </span>
                 )}

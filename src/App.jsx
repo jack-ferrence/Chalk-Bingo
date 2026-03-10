@@ -17,19 +17,17 @@ function App() {
 
   if (isGameRoute) {
     return (
-      <div className="h-screen flex flex-col" style={{ background: 'var(--cb-secondary)' }}>
-        <header className="flex h-14 shrink-0 items-center justify-between px-4" style={{ background: 'var(--cb-secondary)', borderBottom: '1px solid rgba(245,166,35,0.1)' }}>
-          <Link to="/" className="flex items-center gap-2" style={{ fontFamily: 'var(--cb-font-display)', fontSize: 28, letterSpacing: '0.04em', textDecoration: 'none' }}>
-            <span role="img" aria-label="bell">🔔</span>
-            <span style={{ color: 'var(--cb-white)' }}>COW</span>
-            <span style={{ color: 'var(--cb-primary)', marginLeft: -8 }}>BELL</span>
+      <div className="h-screen flex flex-col" style={{ background: 'var(--ch-secondary)' }}>
+        <header className="flex h-14 shrink-0 items-center justify-between px-4" style={{ background: 'var(--ch-secondary)', borderBottom: '1px solid rgba(245,166,35,0.1)' }}>
+          <Link to="/" className="flex items-center gap-2" style={{ fontFamily: 'var(--ch-font-display)', fontSize: 28, letterSpacing: '0.1em', textDecoration: 'none' }}>
+            <span style={{ color: 'var(--ch-primary)' }}>CHALK</span>
           </Link>
           <div className="flex items-center gap-3 text-sm">
             <button
               type="button"
               onClick={() => setShowThemePicker(true)}
               className="transition"
-              style={{ color: 'var(--cb-gray-400)' }}
+              style={{ color: 'var(--ch-gray-400)' }}
               aria-label="Change theme"
               title="Change theme"
             >
@@ -38,9 +36,9 @@ function App() {
               </svg>
             </button>
             {loading ? (
-              <span style={{ color: 'var(--cb-gray-500)' }}>Loading...</span>
+              <span style={{ color: 'var(--ch-gray-500)' }}>Loading...</span>
             ) : user ? (
-              <span style={{ color: 'var(--cb-primary)' }}>
+              <span style={{ color: 'var(--ch-primary)' }}>
                 {user.is_anonymous ? `Guest_${user.id.slice(0, 8)}` : user.email}
               </span>
             ) : null}
@@ -58,20 +56,18 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: 'var(--cb-secondary)', color: 'var(--cb-white)' }}>
-      <header style={{ background: 'var(--cb-secondary)', borderBottom: '1px solid rgba(245,166,35,0.1)' }}>
+    <div className="min-h-screen flex flex-col" style={{ background: 'var(--ch-secondary)', color: 'var(--ch-white)' }}>
+      <header style={{ background: 'var(--ch-secondary)', borderBottom: '1px solid rgba(245,166,35,0.1)' }}>
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
-          <Link to="/" className="flex items-center gap-2" style={{ fontFamily: 'var(--cb-font-display)', fontSize: 28, letterSpacing: '0.04em', textDecoration: 'none' }}>
-            <span role="img" aria-label="bell">🔔</span>
-            <span style={{ color: 'var(--cb-white)' }}>COW</span>
-            <span style={{ color: 'var(--cb-primary)', marginLeft: -8 }}>BELL</span>
+          <Link to="/" className="flex items-center gap-2" style={{ fontFamily: 'var(--ch-font-display)', fontSize: 28, letterSpacing: '0.1em', textDecoration: 'none' }}>
+            <span style={{ color: 'var(--ch-primary)' }}>CHALK</span>
           </Link>
           <div className="flex items-center gap-3 text-sm">
             <button
               type="button"
               onClick={() => setShowThemePicker(true)}
               className="transition hover:opacity-80"
-              style={{ color: 'var(--cb-gray-400)' }}
+              style={{ color: 'var(--ch-gray-400)' }}
               aria-label="Change theme"
               title="Change theme"
             >
@@ -80,24 +76,24 @@ function App() {
               </svg>
             </button>
             {loading ? (
-              <span style={{ color: 'var(--cb-gray-500)' }}>Loading...</span>
+              <span style={{ color: 'var(--ch-gray-500)' }}>Loading...</span>
             ) : user ? (
               <div className="flex items-center gap-3 text-sm">
-                <span style={{ color: 'var(--cb-primary)', fontWeight: 600 }}>
+                <span style={{ color: 'var(--ch-primary)', fontWeight: 600 }}>
                   {user.is_anonymous ? `Guest_${user.id.slice(0, 8)}` : user.email}
                 </span>
                 <button
                   onClick={() => supabase.auth.signOut()}
                   className="transition hover:opacity-80"
-                  style={{ color: 'var(--cb-gray-400)' }}
+                  style={{ color: 'var(--ch-gray-400)' }}
                 >
                   Sign out
                 </button>
               </div>
             ) : (
               <div className="flex items-center gap-3 text-sm">
-                <Link to="/login" className="transition hover:opacity-80" style={{ color: 'var(--cb-gray-400)' }}>Log in</Link>
-                <Link to="/register" className="rounded px-3 py-1 font-medium transition hover:opacity-90" style={{ background: 'var(--cb-gradient-primary)', color: 'var(--cb-secondary)' }}>Sign up</Link>
+                <Link to="/login" className="transition hover:opacity-80" style={{ color: 'var(--ch-gray-400)' }}>Log in</Link>
+                <Link to="/register" className="rounded px-3 py-1 font-medium transition hover:opacity-90" style={{ background: 'var(--ch-gradient-primary)', color: 'var(--ch-secondary)' }}>Sign up</Link>
               </div>
             )}
           </div>
@@ -113,7 +109,7 @@ function App() {
               <Route path="/" element={<LobbyPage />} />
               <Route path="/games" element={<GameBrowserPage />} />
             </Route>
-            <Route path="*" element={<div className="p-8 text-center" style={{ color: 'var(--cb-gray-400)' }}>Page not found</div>} />
+            <Route path="*" element={<div className="p-8 text-center" style={{ color: 'var(--ch-gray-400)' }}>Page not found</div>} />
           </Routes>
         </div>
       </main>

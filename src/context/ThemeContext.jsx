@@ -19,7 +19,7 @@ function applyTheme(themeKey) {
 export function ThemeProvider({ children }) {
   const { user } = useAuth()
   const [userTheme, setUserTheme] = useState(() => {
-    try { return localStorage.getItem('cb-theme') || DEFAULT_THEME } catch { return DEFAULT_THEME }
+    try { return localStorage.getItem('ch-theme') || DEFAULT_THEME } catch { return DEFAULT_THEME }
   })
   const [roomTheme, setRoomTheme] = useState(null)
   const roomIdRef = useRef(null)
@@ -35,7 +35,7 @@ export function ThemeProvider({ children }) {
   const setTheme = useCallback(async (key) => {
     if (!THEMES[key]) return
     setUserTheme(key)
-    try { localStorage.setItem('cb-theme', key) } catch { /* noop */ }
+    try { localStorage.setItem('ch-theme', key) } catch { /* noop */ }
     if (user?.id) {
       await supabase.from('profiles').update({ user_theme: key }).eq('id', user.id)
     }
@@ -53,7 +53,7 @@ export function ThemeProvider({ children }) {
         .single()
       if (!cancelled && data?.user_theme && THEMES[data.user_theme]) {
         setUserTheme(data.user_theme)
-        try { localStorage.setItem('cb-theme', data.user_theme) } catch { /* noop */ }
+        try { localStorage.setItem('ch-theme', data.user_theme) } catch { /* noop */ }
       }
     })()
     return () => { cancelled = true }

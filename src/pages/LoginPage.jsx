@@ -38,7 +38,7 @@ function LoginPage() {
           Welcome back
         </h1>
         <p className="mb-6 text-sm text-slate-400">
-          Log in to join a room and start playing Cowbell.
+          Log in to join a room and start playing Chalk.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -89,7 +89,7 @@ function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="mt-2 w-full rounded-md bg-cb-amber px-4 py-2 text-sm font-medium text-cb-ink shadow-sm shadow-cb-amber transition hover:bg-cb-amber-light disabled:cursor-not-allowed disabled:opacity-70"
+            className="mt-2 w-full rounded-md bg-ch-amber px-4 py-2 text-sm font-medium text-ch-ink shadow-sm shadow-ch-amber transition hover:bg-ch-amber-light disabled:cursor-not-allowed disabled:opacity-70"
           >
             {loading ? 'Logging in...' : 'Log in'}
           </button>

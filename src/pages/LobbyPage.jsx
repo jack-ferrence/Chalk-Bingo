@@ -17,7 +17,7 @@ function StatusBadge({ status }) {
         className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5"
         style={{
           background: 'rgba(255,59,59,0.12)',
-          color: 'var(--cb-live)',
+          color: 'var(--ch-live)',
           border: '1px solid rgba(255,59,59,0.3)',
           fontSize: 10,
           fontWeight: 700,
@@ -27,7 +27,7 @@ function StatusBadge({ status }) {
       >
         <span
           className="inline-block h-1.5 w-1.5 rounded-full"
-          style={{ background: 'var(--cb-live)', animation: 'cb-pulse 1.5s ease-in-out infinite' }}
+          style={{ background: 'var(--ch-live)', animation: 'ch-pulse 1.5s ease-in-out infinite' }}
         />
         Live
       </span>
@@ -39,7 +39,7 @@ function StatusBadge({ status }) {
         className="inline-flex items-center rounded-full px-2.5 py-0.5"
         style={{
           background: 'rgba(245,166,35,0.1)',
-          color: 'var(--cb-primary)',
+          color: 'var(--ch-primary)',
           border: '1px solid rgba(245,166,35,0.25)',
           fontSize: 10,
           fontWeight: 700,
@@ -56,9 +56,9 @@ function StatusBadge({ status }) {
       <span
         className="inline-flex items-center rounded-full px-2.5 py-0.5"
         style={{
-          background: 'var(--cb-gray-800)',
-          color: 'var(--cb-gray-400)',
-          border: '1px solid var(--cb-gray-700)',
+          background: 'var(--ch-gray-800)',
+          color: 'var(--ch-gray-400)',
+          border: '1px solid var(--ch-gray-700)',
           fontSize: 10,
           fontWeight: 700,
           letterSpacing: '0.15em',
@@ -70,7 +70,7 @@ function StatusBadge({ status }) {
     )
   }
   return (
-    <span className="inline-flex items-center rounded-full px-2.5 py-0.5" style={{ fontSize: 10, fontWeight: 700, color: 'var(--cb-gray-400)' }}>
+    <span className="inline-flex items-center rounded-full px-2.5 py-0.5" style={{ fontSize: 10, fontWeight: 700, color: 'var(--ch-gray-400)' }}>
       {statusLabel(status)}
     </span>
   )
@@ -188,7 +188,7 @@ function LobbyPage() {
   const cardStyle = {
     background: '#1A1410',
     border: '1px solid rgba(245,166,35,0.1)',
-    borderRadius: 'var(--cb-radius-lg)',
+    borderRadius: 'var(--ch-radius-lg)',
     transition: 'all 0.2s ease',
   }
 
@@ -196,10 +196,10 @@ function LobbyPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 style={{ fontFamily: 'var(--cb-font-display)', fontSize: 56, color: 'var(--cb-white)', lineHeight: 1 }}>
+          <h1 style={{ fontFamily: 'var(--ch-font-display)', fontSize: 56, color: 'var(--ch-white)', lineHeight: 1 }}>
             Lobby
           </h1>
-          <p className="mt-2" style={{ color: 'var(--cb-gray-400)', fontSize: 15 }}>
+          <p className="mt-2" style={{ color: 'var(--ch-gray-400)', fontSize: 15 }}>
             Join a live NBA room or create your own bingo game.
           </p>
         </div>
@@ -207,14 +207,14 @@ function LobbyPage() {
           type="button"
           onClick={() => navigate('/games')}
           className="cursor-pointer hover:underline"
-          style={{ color: 'var(--cb-primary)', fontWeight: 600, fontSize: 14, background: 'none', border: 'none' }}
+          style={{ color: 'var(--ch-primary)', fontWeight: 600, fontSize: 14, background: 'none', border: 'none' }}
         >
           Browse Games &amp; Create Room →
         </button>
       </div>
 
       {error && (
-        <div className="px-3 py-2 text-sm" style={{ background: 'rgba(255,59,59,0.08)', border: '1px solid rgba(255,59,59,0.3)', borderRadius: 'var(--cb-radius-md)', color: 'var(--cb-live)' }}>
+        <div className="px-3 py-2 text-sm" style={{ background: 'rgba(255,59,59,0.08)', border: '1px solid rgba(255,59,59,0.3)', borderRadius: 'var(--ch-radius-md)', color: 'var(--ch-live)' }}>
           {error}
         </div>
       )}
@@ -223,20 +223,20 @@ function LobbyPage() {
         className="p-4 text-sm"
         style={{
           background: '#1A1410',
-          borderLeft: '3px solid var(--cb-primary)',
-          borderRadius: 'var(--cb-radius-md)',
-          color: 'var(--cb-gray-400)',
+          borderLeft: '3px solid var(--ch-primary)',
+          borderRadius: 'var(--ch-radius-md)',
+          color: 'var(--ch-gray-400)',
         }}
       >
         Signed in as{' '}
-        <span style={{ color: 'var(--cb-primary)', fontWeight: 600 }}>
+        <span style={{ color: 'var(--ch-primary)', fontWeight: 600 }}>
           {user?.is_anonymous ? `Guest_${user.id.slice(0, 8)}` : (user?.email ?? 'Guest')}
         </span>
       </div>
 
       <div className="space-y-6">
         {loadingRooms ? (
-          <div className="flex min-h-[200px] items-center justify-center" style={{ color: 'var(--cb-gray-500)' }}>
+          <div className="flex min-h-[200px] items-center justify-center" style={{ color: 'var(--ch-gray-500)' }}>
             Loading rooms...
           </div>
         ) : (
@@ -244,10 +244,10 @@ function LobbyPage() {
             {myRooms.length > 0 && (
               <div>
                 <div className="mb-3 flex items-center justify-between">
-                  <h2 style={{ fontFamily: 'var(--cb-font-body)', fontWeight: 700, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--cb-primary)' }}>
+                  <h2 style={{ fontFamily: 'var(--ch-font-body)', fontWeight: 700, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--ch-primary)' }}>
                     My Rooms
                   </h2>
-                  <span style={{ fontSize: 11, color: 'var(--cb-gray-500)' }}>
+                  <span style={{ fontSize: 11, color: 'var(--ch-gray-500)' }}>
                     Continue games you&apos;ve already joined.
                   </span>
                 </div>
@@ -257,17 +257,17 @@ function LobbyPage() {
                       key={room.id}
                       className="group flex flex-col justify-between p-4"
                       style={cardStyle}
-                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(245,166,35,0.3)'; e.currentTarget.style.boxShadow = 'var(--cb-shadow-amber)' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(245,166,35,0.3)'; e.currentTarget.style.boxShadow = 'var(--ch-shadow-amber)' }}
                       onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(245,166,35,0.1)'; e.currentTarget.style.boxShadow = 'none' }}
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <h3 style={{ color: 'var(--cb-white)', fontWeight: 700, fontSize: 17 }}>
+                          <h3 style={{ color: 'var(--ch-white)', fontWeight: 700, fontSize: 17 }}>
                             {room.name}
                           </h3>
-                          <p className="mt-1" style={{ color: 'var(--cb-gray-500)', fontSize: 13 }}>
+                          <p className="mt-1" style={{ color: 'var(--ch-gray-500)', fontSize: 13 }}>
                             ESPN Game:{' '}
-                            <span className="font-mono" style={{ color: 'var(--cb-gray-400)' }}>
+                            <span className="font-mono" style={{ color: 'var(--ch-gray-400)' }}>
                               {room.game_id}
                             </span>
                           </p>
@@ -276,8 +276,8 @@ function LobbyPage() {
                       </div>
 
                       <div className="mt-4 flex items-center justify-between">
-                        <div style={{ color: 'var(--cb-gray-400)', fontSize: 13 }}>
-                          <span style={{ color: 'var(--cb-white)' }}>
+                        <div style={{ color: 'var(--ch-gray-400)', fontSize: 13 }}>
+                          <span style={{ color: 'var(--ch-white)' }}>
                             {room.participant_count ?? 0}
                           </span>{' '}
                           player
@@ -288,13 +288,13 @@ function LobbyPage() {
                           onClick={() => handleContinue(room.id)}
                           className="inline-flex items-center justify-center px-4 py-1.5 cursor-pointer"
                           style={{
-                            background: 'var(--cb-gradient-primary)',
-                            color: 'var(--cb-secondary)',
-                            borderRadius: 'var(--cb-radius-md)',
+                            background: 'var(--ch-gradient-primary)',
+                            color: 'var(--ch-secondary)',
+                            borderRadius: 'var(--ch-radius-md)',
                             fontWeight: 700,
                             fontSize: 13,
                             border: 'none',
-                            boxShadow: 'var(--cb-shadow-amber)',
+                            boxShadow: 'var(--ch-shadow-amber)',
                           }}
                         >
                           Continue
@@ -309,10 +309,10 @@ function LobbyPage() {
             {hasRooms ? (
               <div>
                 <div className="mb-3 flex items-center justify-between">
-                  <h2 style={{ fontFamily: 'var(--cb-font-body)', fontWeight: 700, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--cb-primary)' }}>
+                  <h2 style={{ fontFamily: 'var(--ch-font-body)', fontWeight: 700, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--ch-primary)' }}>
                     All Rooms
                   </h2>
-                  <span style={{ fontSize: 11, color: 'var(--cb-gray-500)' }}>
+                  <span style={{ fontSize: 11, color: 'var(--ch-gray-500)' }}>
                     Join a live room or create a new one.
                   </span>
                 </div>
@@ -322,17 +322,17 @@ function LobbyPage() {
                       key={room.id}
                       className="group flex flex-col justify-between p-4"
                       style={cardStyle}
-                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(245,166,35,0.3)'; e.currentTarget.style.boxShadow = 'var(--cb-shadow-amber)' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(245,166,35,0.3)'; e.currentTarget.style.boxShadow = 'var(--ch-shadow-amber)' }}
                       onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(245,166,35,0.1)'; e.currentTarget.style.boxShadow = 'none' }}
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <h3 style={{ color: 'var(--cb-white)', fontWeight: 700, fontSize: 17 }}>
+                          <h3 style={{ color: 'var(--ch-white)', fontWeight: 700, fontSize: 17 }}>
                             {room.name}
                           </h3>
-                          <p className="mt-1" style={{ color: 'var(--cb-gray-500)', fontSize: 13 }}>
+                          <p className="mt-1" style={{ color: 'var(--ch-gray-500)', fontSize: 13 }}>
                             ESPN Game:{' '}
-                            <span className="font-mono" style={{ color: 'var(--cb-gray-400)' }}>
+                            <span className="font-mono" style={{ color: 'var(--ch-gray-400)' }}>
                               {room.game_id}
                             </span>
                           </p>
@@ -341,8 +341,8 @@ function LobbyPage() {
                       </div>
 
                       <div className="mt-4 flex items-center justify-between">
-                        <div style={{ color: 'var(--cb-gray-400)', fontSize: 13 }}>
-                          <span style={{ color: 'var(--cb-white)' }}>
+                        <div style={{ color: 'var(--ch-gray-400)', fontSize: 13 }}>
+                          <span style={{ color: 'var(--ch-white)' }}>
                             {room.participant_count ?? 0}
                           </span>{' '}
                           player
@@ -355,14 +355,14 @@ function LobbyPage() {
                           className="inline-flex items-center justify-center px-4 py-1.5 cursor-pointer transition-colors disabled:cursor-not-allowed disabled:opacity-70"
                           style={{
                             background: 'transparent',
-                            color: 'var(--cb-primary)',
-                            border: '2px solid var(--cb-primary)',
-                            borderRadius: 'var(--cb-radius-md)',
+                            color: 'var(--ch-primary)',
+                            border: '2px solid var(--ch-primary)',
+                            borderRadius: 'var(--ch-radius-md)',
                             fontWeight: 700,
                             fontSize: 13,
                           }}
-                          onMouseEnter={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.background = 'var(--cb-primary)'; e.currentTarget.style.color = 'var(--cb-secondary)' } }}
-                          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--cb-primary)' }}
+                          onMouseEnter={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.background = 'var(--ch-primary)'; e.currentTarget.style.color = 'var(--ch-secondary)' } }}
+                          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--ch-primary)' }}
                         >
                           {joiningRoomId === room.id ? 'Joining...' : 'Join Room'}
                         </button>
@@ -373,16 +373,16 @@ function LobbyPage() {
               </div>
             ) : (
               <div className="flex min-h-[200px] flex-col items-center justify-center gap-3 text-center">
-                <p style={{ color: 'var(--cb-gray-300)', fontSize: 14 }}>
+                <p style={{ color: 'var(--ch-gray-300)', fontSize: 14 }}>
                   No live or lobby rooms yet.
                 </p>
-                <p style={{ color: 'var(--cb-gray-500)', fontSize: 13 }}>
+                <p style={{ color: 'var(--ch-gray-500)', fontSize: 13 }}>
                   Be the first —{' '}
                   <button
                     type="button"
                     onClick={() => navigate('/games')}
                     className="underline underline-offset-2 cursor-pointer hover:opacity-80"
-                    style={{ color: 'var(--cb-primary)', background: 'none', border: 'none' }}
+                    style={{ color: 'var(--ch-primary)', background: 'none', border: 'none' }}
                   >
                     browse today&apos;s games
                   </button>{' '}
