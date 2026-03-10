@@ -1,29 +1,29 @@
 @theme {
-  --color-bg-primary: #0F1118;
-  --color-bg-secondary: #12141D;
-  --color-bg-card: #1A1D2B;
-  --color-bg-hover: #1E2230;
+  --color-bg-primary: var(--cb-secondary, #0F1118);
+  --color-bg-secondary: var(--cb-gray-900, #12141D);
+  --color-bg-card: var(--cb-gray-800, #1A1D2B);
+  --color-bg-hover: var(--cb-gray-700, #1E2230);
 
-  --color-border-subtle: #1E2230;
-  --color-border-active: #2A2E3F;
+  --color-border-subtle: var(--cb-gray-700, #1E2230);
+  --color-border-active: var(--cb-gray-600, #2A2E3F);
 
-  --color-text-primary: #FFFFFF;
-  --color-text-secondary: #8B8FA3;
-  --color-text-muted: #5A5E6E;
+  --color-text-primary: var(--cb-white, #FFFFFF);
+  --color-text-secondary: var(--cb-gray-400, #8B8FA3);
+  --color-text-muted: var(--cb-gray-500, #5A5E6E);
 
-  --color-accent-green: #00D46E;
-  --color-accent-gold: #F5A623;
-  --color-accent-red: #FF4757;
+  --color-accent-green: var(--cb-primary, #F5A623);
+  --color-accent-gold: var(--cb-primary, #F5A623);
+  --color-accent-red: var(--cb-live, #FF4757);
   --color-accent-purple: #8B5CF6;
 
   --color-vegas-felt: #0A3D2A;
-  --color-vegas-neon: #00FF88;
-  --color-vegas-glow: rgba(0, 255, 136, 0.3);
-  --color-vegas-gold: #F5A623;
+  --color-vegas-neon: var(--cb-primary-light, #00FF88);
+  --color-vegas-glow: var(--cb-live-glow, rgba(0, 255, 136, 0.3));
+  --color-vegas-gold: var(--cb-primary, #F5A623);
   --color-vegas-border: #2A1A00;
 
-  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  --font-display: 'Orbitron', ui-monospace, monospace;
+  --font-sans: var(--cb-font-body, 'Inter', ui-sans-serif, system-ui, sans-serif);
+  --font-display: var(--cb-font-display, 'Orbitron', ui-monospace, monospace);
 }
 
 body {

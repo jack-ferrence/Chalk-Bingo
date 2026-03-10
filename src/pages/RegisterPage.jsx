@@ -114,7 +114,7 @@ function RegisterPage() {
           <button
             type="submit"
             disabled={loading}
-            className="mt-2 w-full rounded-md bg-sky-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-sky-400 disabled:cursor-not-allowed disabled:opacity-70"
+            className="mt-2 w-full rounded-md bg-cb-amber px-4 py-2 text-sm font-medium text-cb-ink shadow-sm shadow-cb-amber transition hover:bg-cb-amber-light disabled:cursor-not-allowed disabled:opacity-70"
           >
             {loading ? 'Creating account...' : 'Sign up'}
           </button>

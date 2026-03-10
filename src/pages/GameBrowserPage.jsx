@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth.jsx'
+import { THEMES } from '../lib/themes'
 
 function formatTipoff(dateStr) {
   try {
@@ -21,6 +22,7 @@ function GameBrowserPage() {
   const [error, setError] = useState('')
   const [creatingGameId, setCreatingGameId] = useState(null)
   const [customName, setCustomName] = useState('')
+  const [roomThemeKey, setRoomThemeKey] = useState('')
   const [createError, setCreateError] = useState('')
   const [createLoading, setCreateLoading] = useState(false)
 
@@ -61,6 +63,7 @@ function GameBrowserPage() {
         game_id: game.id,
         status: 'lobby',
         created_by: user.id,
+        room_theme: roomThemeKey || null,
       })
       .select()
       .single()
@@ -78,6 +81,7 @@ function GameBrowserPage() {
     setCreateLoading(false)
     setCreatingGameId(null)
     setCustomName('')
+    setRoomThemeKey('')
     navigate(`/room/${data.id}`)
   }
 
@@ -124,8 +128,8 @@ function GameBrowserPage() {
               className="relative flex flex-col justify-between rounded-xl border border-slate-800 bg-slate-950/60 p-5 shadow-sm shadow-black/40"
             >
               {game.isLive && (
-                <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-300 ring-1 ring-emerald-500/40">
-                  <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
+                <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-cb-amber/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-cb-amber ring-1 ring-cb-amber/40">
+                  <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-cb-amber-light" />
                   Live
                 </span>
               )}
@@ -158,7 +162,7 @@ function GameBrowserPage() {
                       setCreatingGameId(game.id)
                       setCustomName(`${game.away.abbr} @ ${game.home.abbr}`)
                     }}
-                    className="rounded-md bg-sky-500 px-3 py-1.5 text-xs font-medium text-white shadow-sm shadow-sky-500/30 transition hover:bg-sky-400"
+                    className="rounded-md bg-cb-amber px-3 py-1.5 text-xs font-medium text-cb-ink shadow-sm shadow-cb-amber transition hover:bg-cb-amber-light"
                   >
                     Create Room
                   </button>
@@ -214,6 +218,26 @@ function GameBrowserPage() {
                 />
               </div>
 
+              <div>
+                <label
+                  htmlFor="room-theme"
+                  className="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-400"
+                >
+                  Room theme (optional)
+                </label>
+                <select
+                  id="room-theme"
+                  value={roomThemeKey}
+                  onChange={(e) => setRoomThemeKey(e.target.value)}
+                  className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-50 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+                >
+                  <option value="">Default (player's choice)</option>
+                  {Object.entries(THEMES).map(([key, t]) => (
+                    <option key={key} value={key}>{t.label}</option>
+                  ))}
+                </select>
+              </div>
+
               <div className="flex justify-end gap-2">
                 <button
                   type="button"
@@ -221,6 +245,7 @@ function GameBrowserPage() {
                     if (!createLoading) {
                       setCreatingGameId(null)
                       setCustomName('')
+                      setRoomThemeKey('')
                       setCreateError('')
                     }
                   }}
@@ -231,7 +256,7 @@ function GameBrowserPage() {
                 <button
                   type="submit"
                   disabled={createLoading}
-                  className="rounded-md bg-sky-500 px-4 py-1.5 text-xs font-medium text-white shadow-sm shadow-sky-500/30 hover:bg-sky-400 disabled:cursor-not-allowed disabled:opacity-70"
+                  className="rounded-md bg-cb-amber px-4 py-1.5 text-xs font-medium text-cb-ink shadow-sm shadow-cb-amber hover:bg-cb-amber-light disabled:cursor-not-allowed disabled:opacity-70"
                 >
                   {createLoading ? 'Creating...' : 'Create & Join'}
                 </button>
