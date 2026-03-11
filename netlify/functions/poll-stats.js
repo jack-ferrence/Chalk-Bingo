@@ -1,6 +1,6 @@
 import * as Sentry from '@sentry/node'
 import { createClient } from '@supabase/supabase-js'
-import { getStatsForGame } from '../../src/lib/statsProvider.js'
+import { getStatsForGame, fetchLiveEspnGames } from '../../src/lib/statsProvider.js'
 
 const LOCK_KEY = 'poll-stats'
 const LOCK_TTL_SECONDS = 50
@@ -18,11 +18,14 @@ if (process.env.SENTRY_DSN) {
  *
  * Flow:
  *   1. Acquire polling lock (skip if another invocation holds it)
- *   2. Query live rooms for active game_ids
- *   3. Fetch stats from ESPN or mock provider
- *   4. Upsert stat_events (ON CONFLICT DO NOTHING via 23505)
- *   5. Run mark_squares_for_event for each new event
- *   6. Release lock
+ *   2. Fetch ESPN scoreboard once → build gameId→status map
+ *   3. Auto-start: lobby public rooms whose ESPN game is STATUS_IN_PROGRESS
+ *   4. Query live rooms for active game_ids
+ *   5. Fetch stats from ESPN or mock provider
+ *   6. Upsert stat_events (ON CONFLICT DO NOTHING via 23505)
+ *   7. Run mark_squares_for_event for each new event
+ *   8. Auto-finish: rooms whose ESPN game is STATUS_FINAL
+ *   9. Release lock
  *
  * Env vars (set in Netlify dashboard):
  *   SUPABASE_URL              — Supabase project URL
@@ -76,7 +79,56 @@ export async function handler() {
   }
 
   try {
-    // ── Step 2: Find live games ──
+    // ── Step 2: Fetch ESPN scoreboard once → gameId status map ──
+    // Used for both auto-start and auto-finish so we only hit ESPN once per run.
+    const espnStatusMap = new Map() // gameId (string) → ESPN status name
+    try {
+      const espnGames = await fetchLiveEspnGames()
+      for (const g of espnGames) {
+        espnStatusMap.set(g.id, g.status)
+      }
+      log.push(`ESPN scoreboard: ${espnGames.length} game(s)`)
+    } catch (err) {
+      // Non-fatal: auto-start/finish will be skipped this run, stat polling continues
+      log.push(`ESPN scoreboard fetch failed: ${err.message}`)
+      console.warn('poll-stats: ESPN scoreboard fetch failed', err.message)
+    }
+
+    // ── Step 3: Auto-start public lobby rooms whose game has begun ──
+    let autoStarted = 0
+    try {
+      const { data: lobbyPublicRooms, error: lobbyErr } = await supabase
+        .from('rooms')
+        .select('id, game_id')
+        .eq('status', 'lobby')
+        .eq('room_type', 'public')
+
+      if (lobbyErr) {
+        log.push(`auto-start query failed: ${lobbyErr.message}`)
+      } else {
+        for (const room of lobbyPublicRooms ?? []) {
+          if (espnStatusMap.get(room.game_id) === 'STATUS_IN_PROGRESS') {
+            const { error: startErr } = await supabase
+              .from('rooms')
+              .update({ status: 'live' })
+              .eq('id', room.id)
+
+            if (startErr) {
+              log.push(`auto-start failed for room ${room.id}: ${startErr.message}`)
+            } else {
+              autoStarted++
+              log.push(`Auto-started public room ${room.id} for game ${room.game_id}`)
+              console.log(`poll-stats: Auto-started public room ${room.id} for game ${room.game_id}`)
+            }
+          }
+        }
+      }
+    } catch (err) {
+      log.push(`auto-start error: ${err.message}`)
+      console.warn('poll-stats: auto-start error', err.message)
+    }
+
+    // ── Step 4: Find live games ──
     const { data: rooms, error: roomsError } = await supabase
       .from('rooms')
       .select('game_id')
@@ -96,12 +148,12 @@ export async function handler() {
       await releaseLock(supabase)
       return {
         statusCode: 200,
-        body: JSON.stringify({ updated: 0, log }),
+        body: JSON.stringify({ updated: 0, autoStarted, log }),
         headers: { 'Content-Type': 'application/json' },
       }
     }
 
-    // ── Step 3–5: Fetch, upsert, mark ──
+    // ── Steps 5–7: Fetch, upsert, mark ──
     let inserted = 0
     let totalCardsMarked = 0
 
@@ -158,9 +210,32 @@ export async function handler() {
     }
 
     log.push(`Inserted ${inserted} new events; cards updated: ${totalCardsMarked}`)
+
+    // ── Step 8: Auto-finish rooms whose ESPN game is over ──
+    let autoFinished = 0
+    for (const gameId of gameIds) {
+      if (espnStatusMap.get(gameId) !== 'STATUS_FINAL') continue
+
+      const { data: finishedRooms, error: finishErr } = await supabase
+        .from('rooms')
+        .update({ status: 'finished' })
+        .eq('game_id', gameId)
+        .eq('status', 'live')
+        .select('id')
+
+      if (finishErr) {
+        log.push(`auto-finish failed for game ${gameId}: ${finishErr.message}`)
+        console.warn(`poll-stats: auto-finish failed for game ${gameId}`, finishErr.message)
+      } else if (finishedRooms?.length) {
+        autoFinished += finishedRooms.length
+        log.push(`Auto-finished ${finishedRooms.length} room(s) for game ${gameId}`)
+        console.log(`poll-stats: Auto-finished ${finishedRooms.length} room(s) for game ${gameId}`)
+      }
+    }
+
     console.log('poll-stats:', log.join(' | '))
 
-    // ── Step 6: Release lock ──
+    // ── Step 9: Release lock ──
     await releaseLock(supabase)
 
     return {
@@ -170,6 +245,8 @@ export async function handler() {
         liveGames: gameIds.length,
         eventsInserted: inserted,
         cardsUpdated: totalCardsMarked,
+        autoStarted,
+        autoFinished,
         log,
       }),
       headers: { 'Content-Type': 'application/json' },

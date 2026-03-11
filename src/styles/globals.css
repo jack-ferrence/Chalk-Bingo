@@ -1,29 +1,29 @@
 @theme {
-  --color-bg-primary: var(--ch-secondary, #0F1118);
-  --color-bg-secondary: var(--ch-gray-900, #12141D);
-  --color-bg-card: var(--ch-gray-800, #1A1D2B);
-  --color-bg-hover: var(--ch-gray-700, #1E2230);
+  --color-bg-primary:   #0A0E17;
+  --color-bg-secondary: #111827;
+  --color-bg-card:      #1A2235;
+  --color-bg-hover:     #1E293B;
 
-  --color-border-subtle: var(--ch-gray-700, #1E2230);
-  --color-border-active: var(--ch-gray-600, #2A2E3F);
+  --color-border-subtle: #1E293B;
+  --color-border-active: #334155;
 
-  --color-text-primary: var(--ch-white, #FFFFFF);
-  --color-text-secondary: var(--ch-gray-400, #8B8FA3);
-  --color-text-muted: var(--ch-gray-500, #5A5E6E);
+  --color-text-primary:   #F1F5F9;
+  --color-text-secondary: #94A3B8;
+  --color-text-muted:     #64748B;
 
-  --color-accent-green: var(--ch-primary, #F5A623);
-  --color-accent-gold: var(--ch-primary, #F5A623);
-  --color-accent-red: var(--ch-live, #FF4757);
+  --color-accent-green:  #00E676;
+  --color-accent-gold:   #00E676; /* win/marked state — green = money */
+  --color-accent-red:    #EF4444;
   --color-accent-purple: #8B5CF6;
 
-  --color-vegas-felt: #0A3D2A;
-  --color-vegas-neon: var(--ch-primary-light, #00FF88);
-  --color-vegas-glow: var(--ch-live-glow, rgba(0, 255, 136, 0.3));
-  --color-vegas-gold: var(--ch-primary, #F5A623);
-  --color-vegas-border: #2A1A00;
+  /* Game animation tokens — green glow */
+  --color-vegas-neon:   #00E676;
+  --color-vegas-glow:   rgba(0, 230, 118, 0.25);
+  --color-vegas-gold:   #00E676;
+  --color-vegas-border: #1E293B;
 
-  --font-sans: var(--ch-font-body, 'Inter', ui-sans-serif, system-ui, sans-serif);
-  --font-display: var(--ch-font-display, 'Orbitron', ui-monospace, monospace);
+  --font-sans:    'DM Sans', 'Outfit', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Bebas Neue', 'Anton', ui-sans-serif, sans-serif;
 }
 
 body {
@@ -32,25 +32,6 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-
-/* Vegas neon glow — pulsing box-shadow */
-@keyframes vegas-pulse {
-  0%, 100% {
-    box-shadow:
-      0 0 8px var(--color-vegas-glow),
-      0 0 24px var(--color-vegas-glow);
-  }
-  50% {
-    box-shadow:
-      0 0 16px var(--color-vegas-glow),
-      0 0 48px var(--color-vegas-glow),
-      0 0 72px rgba(0, 255, 136, 0.12);
-  }
-}
-
-.vegas-glow {
-  animation: vegas-pulse 2s ease-in-out infinite;
 }
 
 /* Beveled card — subtle inset shadow for depth */
@@ -81,19 +62,19 @@ body {
   animation: marked-pulse 3s ease-in-out infinite;
 }
 
-/* Free space — gold shimmer */
+/* Free space — green shimmer */
 @keyframes gold-shimmer {
   0%, 100% {
     box-shadow:
-      0 0 8px rgba(255, 215, 0, 0.3),
-      0 0 20px rgba(255, 215, 0, 0.1),
-      inset 0 0 10px rgba(255, 215, 0, 0.08);
+      0 0 8px rgba(0, 230, 118, 0.3),
+      0 0 20px rgba(0, 230, 118, 0.1),
+      inset 0 0 10px rgba(0, 230, 118, 0.08);
   }
   50% {
     box-shadow:
-      0 0 14px rgba(255, 215, 0, 0.4),
-      0 0 32px rgba(255, 215, 0, 0.15),
-      inset 0 0 16px rgba(255, 215, 0, 0.12);
+      0 0 14px rgba(0, 230, 118, 0.4),
+      0 0 32px rgba(0, 230, 118, 0.15),
+      inset 0 0 16px rgba(0, 230, 118, 0.12);
   }
 }
 
@@ -104,9 +85,9 @@ body {
 /* Machine frame outer glow */
 .machine-glow {
   box-shadow:
-    0 0 20px rgba(255, 215, 0, 0.08),
-    0 0 60px rgba(255, 215, 0, 0.04),
-    inset 0 1px 0 rgba(255, 215, 0, 0.1);
+    0 0 20px rgba(0, 230, 118, 0.08),
+    0 0 60px rgba(0, 230, 118, 0.04),
+    inset 0 1px 0 rgba(0, 230, 118, 0.08);
 }
 
 /* Winning square ring pulse */
@@ -114,12 +95,12 @@ body {
   0%, 100% {
     box-shadow:
       0 0 0 2px var(--color-accent-gold),
-      0 0 12px rgba(255, 215, 0, 0.4);
+      0 0 12px rgba(0, 230, 118, 0.4);
   }
   50% {
     box-shadow:
       0 0 0 3px var(--color-accent-gold),
-      0 0 24px rgba(255, 215, 0, 0.6);
+      0 0 24px rgba(0, 230, 118, 0.6);
   }
 }
 
@@ -219,12 +200,12 @@ body {
   animation: shine-sweep 500ms ease-out forwards;
 }
 
-/* ── Bingo line flash: gold pulse on the 5 winning squares ── */
+/* ── Bingo line flash: green pulse on the 5 winning squares ── */
 @keyframes line-flash {
-  0%, 100% { box-shadow: 0 0 0 2px var(--color-accent-gold), 0 0 12px rgba(255, 215, 0, 0.5); }
-  25%      { box-shadow: 0 0 0 3px var(--color-accent-gold), 0 0 28px rgba(255, 215, 0, 0.7); }
-  50%      { box-shadow: 0 0 0 2px var(--color-accent-gold), 0 0 12px rgba(255, 215, 0, 0.5); }
-  75%      { box-shadow: 0 0 0 3px var(--color-accent-gold), 0 0 28px rgba(255, 215, 0, 0.7); }
+  0%, 100% { box-shadow: 0 0 0 2px var(--color-accent-gold), 0 0 12px rgba(0, 230, 118, 0.5); }
+  25%      { box-shadow: 0 0 0 3px var(--color-accent-gold), 0 0 28px rgba(0, 230, 118, 0.7); }
+  50%      { box-shadow: 0 0 0 2px var(--color-accent-gold), 0 0 12px rgba(0, 230, 118, 0.5); }
+  75%      { box-shadow: 0 0 0 3px var(--color-accent-gold), 0 0 28px rgba(0, 230, 118, 0.7); }
 }
 
 .sq-line-flash {

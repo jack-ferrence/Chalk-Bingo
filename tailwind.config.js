@@ -6,91 +6,38 @@ export default {
       colors: {
         // ── PRIMARY BRAND: THE CHALLENGER ──────────────────
         ch: {
-          // Amber scale
-          amber: {
-            light:   '#F7BC57',
-            DEFAULT: '#F5A623',
-            dark:    '#D4891A',
+          // Primary — Electric Green
+          green: {
+            light:   '#69F0AE',
+            DEFAULT: '#00E676',
+            dark:    '#00C853',
           },
-          // Ink Black
+          // Base — Deep Navy Black
           ink: {
-            DEFAULT: '#111111',
-            soft:    '#1A1410',
-            warm:    '#2C2218',
+            DEFAULT: '#0A0E17',
+            surface: '#111827',
+            raised:  '#1A2235',
           },
-          // Neutrals
-          sand:      '#FDF6EC',
-          white:     '#FAFAFA',
-          live:      '#FF3B3B',
+          // Semantic
+          white:  '#F1F5F9',
+          live:   '#EF4444',
+          warn:   '#F59E0B',
+          info:   '#3B82F6',
 
-          // Gray scale
-          gray: {
-            100: '#F7F3EE',
-            200: '#EDE7DC',
-            300: '#D4C9B8',
-            400: '#A89880',
-            500: '#7A6A56',
-            600: '#4A3D2E',
-            700: '#2C2218',
-            800: '#1A1410',
-            900: '#0D0A07',
+          // Slate scale — dark-first (100=darkest, 900=lightest)
+          slate: {
+            100: '#1A2235',
+            200: '#1E293B',
+            300: '#334155',
+            400: '#475569',
+            500: '#64748B',
+            600: '#94A3B8',
+            700: '#CBD5E1',
+            800: '#E2E8F0',
+            900: '#F1F5F9',
           },
         },
 
-        // Additional palettes available if needed
-        'loud-fan': {
-          primary: '#E85D04',
-          dark:    '#C44D00',
-          black:   '#0D0D0D',
-          sand:    '#FFF4EE',
-        },
-        'late-night': {
-          gold:    '#C9A84C',
-          charcoal:'#141414',
-          blue:    '#00A8FF',
-          bg:      '#1E1E1E',
-        },
-        'all-ages': {
-          blue:    '#1B4FD8',
-          yellow:  '#FFD23F',
-          red:     '#E63946',
-          bg:      '#F8F9FF',
-        },
-        counter: {
-          green:   '#3DAA51',
-          black:   '#000000',
-          pink:    '#FF2D78',
-          bg:      '#F5FFF7',
-        },
-        outsider: {
-          chartreuse: '#D4F000',
-          eggplant:   '#2D0A4E',
-          coral:      '#FF4D4D',
-          cream:      '#FAF7F0',
-        },
-        neon: {
-          lime:    '#C8FF00',
-          navy:    '#0A0F2C',
-          pink:    '#FF2D78',
-          bg:      '#0F1535',
-        },
-        underdog: {
-          purple:  '#7C3AED',
-          yellow:  '#FCD34D',
-          bg:      '#FAF5FF',
-        },
-        roots: {
-          green:   '#166534',
-          yellow:  '#FEF9C3',
-          red:     '#DC2626',
-          bg:      '#F7FEF0',
-        },
-        sunrise: {
-          coral:   '#FF6B35',
-          yellow:  '#FFBE0B',
-          dark:    '#1C1C1C',
-          bg:      '#FFF8F4',
-        },
       },
 
       fontFamily: {
@@ -101,22 +48,18 @@ export default {
       },
 
       backgroundImage: {
-        'ch-primary':  'linear-gradient(135deg, #F5A623 0%, #D4891A 100%)',
-        'ch-hero':     'linear-gradient(135deg, #111111 0%, #2C2218 50%, #1A1410 100%)',
-        'ch-glow':     'radial-gradient(ellipse at center, rgba(245,166,35,0.15) 0%, transparent 70%)',
-        'sunrise-ad':  'linear-gradient(135deg, #FF6B35 0%, #FFBE0B 100%)',
-        'neon-dark':   'linear-gradient(135deg, #0A0F2C 0%, #060A1E 100%)',
-        'outsider-dark':'linear-gradient(135deg, #2D0A4E 0%, #1A0630 100%)',
+        'ch-primary': 'linear-gradient(135deg, #00E676 0%, #00C853 100%)',
+        'ch-hero':    'linear-gradient(135deg, #0A0E17 0%, #111827 50%, #0F172A 100%)',
+        'ch-glow':    'radial-gradient(ellipse at center, rgba(0,230,118,0.08) 0%, transparent 70%)',
       },
 
       boxShadow: {
-        'ch-sm':    '0 1px 3px rgba(17,17,17,0.12)',
-        'ch-md':    '0 4px 16px rgba(17,17,17,0.16)',
-        'ch-lg':    '0 8px 32px rgba(17,17,17,0.20)',
-        'ch-amber': '0 4px 20px rgba(245,166,35,0.35)',
-        'ch-live':  '0 0 20px rgba(255,59,59,0.40)',
-        'ch-gold':  '0 4px 20px rgba(201,168,76,0.30)',
-        'ch-coral': '0 4px 20px rgba(255,107,53,0.35)',
+        'ch-sm':    '0 1px 3px rgba(0,0,0,0.30)',
+        'ch-md':    '0 4px 16px rgba(0,0,0,0.40)',
+        'ch-lg':    '0 8px 32px rgba(0,0,0,0.50)',
+        'ch-glow':  '0 4px 20px rgba(0,230,118,0.25)',
+        'ch-amber': '0 4px 20px rgba(0,230,118,0.25)', /* alias — keep for class compat */
+        'ch-live':  '0 0 20px rgba(239,68,68,0.40)',
       },
 
       borderRadius: {

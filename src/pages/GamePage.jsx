@@ -2,14 +2,12 @@ import { useEffect, useState, useMemo, useRef, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth.jsx'
-import { useTheme } from '../context/ThemeContext.jsx'
 import { useRoomChannel } from '../hooks/useRoomChannel.js'
 import GameRoom from '../components/game/GameRoom.jsx'
 
 function GamePage() {
   const { roomId } = useParams()
   const { user, loading: authLoading } = useAuth()
-  const { enterRoom, leaveRoom } = useTheme()
 
   const [room, setRoom] = useState(null)
   const [card, setCard] = useState(null)
@@ -63,12 +61,6 @@ function GamePage() {
     }
     loadRoom()
   }, [roomId])
-
-  // Sync room theme with ThemeContext
-  useEffect(() => {
-    if (room?.id) enterRoom(room.id, room.room_theme)
-    return () => leaveRoom()
-  }, [room?.id, room?.room_theme, enterRoom, leaveRoom])
 
   // "Game Started!" notification on status transition
   useEffect(() => {
