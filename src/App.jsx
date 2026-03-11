@@ -1,7 +1,6 @@
 import { Routes, Route, Link, useMatch } from 'react-router-dom'
 import { useAuth } from './hooks/useAuth.jsx'
 import LobbyPage from './pages/LobbyPage.jsx'
-import GameBrowserPage from './pages/GameBrowserPage.jsx'
 import GamePage from './pages/GamePage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import RegisterPage from './pages/RegisterPage.jsx'
@@ -56,7 +55,6 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route element={<ProtectedRoute />}>
           <Route path="/" element={<LobbyPage />} />
-          <Route path="/games" element={<GameBrowserPage />} />
         </Route>
         <Route
           path="*"
