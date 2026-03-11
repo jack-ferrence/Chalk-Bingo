@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth.jsx'
-import { THEMES } from '../lib/themes'
 
 function formatTipoff(dateStr) {
   try {
@@ -22,7 +21,6 @@ function GameBrowserPage() {
   const [error, setError] = useState('')
   const [creatingGameId, setCreatingGameId] = useState(null)
   const [customName, setCustomName] = useState('')
-  const [roomThemeKey, setRoomThemeKey] = useState('')
   const [createError, setCreateError] = useState('')
   const [createLoading, setCreateLoading] = useState(false)
 
@@ -63,7 +61,6 @@ function GameBrowserPage() {
         game_id: game.id,
         status: 'lobby',
         created_by: user.id,
-        room_theme: roomThemeKey || null,
       })
       .select()
       .single()
@@ -81,73 +78,99 @@ function GameBrowserPage() {
     setCreateLoading(false)
     setCreatingGameId(null)
     setCustomName('')
-    setRoomThemeKey('')
     navigate(`/room/${data.id}`)
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 px-4 py-6 max-w-4xl mx-auto">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-50">
-            Today&apos;s NBA Games
+          <h1
+            style={{
+              fontFamily: 'var(--ch-font-display)',
+              fontSize: 40,
+              color: '#F1F5F9',
+              lineHeight: 1,
+              letterSpacing: '0.02em',
+            }}
+          >
+            Tonight&apos;s NBA Games
           </h1>
-          <p className="mt-1 text-sm text-slate-400">
+          <p className="mt-2 text-sm" style={{ color: '#94A3B8' }}>
             Pick a game to create a bingo room.
           </p>
         </div>
         <button
           type="button"
           onClick={() => navigate('/')}
-          className="inline-flex items-center justify-center rounded-md border border-slate-700 bg-slate-900 px-4 py-2 text-sm font-medium text-slate-200 transition hover:bg-slate-800"
+          className="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition hover:opacity-80"
+          style={{
+            background: '#1A2235',
+            color: '#94A3B8',
+            border: '1px solid #1E293B',
+          }}
         >
-          Back to Lobby
+          ← Back to Lobby
         </button>
       </div>
 
       {error && (
-        <div className="rounded-md border border-red-500/40 bg-red-950/40 px-3 py-2 text-sm text-red-200">
+        <div
+          className="rounded-md px-3 py-2 text-sm"
+          style={{
+            background: 'rgba(239,68,68,0.08)',
+            border: '1px solid rgba(239,68,68,0.3)',
+            color: '#EF4444',
+          }}
+        >
           {error}
         </div>
       )}
 
       {loading ? (
-        <div className="flex min-h-[200px] items-center justify-center text-slate-400">
-          Loading games from ESPN...
+        <div className="flex min-h-[200px] items-center justify-center text-sm" style={{ color: '#64748B' }}>
+          Loading games from ESPN…
         </div>
       ) : games.length === 0 ? (
         <div className="flex min-h-[200px] flex-col items-center justify-center gap-2 text-center">
-          <p className="text-sm text-slate-300">No NBA games scheduled today.</p>
-          <p className="text-xs text-slate-500">Check back on a game day.</p>
+          <p className="text-sm" style={{ color: '#94A3B8' }}>No NBA games scheduled today.</p>
+          <p className="text-xs" style={{ color: '#64748B' }}>Check back on a game day.</p>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {games.map((game) => (
             <div
               key={game.id}
-              className="relative flex flex-col justify-between rounded-xl border border-slate-800 bg-slate-950/60 p-5 shadow-sm shadow-black/40"
+              className="relative flex flex-col justify-between rounded-xl p-5"
+              style={{ background: '#111827', border: '1px solid #1E293B' }}
             >
               {game.isLive && (
-                <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-ch-amber/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-ch-amber ring-1 ring-ch-amber/40">
-                  <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-ch-amber-light" />
+                <span
+                  className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider"
+                  style={{ background: 'rgba(239,68,68,0.15)', color: '#EF4444', border: '1px solid rgba(239,68,68,0.3)' }}
+                >
+                  <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-current" />
                   Live
                 </span>
               )}
 
               {game.isFinished && (
-                <span className="absolute right-3 top-3 inline-flex items-center rounded-full bg-slate-700/40 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400 ring-1 ring-slate-600/60">
+                <span
+                  className="absolute right-3 top-3 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider"
+                  style={{ background: '#1A2235', color: '#64748B', border: '1px solid #334155' }}
+                >
                   Final
                 </span>
               )}
 
               <div className="space-y-3">
                 <TeamRow team={game.away} showScore={game.isLive || game.isFinished} />
-                <div className="border-t border-slate-800" />
+                <div style={{ height: 1, background: '#1E293B' }} />
                 <TeamRow team={game.home} showScore={game.isLive || game.isFinished} />
               </div>
 
               <div className="mt-4 flex items-center justify-between">
-                <div className="text-xs text-slate-500">
+                <div className="text-xs" style={{ color: '#64748B' }}>
                   {game.isLive
                     ? game.statusDetail
                     : game.isFinished
@@ -162,7 +185,8 @@ function GameBrowserPage() {
                       setCreatingGameId(game.id)
                       setCustomName(`${game.away.abbr} @ ${game.home.abbr}`)
                     }}
-                    className="rounded-md bg-ch-amber px-3 py-1.5 text-xs font-medium text-ch-ink shadow-sm shadow-ch-amber transition hover:bg-ch-amber-light"
+                    className="rounded-md px-3 py-1.5 text-xs font-bold transition hover:bg-[#69F0AE]"
+                    style={{ background: '#00E676', color: '#0A0E17' }}
                   >
                     Create Room
                   </button>
@@ -174,18 +198,28 @@ function GameBrowserPage() {
       )}
 
       {creatingGameId && (
-        <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/70 px-4">
-          <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-950 p-6 shadow-2xl shadow-black/70">
-            <h2 className="text-lg font-semibold tracking-tight text-slate-50">
+        <div className="fixed inset-0 z-30 flex items-center justify-center px-4" style={{ background: 'rgba(0,0,0,0.75)' }}>
+          <div
+            className="w-full max-w-md rounded-2xl p-6 shadow-2xl"
+            style={{ background: '#111827', border: '1px solid #1E293B' }}
+          >
+            <h2 className="text-lg font-semibold tracking-tight" style={{ color: '#F1F5F9' }}>
               Create Room
             </h2>
-            <p className="mt-1 text-xs text-slate-400">
+            <p className="mt-1 text-xs" style={{ color: '#64748B' }}>
               ESPN Game ID:{' '}
-              <span className="font-mono text-slate-300">{creatingGameId}</span>
+              <span className="font-mono" style={{ color: '#94A3B8' }}>{creatingGameId}</span>
             </p>
 
             {createError && (
-              <div className="mt-3 rounded-md border border-red-500/40 bg-red-950/40 px-3 py-2 text-sm text-red-200">
+              <div
+                className="mt-3 rounded-md px-3 py-2 text-sm"
+                style={{
+                  background: 'rgba(239,68,68,0.08)',
+                  border: '1px solid rgba(239,68,68,0.3)',
+                  color: '#EF4444',
+                }}
+              >
                 {createError}
               </div>
             )}
@@ -201,7 +235,8 @@ function GameBrowserPage() {
               <div>
                 <label
                   htmlFor="room-name"
-                  className="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-400"
+                  className="mb-1 block text-xs font-medium uppercase tracking-wide"
+                  style={{ color: '#64748B' }}
                 >
                   Room name
                 </label>
@@ -213,29 +248,16 @@ function GameBrowserPage() {
                   maxLength={50}
                   value={customName}
                   onChange={(e) => setCustomName(e.target.value)}
-                  className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-50 placeholder:text-slate-500 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+                  className="w-full rounded-md px-3 py-2 text-sm outline-none transition"
+                  style={{
+                    background: '#0A0E17',
+                    border: '1px solid #1E293B',
+                    color: '#F1F5F9',
+                  }}
+                  onFocus={(e) => { e.currentTarget.style.borderColor = '#00E676' }}
+                  onBlur={(e) => { e.currentTarget.style.borderColor = '#1E293B' }}
                   placeholder="My Bingo Room"
                 />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="room-theme"
-                  className="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-400"
-                >
-                  Room theme (optional)
-                </label>
-                <select
-                  id="room-theme"
-                  value={roomThemeKey}
-                  onChange={(e) => setRoomThemeKey(e.target.value)}
-                  className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-50 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
-                >
-                  <option value="">Default (player's choice)</option>
-                  {Object.entries(THEMES).map(([key, t]) => (
-                    <option key={key} value={key}>{t.label}</option>
-                  ))}
-                </select>
               </div>
 
               <div className="flex justify-end gap-2">
@@ -245,20 +267,23 @@ function GameBrowserPage() {
                     if (!createLoading) {
                       setCreatingGameId(null)
                       setCustomName('')
-                      setRoomThemeKey('')
                       setCreateError('')
                     }
                   }}
-                  className="rounded-md px-3 py-1.5 text-xs font-medium text-slate-300 hover:bg-slate-800"
+                  className="rounded-md px-3 py-1.5 text-xs font-medium transition"
+                  style={{ color: '#94A3B8', background: 'transparent', border: '1px solid #1E293B' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#1A2235' }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={createLoading}
-                  className="rounded-md bg-ch-amber px-4 py-1.5 text-xs font-medium text-ch-ink shadow-sm shadow-ch-amber hover:bg-ch-amber-light disabled:cursor-not-allowed disabled:opacity-70"
+                  className="rounded-md px-4 py-1.5 text-xs font-bold transition hover:bg-[#69F0AE] disabled:cursor-not-allowed disabled:opacity-70"
+                  style={{ background: '#00E676', color: '#0A0E17' }}
                 >
-                  {createLoading ? 'Creating...' : 'Create & Join'}
+                  {createLoading ? 'Creating…' : 'Create & Join'}
                 </button>
               </div>
             </form>
@@ -281,14 +306,14 @@ function TeamRow({ team, showScore }) {
           />
         )}
         <div>
-          <p className="text-sm font-medium text-slate-100">{team.name}</p>
-          <p className="text-[10px] uppercase tracking-wide text-slate-500">
+          <p className="text-sm font-medium" style={{ color: '#F1F5F9' }}>{team.name}</p>
+          <p className="text-[10px] uppercase tracking-wide" style={{ color: '#64748B' }}>
             {team.abbr}
           </p>
         </div>
       </div>
       {showScore && (
-        <span className="text-lg font-bold tabular-nums text-slate-50">
+        <span className="text-lg font-bold tabular-nums" style={{ color: '#F1F5F9' }}>
           {team.score}
         </span>
       )}

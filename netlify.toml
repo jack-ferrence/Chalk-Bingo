@@ -22,3 +22,7 @@
 # Scheduled function: room cleanup daily at 04:00 UTC
 [functions."room-cleanup"]
   schedule = "0 4 * * *"
+
+# Scheduled function: create public rooms for today's NBA games (every 5 min)
+[functions."sync-games"]
+  schedule = "*/5 * * * *"

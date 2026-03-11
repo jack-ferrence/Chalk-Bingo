@@ -2,7 +2,7 @@ import { memo, useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
 import Panel from '../ui/Panel.jsx'
 
-const RANK_COLORS = ['text-accent-gold', 'text-text-secondary', 'text-amber-700']
+const RANK_COLORS = ['text-accent-green', 'text-text-secondary', 'text-text-muted']
 const MAX_VISIBLE = 10
 const ROW_HEIGHT = 32
 

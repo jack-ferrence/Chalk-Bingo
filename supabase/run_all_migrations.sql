@@ -601,6 +601,21 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
 
+-- -----------------------------------------------------------------------------
+-- 014_room_types
+-- Adds room_type ('public' | 'private'). Default is 'private' so existing
+-- user-created rooms and future GameBrowserPage rooms stay private.
+-- sync-games.js explicitly sets room_type = 'public' for system rooms.
+-- -----------------------------------------------------------------------------
+alter table public.rooms
+  add column if not exists room_type text not null default 'private'
+    check (room_type in ('public', 'private'));
+
+-- At most one active public room per game (re-creatable once a game finishes).
+create unique index if not exists idx_rooms_one_public_per_game
+  on public.rooms (game_id)
+  where room_type = 'public' and status != 'finished';
+
 -- =============================================================================
 -- For EXISTING projects only (you already ran an older version of this file)
 -- Run this block to add: status CHECK, ON DELETE CASCADE, and rooms_with_counts.

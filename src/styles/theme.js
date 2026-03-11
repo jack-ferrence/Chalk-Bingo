@@ -1,30 +1,23 @@
 export const theme = {
   bg: {
-    primary: '#0F1118',
-    secondary: '#12141D',
-    card: '#1A1D2B',
-    hover: '#1E2230',
+    primary:   '#0A0E17', // deep navy black — the base
+    secondary: '#111827', // surface
+    card:      '#1A2235', // surface-light
+    hover:     '#1E293B', // hover state
   },
   border: {
-    subtle: '#1E2230',
-    active: '#2A2E3F',
+    subtle: '#1E293B',
+    active: '#334155',
   },
   text: {
-    primary: '#FFFFFF',
-    secondary: '#8B8FA3',
-    muted: '#5A5E6E',
+    primary:   '#F1F5F9',
+    secondary: '#94A3B8',
+    muted:     '#64748B',
   },
   accent: {
-    green: '#00D46E',
-    gold: '#FFD700',
-    red: '#FF4757',
+    green:  '#00E676', // primary — money, wins, CTAs
+    gold:   '#F59E0B', // warning / pending only (not primary)
+    red:    '#EF4444', // live, urgent
     purple: '#8B5CF6',
-  },
-  vegas: {
-    felt: '#0A3D2A',
-    neon: '#00FF88',
-    glow: 'rgba(0, 255, 136, 0.3)',
-    gold: '#FFD700',
-    border: '#2A1A00',
   },
 }
