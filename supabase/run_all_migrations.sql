@@ -1,13 +1,14 @@
 -- =============================================================================
--- Cowbell — full schema for Supabase SQL Editor (run once on a fresh project)
--- Combines migrations 001–005 + Realtime publication.
--- Cards are stored as FLAT 25-element JSON arrays (not 5×5 grids).
+-- Cowbell — FRESH MIGRATION (run once on a brand-new Supabase project)
+-- Paste this entire file into the Supabase SQL Editor and execute.
 -- =============================================================================
 
--- -----------------------------------------------------------------------------
--- 001_initial_schema
--- -----------------------------------------------------------------------------
+-- 001: Extensions
 create extension if not exists "pgcrypto";
+
+-- =============================================================================
+-- TABLES
+-- =============================================================================
 
 create table if not exists public.profiles (
   id uuid primary key references auth.users (id),
@@ -18,7 +19,7 @@ create table if not exists public.profiles (
   name_font text default 'default',
   ui_theme text default 'default',
   username_changes_remaining int default 0,
-   user_theme text default 'challenger',
+  user_theme text default 'challenger',
   created_at timestamptz default now(),
   constraint profiles_name_font_check check (
     name_font in ('default','mono','display','serif','rounded')
@@ -38,7 +39,8 @@ create table if not exists public.rooms (
   status text default 'lobby' check (status in ('lobby', 'live', 'finished')),
   created_at timestamptz default now(),
   starts_at timestamptz,
-  room_theme text default null
+  room_theme text default null,
+  room_type text not null default 'private' check (room_type in ('public', 'private'))
 );
 
 create table if not exists public.cards (
@@ -71,15 +73,71 @@ create table if not exists public.room_participants (
   unique (room_id, user_id)
 );
 
+create table if not exists public.chat_messages (
+  id uuid primary key default gen_random_uuid(),
+  room_id uuid not null references public.rooms (id) on delete cascade,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  username text not null,
+  message text not null check (char_length(message) <= 280),
+  created_at timestamptz default now()
+);
+
+create table if not exists public.polling_locks (
+  lock_key text primary key,
+  locked_at timestamptz not null default now(),
+  locked_by text
+);
+
+-- =============================================================================
+-- INDEXES
+-- =============================================================================
+
+create index if not exists idx_stat_events_game_player on public.stat_events (game_id, player_id);
+create index if not exists idx_cards_room on public.cards (room_id);
+create index if not exists idx_cards_room_user on public.cards (room_id, user_id);
+create index if not exists idx_room_participants_room on public.room_participants (room_id);
+create index if not exists idx_chat_messages_room_time on public.chat_messages (room_id, created_at desc);
+
+-- At most one active public room per game
+create unique index if not exists idx_rooms_one_public_per_game
+  on public.rooms (game_id)
+  where room_type = 'public' and status != 'finished';
+
+-- =============================================================================
+-- VIEW
+-- =============================================================================
+
+create or replace view public.rooms_with_counts as
+select r.*, coalesce(rp.cnt, 0) as participant_count
+from public.rooms r
+left join (
+  select room_id, count(*)::int as cnt
+  from public.room_participants
+  group by room_id
+) rp on rp.room_id = r.id;
+
+-- =============================================================================
+-- ROW LEVEL SECURITY
+-- =============================================================================
+
 alter table public.profiles enable row level security;
 alter table public.rooms enable row level security;
 alter table public.cards enable row level security;
 alter table public.stat_events enable row level security;
 alter table public.room_participants enable row level security;
+alter table public.chat_messages enable row level security;
+alter table public.polling_locks enable row level security;
+-- polling_locks: no policies = service-role only access
 
+-- profiles
+create policy "profiles_select_all" on public.profiles for select to authenticated using (true);
+create policy "profiles_insert_own" on public.profiles for insert to authenticated with check (id = auth.uid());
+create policy "profiles_update_own" on public.profiles for update to authenticated using (id = auth.uid()) with check (id = auth.uid());
+
+-- rooms
 create policy "rooms_select_all" on public.rooms for select to authenticated using (true);
--- cards_select_own intentionally replaced by cards_select_same_room (see 010_cards_rls_leaderboard.sql).
--- Participants can read all cards in rooms they have joined (required for the leaderboard).
+
+-- cards (leaderboard-aware: can read all cards in rooms you've joined)
 create policy "cards_select_same_room" on public.cards for select to authenticated
   using (
     room_id in (
@@ -89,18 +147,38 @@ create policy "cards_select_same_room" on public.cards for select to authenticat
 create policy "cards_insert_own" on public.cards for insert to authenticated with check (user_id = auth.uid());
 create policy "cards_update_own" on public.cards for update to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
 create policy "cards_delete_own" on public.cards for delete to authenticated using (user_id = auth.uid());
+
+-- room_participants
 create policy "room_participants_select_all" on public.room_participants for select to authenticated using (true);
 create policy "room_participants_insert_self" on public.room_participants for insert to authenticated with check (user_id = auth.uid());
+
+-- stat_events
 create policy "stat_events_select_all" on public.stat_events for select to authenticated using (true);
-create policy "profiles_select_all" on public.profiles for select to authenticated using (true);
-create policy "profiles_insert_own" on public.profiles for insert to authenticated with check (id = auth.uid());
-create policy "profiles_update_own" on public.profiles for update to authenticated using (id = auth.uid()) with check (id = auth.uid());
 
--- -----------------------------------------------------------------------------
--- 002_functions (check_bingo_lines + mark_squares_for_event)
--- Squares are always flat 25-element arrays. No 5×5 conversion needed.
--- -----------------------------------------------------------------------------
+-- chat_messages (only room participants can read/write)
+create policy "chat_select_participants" on public.chat_messages for select to authenticated
+  using (
+    exists (
+      select 1 from public.room_participants rp
+      where rp.room_id = chat_messages.room_id
+      and rp.user_id = auth.uid()
+    )
+  );
+create policy "chat_insert_participants" on public.chat_messages for insert to authenticated
+  with check (
+    auth.uid() = user_id
+    and exists (
+      select 1 from public.room_participants rp
+      where rp.room_id = chat_messages.room_id
+      and rp.user_id = auth.uid()
+    )
+  );
 
+-- =============================================================================
+-- FUNCTIONS
+-- =============================================================================
+
+-- ── check_bingo_lines ────────────────────────────────────────────────────────
 create or replace function public.check_bingo_lines(squares jsonb)
 returns int language plpgsql immutable as $$
 declare
@@ -145,6 +223,7 @@ begin
   return line_count;
 end; $$;
 
+-- ── mark_squares_for_event ───────────────────────────────────────────────────
 create or replace function public.mark_squares_for_event(p_game_id text, p_stat_event jsonb)
 returns int language plpgsql security definer set search_path = public as $$
 declare
@@ -198,25 +277,7 @@ begin
   return cards_updated;
 end; $$;
 
--- -----------------------------------------------------------------------------
--- 003_room_creator
--- -----------------------------------------------------------------------------
-alter table public.rooms add column if not exists created_by uuid references public.profiles (id);
-
-create policy "rooms_update_creator" on public.rooms for update to authenticated
-  using (created_by = auth.uid()) with check (created_by = auth.uid());
-
--- -----------------------------------------------------------------------------
--- 004_rooms_insert_policy
--- -----------------------------------------------------------------------------
-create policy "rooms_insert_authenticated" on public.rooms for insert to authenticated
-  with check (created_by = auth.uid());
-
--- -----------------------------------------------------------------------------
--- 005_generate_card_rpc  (stores a FLAT 25-element array, not 5×5)
--- Accepts p_players jsonb: [{"id":"2544","name":"LeBron James","lastName":"James"}, ...]
--- Falls back to a hardcoded roster if p_players is null or empty.
--- -----------------------------------------------------------------------------
+-- ── generate_card_for_room ───────────────────────────────────────────────────
 create or replace function public.generate_card_for_room(p_room_id uuid, p_players jsonb default null)
 returns setof public.cards language plpgsql security definer set search_path = public as $$
 declare
@@ -329,73 +390,7 @@ begin
   return next v_existing;
 end; $$;
 
--- -----------------------------------------------------------------------------
--- 006_rooms_with_counts view (eliminates N+1 in lobby)
--- -----------------------------------------------------------------------------
-create or replace view public.rooms_with_counts as
-select r.*, coalesce(rp.cnt, 0) as participant_count
-from public.rooms r
-left join (
-  select room_id, count(*)::int as cnt
-  from public.room_participants
-  group by room_id
-) rp on rp.room_id = r.id;
-
--- -----------------------------------------------------------------------------
--- 007_chat_messages
--- -----------------------------------------------------------------------------
-create table if not exists public.chat_messages (
-  id uuid primary key default gen_random_uuid(),
-  room_id uuid not null references public.rooms (id) on delete cascade,
-  user_id uuid not null references auth.users (id) on delete cascade,
-  username text not null,
-  message text not null check (char_length(message) <= 280),
-  created_at timestamptz default now()
-);
-
-create index if not exists idx_chat_messages_room on public.chat_messages (room_id, created_at desc);
-
-alter table public.chat_messages enable row level security;
-
-create policy "chat_select_participants" on public.chat_messages for select to authenticated
-  using (
-    exists (
-      select 1 from public.room_participants rp
-      where rp.room_id = chat_messages.room_id
-      and rp.user_id = auth.uid()
-    )
-  );
-
-create policy "chat_insert_participants" on public.chat_messages for insert to authenticated
-  with check (
-    auth.uid() = user_id
-    and exists (
-      select 1 from public.room_participants rp
-      where rp.room_id = chat_messages.room_id
-      and rp.user_id = auth.uid()
-    )
-  );
-
--- -----------------------------------------------------------------------------
--- Realtime: add tables to publication (skip if already added)
--- -----------------------------------------------------------------------------
-alter publication supabase_realtime add table public.rooms;
-alter publication supabase_realtime add table public.cards;
-alter publication supabase_realtime add table public.stat_events;
-alter publication supabase_realtime add table public.room_participants;
-alter publication supabase_realtime add table public.chat_messages;
-
--- -----------------------------------------------------------------------------
--- 008_polling_locks (prevents overlapping poll-stats invocations)
--- -----------------------------------------------------------------------------
-create table if not exists public.polling_locks (
-  lock_key text primary key,
-  locked_at timestamptz not null default now(),
-  locked_by text
-);
-
--- Acquire a lock: returns true if acquired, false if another invocation holds it.
--- Stale locks older than p_ttl_seconds are automatically reclaimed.
+-- ── acquire_polling_lock ─────────────────────────────────────────────────────
 create or replace function public.acquire_polling_lock(
   p_key text,
   p_owner text default 'poll-stats',
@@ -422,41 +417,14 @@ begin
   return false;
 end; $$;
 
--- Release a lock explicitly
+-- ── release_polling_lock ─────────────────────────────────────────────────────
 create or replace function public.release_polling_lock(p_key text)
 returns void language plpgsql security definer set search_path = public as $$
 begin
   delete from polling_locks where lock_key = p_key;
 end; $$;
 
--- -----------------------------------------------------------------------------
--- 009_production_hardening (indexes, RLS tightening, chat pruning, cleanup RPCs)
--- -----------------------------------------------------------------------------
-
--- ── Indexes ──────────────────────────────────────────────────────────────────
-create index if not exists idx_stat_events_game_player
-  on public.stat_events (game_id, player_id);
-
-create index if not exists idx_cards_room
-  on public.cards (room_id);
-
-create index if not exists idx_cards_room_user
-  on public.cards (room_id, user_id);
-
-create index if not exists idx_room_participants_room
-  on public.room_participants (room_id);
-
--- idx_chat_messages_room already created in 007; re-state for safety
-create index if not exists idx_chat_messages_room_time
-  on public.chat_messages (room_id, created_at desc);
-
--- ── RLS: lock down polling_locks (service-role only, no public access) ───────
-alter table public.polling_locks enable row level security;
--- No policies = no access for anon/authenticated roles. Service-role bypasses RLS.
-
--- ── Chat message pruning trigger ─────────────────────────────────────────────
--- Keeps at most 200 messages per room. Only runs when count > 250 to avoid
--- expensive delete on every insert in busy rooms.
+-- ── prune_chat_messages ──────────────────────────────────────────────────────
 create or replace function public.prune_chat_messages()
 returns trigger language plpgsql security definer set search_path = public as $$
 declare
@@ -482,9 +450,7 @@ create trigger trigger_prune_chat
   after insert on public.chat_messages
   for each row execute function public.prune_chat_messages();
 
--- ── Room cleanup RPCs (called by scheduled Netlify function) ─────────────────
-
--- Mark stale live rooms as finished (no stat_events in 3+ hours)
+-- ── cleanup_stale_rooms ──────────────────────────────────────────────────────
 create or replace function public.cleanup_stale_rooms()
 returns int language plpgsql security definer set search_path = public as $$
 declare
@@ -507,13 +473,12 @@ begin
   return v_count;
 end; $$;
 
--- Purge old data from rooms finished >7 days ago
+-- ── cleanup_old_room_data ────────────────────────────────────────────────────
 create or replace function public.cleanup_old_room_data()
 returns jsonb language plpgsql security definer set search_path = public as $$
 declare
   v_chat int; v_participants int;
 begin
-  -- Delete chat messages for old finished rooms
   delete from chat_messages
   where room_id in (
     select id from rooms
@@ -522,7 +487,6 @@ begin
   );
   get diagnostics v_chat = row_count;
 
-  -- Delete room participants for old finished rooms
   delete from room_participants
   where room_id in (
     select id from rooms
@@ -537,40 +501,7 @@ begin
   );
 end; $$;
 
--- -----------------------------------------------------------------------------
--- 010_cards_rls_leaderboard
--- Replaces cards_select_own with cards_select_same_room so leaderboard
--- queries can read all cards in a room the user has joined.
--- (Already applied inline above; this block is a no-op on fresh installs.)
--- -----------------------------------------------------------------------------
-drop policy if exists "cards_select_own" on public.cards;
-
--- cards_select_same_room is already created above; guard against re-running.
-do $$ begin
-  if not exists (
-    select 1 from pg_policies
-    where schemaname = 'public'
-      and tablename  = 'cards'
-      and policyname = 'cards_select_same_room'
-  ) then
-    execute $p$
-      create policy "cards_select_same_room" on public.cards
-        for select to authenticated
-        using (
-          room_id in (
-            select rp.room_id from public.room_participants rp where rp.user_id = auth.uid()
-          )
-        )
-    $p$;
-  end if;
-end $$;
-
--- -----------------------------------------------------------------------------
--- 012_auto_create_profile
--- Automatically creates a profile row for every new auth.users row.
--- Reads the requested username from raw_user_meta_data, falling back to
--- Guest_<first8> for anonymous users or users without metadata.
--- -----------------------------------------------------------------------------
+-- ── handle_new_user (auto-create profile on signup) ──────────────────────────
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
@@ -601,49 +532,16 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
 
--- -----------------------------------------------------------------------------
--- 014_room_types
--- Adds room_type ('public' | 'private'). Default is 'private' so existing
--- user-created rooms and future GameBrowserPage rooms stay private.
--- sync-games.js explicitly sets room_type = 'public' for system rooms.
--- -----------------------------------------------------------------------------
-alter table public.rooms
-  add column if not exists room_type text not null default 'private'
-    check (room_type in ('public', 'private'));
+-- =============================================================================
+-- REALTIME PUBLICATION
+-- =============================================================================
 
--- At most one active public room per game (re-creatable once a game finishes).
-create unique index if not exists idx_rooms_one_public_per_game
-  on public.rooms (game_id)
-  where room_type = 'public' and status != 'finished';
+alter publication supabase_realtime add table public.rooms;
+alter publication supabase_realtime add table public.cards;
+alter publication supabase_realtime add table public.stat_events;
+alter publication supabase_realtime add table public.room_participants;
+alter publication supabase_realtime add table public.chat_messages;
 
 -- =============================================================================
--- For EXISTING projects only (you already ran an older version of this file)
--- Run this block to add: status CHECK, ON DELETE CASCADE, and rooms_with_counts.
--- When creating a NEW Supabase project, run the full file above and STOP here
--- (the CREATE TABLE / view above already include these fixes).
+-- DONE. Your fresh Supabase project is ready.
 -- =============================================================================
--- Uncomment and run the following only on an existing database that was created
--- before these fixes were added:
-
--- ALTER TABLE public.rooms
---   ADD CONSTRAINT rooms_status_check
---   CHECK (status IN ('lobby', 'live', 'finished'));
-
--- ALTER TABLE public.cards
---   DROP CONSTRAINT IF EXISTS cards_room_id_fkey,
---   ADD CONSTRAINT cards_room_id_fkey
---     FOREIGN KEY (room_id) REFERENCES public.rooms(id) ON DELETE CASCADE;
-
--- ALTER TABLE public.room_participants
---   DROP CONSTRAINT IF EXISTS room_participants_room_id_fkey,
---   ADD CONSTRAINT room_participants_room_id_fkey
---     FOREIGN KEY (room_id) REFERENCES public.rooms(id) ON DELETE CASCADE;
-
--- CREATE OR REPLACE VIEW public.rooms_with_counts AS
--- SELECT r.*, COALESCE(rp.cnt, 0) AS participant_count
--- FROM public.rooms r
--- LEFT JOIN (
---   SELECT room_id, COUNT(*)::int AS cnt
---   FROM public.room_participants
---   GROUP BY room_id
--- ) rp ON rp.room_id = r.id;
