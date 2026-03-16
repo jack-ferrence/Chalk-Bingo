@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 
-const ESPN_SCOREBOARD = 'https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard'
+const ESPN_SCOREBOARD_NBA = 'https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard'
+const ESPN_SCOREBOARD_NCAA = 'https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?groups=100&limit=100'
 const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 
 // In-memory cache: reused across warm invocations to avoid hammering ESPN
@@ -9,8 +10,8 @@ let scheduleCache = { data: null, ts: 0 }
 /**
  * Netlify scheduled function (runs every 5 minutes via cron).
  *
- * For each NBA game that is scheduled or in-progress today:
- *   1. Check if a public room already exists for that game_id
+ * For each NBA and NCAA tournament game that is scheduled or in-progress today:
+ *   1. Check if a public room already exists for that game_id + sport
  *   2. If not, create one (status='lobby', room_type='public')
  *
  * Uses service role key to bypass RLS (system-created rows have created_by=NULL).
@@ -43,12 +44,22 @@ export async function handler() {
     log.push('schedule: served from cache')
   } else {
     try {
-      const res = await fetch(ESPN_SCOREBOARD)
-      if (!res.ok) throw new Error(`ESPN returned ${res.status}`)
-      const raw = await res.json()
-      games = parseGames(raw.events ?? [])
+      const [nbaRes, ncaaRes] = await Promise.all([
+        fetch(ESPN_SCOREBOARD_NBA),
+        fetch(ESPN_SCOREBOARD_NCAA),
+      ])
+
+      if (!nbaRes.ok) throw new Error(`ESPN NBA returned ${nbaRes.status}`)
+      if (!ncaaRes.ok) throw new Error(`ESPN NCAA returned ${ncaaRes.status}`)
+
+      const [nbaRaw, ncaaRaw] = await Promise.all([nbaRes.json(), ncaaRes.json()])
+
+      const nbaGames = parseGames(nbaRaw.events ?? [], 'nba')
+      const ncaaGames = parseGames(ncaaRaw.events ?? [], 'ncaa').filter(isTournamentGame)
+
+      games = [...nbaGames, ...ncaaGames]
       scheduleCache = { data: games, ts: now }
-      log.push(`schedule: fetched ${games.length} game(s) from ESPN`)
+      log.push(`schedule: fetched ${nbaGames.length} NBA + ${ncaaGames.length} NCAA tournament game(s)`)
     } catch (err) {
       console.error('sync-games: ESPN fetch failed', err)
       return { statusCode: 502, body: JSON.stringify({ error: err.message }) }
@@ -76,7 +87,7 @@ export async function handler() {
   // Fetch all existing public rooms for today's games in one query
   const { data: existingRooms, error: fetchErr } = await supabase
     .from('rooms')
-    .select('game_id')
+    .select('game_id, sport')
     .eq('room_type', 'public')
     .neq('status', 'finished')
     .in('game_id', gameIds)
@@ -86,15 +97,18 @@ export async function handler() {
     return { statusCode: 500, body: JSON.stringify({ error: fetchErr.message }) }
   }
 
-  const existingGameIds = new Set((existingRooms ?? []).map((r) => r.game_id))
+  // Key by "gameId:sport" to handle same game_id across sports (shouldn't happen, but safe)
+  const existingKeys = new Set((existingRooms ?? []).map((r) => `${r.game_id}:${r.sport}`))
 
   let created = 0
   for (const game of actionable) {
-    if (existingGameIds.has(game.id)) continue
+    const key = `${game.id}:${game.sport}`
+    if (existingKeys.has(key)) continue
 
     const { error: insertErr } = await supabase.from('rooms').insert({
       name: game.roomName,
       game_id: game.id,
+      sport: game.sport,
       room_type: 'public',
       status: 'lobby',
       starts_at: game.startsAt,
@@ -104,17 +118,17 @@ export async function handler() {
     if (insertErr) {
       // Unique constraint violation = another invocation beat us to it — not an error
       if (insertErr.code === '23505') {
-        log.push(`${game.id}: already created (race)`)
+        log.push(`${game.id} (${game.sport}): already created (race)`)
         continue
       }
       console.error(`sync-games: insert failed for game ${game.id}`, insertErr)
-      log.push(`${game.id}: INSERT FAILED — ${insertErr.message}`)
+      log.push(`${game.id} (${game.sport}): INSERT FAILED — ${insertErr.message}`)
       continue
     }
 
     created++
-    log.push(`created room for ${game.id} (${game.roomName})`)
-    console.log(`sync-games: created public room for game ${game.id} — ${game.roomName}`)
+    log.push(`created room for ${game.id} (${game.roomName}) [${game.sport}]`)
+    console.log(`sync-games: created public room for game ${game.id} — ${game.roomName} [${game.sport}]`)
   }
 
   log.push(`total created: ${created}`)
@@ -131,7 +145,7 @@ export async function handler() {
 // ESPN parsing helpers
 // ---------------------------------------------------------------------------
 
-function parseGames(events) {
+function parseGames(events, sport) {
   return events.map((event) => {
     const competition = event.competitions?.[0]
     const competitors = competition?.competitors ?? []
@@ -144,9 +158,35 @@ function parseGames(events) {
 
     return {
       id: String(event.id),
+      sport,
       status: event.status?.type?.name ?? '',
       roomName: `${awayAbbr} vs ${homeAbbr}`,
       startsAt: event.date ?? null,
+      _event: event,
     }
   })
+}
+
+/**
+ * Best-effort NCAA tournament filter.
+ * The groups=100 ESPN endpoint already scopes to the tournament bracket,
+ * so most events from that feed are tournament games. We additionally check
+ * the competition notes as a belt-and-suspenders filter.
+ */
+function isTournamentGame(game) {
+  const event = game._event
+  const competition = event.competitions?.[0]
+
+  // Check notes for championship keywords
+  const notes = competition?.notes ?? []
+  const hasChampNote = notes.some((n) =>
+    /championship|tournament|march madness/i.test(n.headline ?? n.text ?? '')
+  )
+  if (hasChampNote) return true
+
+  // Check if tournamentId is present on the competition
+  if (competition?.tournamentId) return true
+
+  // groups=100 already filters to the tournament — accept all remaining
+  return true
 }

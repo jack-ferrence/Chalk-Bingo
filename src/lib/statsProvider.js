@@ -1,5 +1,7 @@
-const ESPN_SCOREBOARD = 'https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard'
-const ESPN_SUMMARY = 'https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary'
+const ESPN_SCOREBOARD_NBA  = 'https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard'
+const ESPN_SUMMARY_NBA     = 'https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary'
+const ESPN_SCOREBOARD_NCAA = 'https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?groups=100&limit=100'
+const ESPN_SUMMARY_NCAA    = 'https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/summary'
 
 const STAT_THRESHOLDS = {
   points:   [25, 20, 15, 10],
@@ -83,10 +85,12 @@ async function fetchJson(url) {
 /**
  * Fetch live stat events from ESPN for a specific game.
  * @param {string} espnGameId - ESPN event ID (the game_id stored in rooms)
+ * @param {'nba'|'ncaa'} sport
  * @returns {Promise<Array<{player_id, player_name, stat_type, value, period}>>}
  */
-async function fetchEspnStats(espnGameId) {
-  const data = await fetchJson(`${ESPN_SUMMARY}?event=${espnGameId}`)
+async function fetchEspnStats(espnGameId, sport = 'nba') {
+  const base = sport === 'ncaa' ? ESPN_SUMMARY_NCAA : ESPN_SUMMARY_NBA
+  const data = await fetchJson(`${base}?event=${espnGameId}`)
 
   const boxScore = data.boxscore
   if (!boxScore?.players?.length) return []
@@ -210,10 +214,12 @@ function mapStatsByLabel(athlete, labels, period) {
 
 /**
  * Fetch today's live ESPN game IDs from the scoreboard.
+ * @param {'nba'|'ncaa'} sport
  * @returns {Promise<Array<{id: string, name: string, status: string}>>}
  */
-async function fetchLiveEspnGames() {
-  const data = await fetchJson(ESPN_SCOREBOARD)
+async function fetchLiveEspnGames(sport = 'nba') {
+  const url = sport === 'ncaa' ? ESPN_SCOREBOARD_NCAA : ESPN_SCOREBOARD_NBA
+  const data = await fetchJson(url)
   const games = []
   for (const event of data.events ?? []) {
     const status = event.status?.type?.name ?? ''
@@ -290,12 +296,13 @@ function generateMockEvents(gameId) {
  *
  * @param {string} gameId
  * @param {'espn'|'mock'} source
+ * @param {'nba'|'ncaa'} sport
  * @returns {Promise<Array<{game_id, player_id, player_name, stat_type, value, period}>>}
  */
-async function getStatsForGame(gameId, source = 'mock') {
+async function getStatsForGame(gameId, source = 'mock', sport = 'nba') {
   if (source === 'espn') {
     try {
-      const raw = await fetchEspnStats(gameId)
+      const raw = await fetchEspnStats(gameId, sport)
       return raw.map((ev) => ({ ...ev, game_id: gameId }))
     } catch (err) {
       console.warn(`statsProvider: ESPN fetch failed for ${gameId}, falling back to mock:`, err.message)

@@ -79,15 +79,24 @@ export async function handler() {
   }
 
   try {
-    // ── Step 2: Fetch ESPN scoreboard once → gameId status map ──
+    // ── Step 2: Fetch ESPN scoreboards (NBA + NCAA) → gameId status map ──
     // Used for both auto-start and auto-finish so we only hit ESPN once per run.
     const espnStatusMap = new Map() // gameId (string) → ESPN status name
     try {
-      const espnGames = await fetchLiveEspnGames()
-      for (const g of espnGames) {
-        espnStatusMap.set(g.id, g.status)
+      const [nbaGames, ncaaGames] = await Promise.allSettled([
+        fetchLiveEspnGames('nba'),
+        fetchLiveEspnGames('ncaa'),
+      ])
+      let total = 0
+      for (const result of [nbaGames, ncaaGames]) {
+        if (result.status === 'fulfilled') {
+          for (const g of result.value) {
+            espnStatusMap.set(g.id, g.status)
+          }
+          total += result.value.length
+        }
       }
-      log.push(`ESPN scoreboard: ${espnGames.length} game(s)`)
+      log.push(`ESPN scoreboard: ${total} game(s) (NBA + NCAA)`)
     } catch (err) {
       // Non-fatal: auto-start/finish will be skipped this run, stat polling continues
       log.push(`ESPN scoreboard fetch failed: ${err.message}`)
@@ -131,7 +140,7 @@ export async function handler() {
     // ── Step 4: Find live games ──
     const { data: rooms, error: roomsError } = await supabase
       .from('rooms')
-      .select('game_id')
+      .select('game_id, sport')
       .eq('status', 'live')
 
     if (roomsError) {
@@ -140,6 +149,11 @@ export async function handler() {
       return { statusCode: 500, body: JSON.stringify({ error: roomsError.message }) }
     }
 
+    // Build a map of gameId → sport (last write wins, but each game_id should have one sport)
+    const gameSportMap = new Map()
+    for (const r of rooms ?? []) {
+      gameSportMap.set(r.game_id, r.sport ?? 'nba')
+    }
     const gameIds = [...new Set((rooms || []).map((r) => r.game_id))]
     log.push(`source=${statsSource} | Live games: ${gameIds.length} (${gameIds.join(', ') || 'none'})`)
 
@@ -159,10 +173,11 @@ export async function handler() {
 
     for (const gameId of gameIds) {
       Sentry.setTag('game_id', gameId)
+      const sport = gameSportMap.get(gameId) ?? 'nba'
 
       let events
       try {
-        events = await getStatsForGame(gameId, statsSource)
+        events = await getStatsForGame(gameId, statsSource, sport)
       } catch (fetchErr) {
         log.push(`game_id=${gameId} fetch failed: ${fetchErr.message}`)
         Sentry.captureException(fetchErr, { tags: { game_id: gameId } })

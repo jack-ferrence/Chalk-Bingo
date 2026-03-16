@@ -36,6 +36,7 @@ create table if not exists public.rooms (
   id uuid primary key default gen_random_uuid(),
   name text not null,
   game_id text not null,
+  sport text not null default 'nba' check (sport in ('nba', 'ncaa')),
   status text default 'lobby' check (status in ('lobby', 'live', 'finished')),
   created_at timestamptz default now(),
   starts_at timestamptz,
@@ -98,9 +99,9 @@ create index if not exists idx_cards_room_user on public.cards (room_id, user_id
 create index if not exists idx_room_participants_room on public.room_participants (room_id);
 create index if not exists idx_chat_messages_room_time on public.chat_messages (room_id, created_at desc);
 
--- At most one active public room per game
+-- At most one active public room per game per sport
 create unique index if not exists idx_rooms_one_public_per_game
-  on public.rooms (game_id)
+  on public.rooms (game_id, sport)
   where room_type = 'public' and status != 'finished';
 
 -- =============================================================================

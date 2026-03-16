@@ -1,4 +1,5 @@
-const ESPN_SUMMARY = 'https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary'
+const ESPN_SUMMARY_NBA  = 'https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary'
+const ESPN_SUMMARY_NCAA = 'https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/summary'
 
 const rosterCache = new Map()
 const CACHE_TTL = 300_000
@@ -39,6 +40,8 @@ function parseRoster(summaryData) {
 
 exports.handler = async function (event) {
   const gameId = event.queryStringParameters?.game_id
+  const sport = event.queryStringParameters?.sport ?? 'nba'
+
   if (!gameId) {
     return {
       statusCode: 400,
@@ -46,8 +49,9 @@ exports.handler = async function (event) {
     }
   }
 
+  const cacheKey = `${gameId}:${sport}`
   const now = Date.now()
-  const cached = rosterCache.get(gameId)
+  const cached = rosterCache.get(cacheKey)
   if (cached && now - cached.ts < CACHE_TTL) {
     return {
       statusCode: 200,
@@ -56,8 +60,10 @@ exports.handler = async function (event) {
     }
   }
 
+  const summaryBase = sport === 'ncaa' ? ESPN_SUMMARY_NCAA : ESPN_SUMMARY_NBA
+
   try {
-    const res = await fetch(`${ESPN_SUMMARY}?event=${gameId}`)
+    const res = await fetch(`${summaryBase}?event=${gameId}`)
     if (!res.ok) throw new Error(`ESPN returned ${res.status}`)
 
     const raw = await res.json()
@@ -71,9 +77,9 @@ exports.handler = async function (event) {
     }
 
     const result = { game_id: gameId, players }
-    rosterCache.set(gameId, { data: result, ts: now })
+    rosterCache.set(cacheKey, { data: result, ts: now })
 
-    if (rosterCache.size > 50) {
+    if (rosterCache.size > 100) {
       const oldest = [...rosterCache.entries()].sort((a, b) => a[1].ts - b[1].ts)[0]
       if (oldest) rosterCache.delete(oldest[0])
     }

@@ -6,9 +6,9 @@ import { useHomeData } from '../hooks/useHomeData.js'
 import SportSection from '../components/home/SportSection.jsx'
 
 const SPORT_SECTIONS = [
-  { sport: 'nba',           label: '🏀 NBA' },
-  { sport: 'mlb',           label: '⚾ MLB' },
-  { sport: 'march_madness', label: '🏆 March Madness' },
+  { sport: 'nba',  label: '🏀 NBA' },
+  { sport: 'ncaa', label: '🏆 NCAA Tournament' },
+  { sport: 'mlb',  label: '⚾ MLB' },
 ]
 
 export default function LobbyPage() {
@@ -56,23 +56,28 @@ export default function LobbyPage() {
 
   const handleContinue = (roomId) => navigate(`/room/${roomId}`)
 
+  const handleTabClick = (sportKey) => {
+    const el = document.getElementById(`sport-section-${sportKey}`)
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   return (
     <div className="px-6 py-8 max-w-[1200px] mx-auto">
       {/* Page header */}
       <div className="mb-8">
         <h1
           style={{
-            fontFamily: 'var(--ch-font-display)',
+            fontFamily: 'var(--db-font-display)',
             fontSize: 'clamp(32px, 4vw, 48px)',
             letterSpacing: '0.05em',
             lineHeight: 1,
-            color: '#F1F5F9',
+            color: '#2D2A26',
           }}
         >
           Tonight&apos;s Games
         </h1>
-        <p className="mt-2 text-sm" style={{ color: '#64748B' }}>
-          Live bingo powered by real NBA stats. Pick a game and play.
+        <p className="mt-2 text-sm" style={{ color: '#9A9490' }}>
+          Live bingo powered by real stats. Pick a game and play.
         </p>
       </div>
 
@@ -93,17 +98,18 @@ export default function LobbyPage() {
       {/* Sport sections */}
       <div className="space-y-10">
         {SPORT_SECTIONS.map((section, i) => (
-          <SportSection
-            key={section.sport}
-            label={section.label}
-            games={roomsBySport[section.sport] ?? []}
-            loading={loading}
-            joinedRoomIds={joinedRoomIds}
-            joiningRoomId={joiningRoomId}
-            onJoin={handleJoin}
-            onContinue={handleContinue}
-            style={{ animationDelay: `${i * 100}ms` }}
-          />
+          <div key={section.sport} id={`sport-section-${section.sport}`}>
+            <SportSection
+              label={section.label}
+              games={roomsBySport[section.sport] ?? []}
+              loading={loading}
+              joinedRoomIds={joinedRoomIds}
+              joiningRoomId={joiningRoomId}
+              onJoin={handleJoin}
+              onContinue={handleContinue}
+              style={{ animationDelay: `${i * 100}ms` }}
+            />
+          </div>
         ))}
       </div>
     </div>
