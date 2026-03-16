@@ -1,0 +1,313 @@
+const ESPN_SCOREBOARD = 'https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard'
+const ESPN_SUMMARY = 'https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary'
+
+const STAT_THRESHOLDS = {
+  points:   [25, 20, 15, 10],
+  rebounds: [10, 5],
+  assists:  [10, 5],
+}
+
+function parsePlayerStats(athlete, period) {
+  const events = []
+  const pid = String(athlete.athlete?.id ?? '')
+  const pname = athlete.athlete?.displayName ?? ''
+  if (!pid) return events
+
+  const stats = athlete.stats ?? []
+
+  // Require at least 6 values to have meaningful data (MIN PTS REB AST STL BLK).
+  // Fewer than that means the array is truncated or malformed — skip the player.
+  if (stats.length < 6) {
+    console.warn(`statsProvider: skipping ${pname} (${pid}) — stats array too short (${stats.length}) for positional parsing`)
+    return events
+  }
+
+  // ESPN standard order: MIN PTS REB AST STL BLK TO FG 3PT FT +/-
+  // This is a best-effort fallback; mapStatsByLabel() is preferred.
+  console.warn(
+    `statsProvider: using positional fallback for ${pname} (${pid}) — ` +
+    'labels were missing or unrecognised. Check ESPN response for this game.'
+  )
+
+  const pts = Number(stats[1]) || 0
+  const reb = Number(stats[2]) || 0
+  const ast = Number(stats[3]) || 0
+  const stl = Number(stats[4]) || 0
+  const blk = Number(stats[5]) || 0
+  // Index 8 is 3PT in the standard layout; fall back to index 7 if absent.
+  const threes = parseThreePointers(stats[8] ?? stats[7] ?? '0')
+
+  for (const threshold of STAT_THRESHOLDS.points) {
+    if (pts >= threshold) {
+      events.push({ player_id: pid, player_name: pname, stat_type: `points_${threshold}`, value: pts, period })
+    }
+  }
+
+  for (const threshold of STAT_THRESHOLDS.rebounds) {
+    if (reb >= threshold) {
+      events.push({ player_id: pid, player_name: pname, stat_type: `rebound_${threshold}`, value: reb, period })
+    }
+  }
+
+  for (const threshold of STAT_THRESHOLDS.assists) {
+    if (ast >= threshold) {
+      events.push({ player_id: pid, player_name: pname, stat_type: `assist_${threshold}`, value: ast, period })
+    }
+  }
+
+  if (threes >= 1) {
+    events.push({ player_id: pid, player_name: pname, stat_type: 'three_pointer', value: threes, period })
+  }
+  if (stl >= 1) {
+    events.push({ player_id: pid, player_name: pname, stat_type: 'steal', value: stl, period })
+  }
+  if (blk >= 1) {
+    events.push({ player_id: pid, player_name: pname, stat_type: 'block', value: blk, period })
+  }
+
+  return events
+}
+
+function parseThreePointers(fgStr) {
+  // ESPN formats 3PT as "made-attempted", e.g. "3-7"
+  const match = String(fgStr).match(/^(\d+)/)
+  return match ? Number(match[1]) : 0
+}
+
+async function fetchJson(url) {
+  const res = await fetch(url)
+  if (!res.ok) throw new Error(`ESPN fetch failed: ${res.status} ${res.statusText} for ${url}`)
+  return res.json()
+}
+
+/**
+ * Fetch live stat events from ESPN for a specific game.
+ * @param {string} espnGameId - ESPN event ID (the game_id stored in rooms)
+ * @returns {Promise<Array<{player_id, player_name, stat_type, value, period}>>}
+ */
+async function fetchEspnStats(espnGameId) {
+  const data = await fetchJson(`${ESPN_SUMMARY}?event=${espnGameId}`)
+
+  const boxScore = data.boxscore
+  if (!boxScore?.players?.length) return []
+
+  const period = data.header?.competitions?.[0]?.status?.period ?? 0
+  const events = []
+
+  for (const team of boxScore.players) {
+    const statLabels = team.statistics?.[0]?.labels ?? []
+    const athletes = team.statistics?.[0]?.athletes ?? []
+
+    for (const athlete of athletes) {
+      if (!athlete.stats?.length || athlete.didNotPlay) continue
+
+      const mapped = mapStatsByLabel(athlete, statLabels, period)
+      if (mapped.length) {
+        events.push(...mapped)
+      } else {
+        // Labels were empty or player had no qualifying stats via label path.
+        // parsePlayerStats() will warn if it resorts to positional indexing.
+        events.push(...parsePlayerStats(athlete, period))
+      }
+    }
+  }
+
+  return events
+}
+
+// ---------------------------------------------------------------------------
+// Label aliases: maps every known ESPN variant to a single canonical key.
+// Keeps mapStatsByLabel() robust against ESPN API inconsistencies.
+// ---------------------------------------------------------------------------
+const LABEL_ALIASES = {
+  // Points
+  PTS: 'PTS', POINTS: 'PTS',
+  // Rebounds (total)
+  REB: 'REB', REBS: 'REB', TRB: 'REB', TR: 'REB',
+  // Offensive / defensive rebounds — summed into REB when REB is absent
+  OR: 'OREB', OREB: 'OREB', OFF: 'OREB',
+  DR: 'DREB', DREB: 'DREB', DEF: 'DREB',
+  // Assists
+  AST: 'AST', ASSISTS: 'AST', AS: 'AST',
+  // Steals
+  STL: 'STL', STEALS: 'STL', ST: 'STL',
+  // Blocks
+  BLK: 'BLK', BLOCKS: 'BLK', BS: 'BLK',
+  // Three-pointers made (all ESPN variants)
+  '3PT': '3PM', '3PM': '3PM', '3P': '3PM', FG3: '3PM', '3FGM': '3PM',
+  // Field goals (not directly used, but normalised to avoid confusion
+  // with positional slots when labels are iterated)
+  FGM: 'FGM', FGA: 'FGA', FG: 'FGM',
+  FTM: 'FTM', FTA: 'FTA', FT: 'FTM',
+  // Turnovers / plus-minus — captured so they don't shadow other slots
+  TO: 'TO', TOV: 'TO', TU: 'TO',
+  '+/-': 'PM', PM: 'PM',
+  // Minutes
+  MIN: 'MIN',
+}
+
+/**
+ * Label-aware stat mapping. More reliable than positional indexing.
+ * Returns an empty array only when pid is missing — never due to label
+ * variants, thanks to LABEL_ALIASES normalisation above.
+ */
+function mapStatsByLabel(athlete, labels, period) {
+  const events = []
+  const pid = String(athlete.athlete?.id ?? '')
+  const pname = athlete.athlete?.displayName ?? ''
+  if (!pid || !labels.length) return events
+
+  // Build a normalised stat map keyed by canonical label names.
+  const statMap = {}
+  labels.forEach((label, i) => {
+    const canonical = LABEL_ALIASES[label.toUpperCase()] ?? label.toUpperCase()
+    // First occurrence wins; don't let a later duplicate overwrite.
+    if (!(canonical in statMap)) {
+      statMap[canonical] = athlete.stats[i] ?? '0'
+    }
+  })
+
+  const pts = Number(statMap['PTS']) || 0
+  const stl = Number(statMap['STL']) || 0
+  const blk = Number(statMap['BLK']) || 0
+  const threes = parseThreePointers(statMap['3PM'] ?? '0')
+
+  // Prefer the explicit total rebounds label; fall back to OR + DR sum.
+  let reb = Number(statMap['REB']) || 0
+  if (!reb && (statMap['OREB'] !== undefined || statMap['DREB'] !== undefined)) {
+    reb = (Number(statMap['OREB']) || 0) + (Number(statMap['DREB']) || 0)
+  }
+
+  const ast = Number(statMap['AST']) || 0
+
+  for (const threshold of STAT_THRESHOLDS.points) {
+    if (pts >= threshold) {
+      events.push({ player_id: pid, player_name: pname, stat_type: `points_${threshold}`, value: pts, period })
+    }
+  }
+  for (const threshold of STAT_THRESHOLDS.rebounds) {
+    if (reb >= threshold) {
+      events.push({ player_id: pid, player_name: pname, stat_type: `rebound_${threshold}`, value: reb, period })
+    }
+  }
+  for (const threshold of STAT_THRESHOLDS.assists) {
+    if (ast >= threshold) {
+      events.push({ player_id: pid, player_name: pname, stat_type: `assist_${threshold}`, value: ast, period })
+    }
+  }
+  if (threes >= 1) {
+    events.push({ player_id: pid, player_name: pname, stat_type: 'three_pointer', value: threes, period })
+  }
+  if (stl >= 1) {
+    events.push({ player_id: pid, player_name: pname, stat_type: 'steal', value: stl, period })
+  }
+  if (blk >= 1) {
+    events.push({ player_id: pid, player_name: pname, stat_type: 'block', value: blk, period })
+  }
+
+  return events
+}
+
+/**
+ * Fetch today's live ESPN game IDs from the scoreboard.
+ * @returns {Promise<Array<{id: string, name: string, status: string}>>}
+ */
+async function fetchLiveEspnGames() {
+  const data = await fetchJson(ESPN_SCOREBOARD)
+  const games = []
+  for (const event of data.events ?? []) {
+    const status = event.status?.type?.name ?? ''
+    games.push({
+      id: String(event.id),
+      name: event.name ?? '',
+      status,
+    })
+  }
+  return games
+}
+
+// ---------------------------------------------------------------------------
+// Mock fallback (same players/stat types as the card generator)
+// ---------------------------------------------------------------------------
+
+const MOCK_PLAYERS = [
+  { id: '2544',   name: 'LeBron James' },
+  { id: '3975',   name: 'Stephen Curry' },
+  { id: '3032977', name: 'Giannis Antetokounmpo' },
+  { id: '3112335', name: 'Nikola Jokić' },
+  { id: '3202',   name: 'Kevin Durant' },
+  { id: '4065648', name: 'Jayson Tatum' },
+  { id: '3945274', name: 'Luka Dončić' },
+  { id: '3059318', name: 'Joel Embiid' },
+  { id: '3136193', name: 'Devin Booker' },
+  { id: '3908809', name: 'Donovan Mitchell' },
+]
+
+const MOCK_STAT_TYPES = [
+  { stat_type: 'points_10',     min: 10, max: 45 },
+  { stat_type: 'points_15',     min: 15, max: 50 },
+  { stat_type: 'points_20',     min: 20, max: 50 },
+  { stat_type: 'points_25',     min: 25, max: 55 },
+  { stat_type: 'three_pointer', min: 1,  max: 8 },
+  { stat_type: 'rebound_5',     min: 5,  max: 18 },
+  { stat_type: 'rebound_10',    min: 10, max: 20 },
+  { stat_type: 'assist_5',      min: 5,  max: 15 },
+  { stat_type: 'assist_10',     min: 10, max: 18 },
+  { stat_type: 'steal',         min: 1,  max: 5 },
+  { stat_type: 'block',         min: 1,  max: 5 },
+]
+
+function randomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min
+}
+
+function pick(arr) {
+  return arr[Math.floor(Math.random() * arr.length)]
+}
+
+function generateMockEvents(gameId) {
+  const count = randomInt(1, 3)
+  const events = []
+  for (let i = 0; i < count; i++) {
+    const player = pick(MOCK_PLAYERS)
+    const st = pick(MOCK_STAT_TYPES)
+    events.push({
+      game_id: gameId,
+      player_id: player.id,
+      player_name: player.name,
+      stat_type: st.stat_type,
+      value: randomInt(st.min, st.max),
+      period: randomInt(1, 4),
+    })
+  }
+  return events
+}
+
+/**
+ * Get stat events for a game_id.
+ * Uses ESPN if source === 'espn', otherwise generates mock data.
+ * Falls back to mock if ESPN fetch fails.
+ *
+ * @param {string} gameId
+ * @param {'espn'|'mock'} source
+ * @returns {Promise<Array<{game_id, player_id, player_name, stat_type, value, period}>>}
+ */
+async function getStatsForGame(gameId, source = 'mock') {
+  if (source === 'espn') {
+    try {
+      const raw = await fetchEspnStats(gameId)
+      return raw.map((ev) => ({ ...ev, game_id: gameId }))
+    } catch (err) {
+      console.warn(`statsProvider: ESPN fetch failed for ${gameId}, falling back to mock:`, err.message)
+      return generateMockEvents(gameId)
+    }
+  }
+  return generateMockEvents(gameId)
+}
+
+export {
+  getStatsForGame,
+  fetchLiveEspnGames,
+  generateMockEvents,
+  MOCK_PLAYERS,
+}
