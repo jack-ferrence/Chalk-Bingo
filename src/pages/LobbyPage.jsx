@@ -74,7 +74,7 @@ export default function LobbyPage() {
               fontSize: 'clamp(36px, 4vw, 52px)',
               letterSpacing: '0.05em',
               lineHeight: 1,
-              color: '#2D2A26',
+              color: '#e0e0f0',
             }}
           >
             Tonight&apos;s Games
@@ -86,9 +86,9 @@ export default function LobbyPage() {
                 fontSize: 11,
                 fontWeight: 700,
                 letterSpacing: '0.08em',
-                color: '#DC2626',
-                background: 'rgba(220,38,38,0.10)',
-                border: '1px solid rgba(220,38,38,0.22)',
+                color: '#ff2d2d',
+                background: 'rgba(255,45,45,0.10)',
+                border: '1px solid rgba(255,45,45,0.22)',
                 padding: '3px 9px',
                 borderRadius: 6,
               }}
@@ -98,7 +98,7 @@ export default function LobbyPage() {
                   width: 5,
                   height: 5,
                   borderRadius: '50%',
-                  background: '#DC2626',
+                  background: '#ff2d2d',
                   display: 'inline-block',
                   animation: 'pulse-live 1.4s ease-in-out infinite',
                 }}
@@ -107,7 +107,7 @@ export default function LobbyPage() {
             </span>
           )}
         </div>
-        <p className="mt-2 text-sm" style={{ color: '#9A9490' }}>
+        <p className="mt-2 text-sm" style={{ color: '#555577' }}>
           Live bingo powered by real stats. Pick a game and play.
         </p>
       </div>

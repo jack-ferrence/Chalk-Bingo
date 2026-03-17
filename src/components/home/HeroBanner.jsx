@@ -7,22 +7,22 @@ export default function HeroBanner() {
     <div
       className="relative overflow-hidden rounded-xl p-8 md:p-10"
       style={{
-        background: '#F5F3F0',
-        borderLeft: '2px solid #E44D2E',
+        background: '#1a1a2e',
+        borderLeft: '2px solid #ff6b35',
       }}
     >
       {/* Radial cinnabar ambient */}
       <div
         className="pointer-events-none absolute inset-0"
         style={{
-          background: 'radial-gradient(ellipse at 20% 50%, rgba(228,77,46,0.06) 0%, transparent 60%)',
+          background: 'radial-gradient(ellipse at 20% 50%, rgba(255,107,53,0.06) 0%, transparent 60%)',
         }}
       />
 
       <div className="relative z-10 max-w-lg">
         <p
           className="mb-3 text-xs font-bold uppercase"
-          style={{ color: '#E44D2E', letterSpacing: '0.2em' }}
+          style={{ color: '#ff6b35', letterSpacing: '0.2em' }}
         >
           NBA Bingo — Free to Play
         </p>
@@ -30,7 +30,7 @@ export default function HeroBanner() {
           style={{
             fontFamily: 'var(--db-font-display)',
             fontSize: 'clamp(38px, 5.5vw, 60px)',
-            color: '#2D2A26',
+            color: '#e0e0f0',
             lineHeight: 1.05,
             letterSpacing: '0.02em',
           }}
@@ -39,21 +39,21 @@ export default function HeroBanner() {
         </h1>
         <p
           className="mt-4 leading-relaxed"
-          style={{ color: '#5C5752', fontSize: 'clamp(14px, 2vw, 18px)', maxWidth: 460 }}
+          style={{ color: '#8888aa', fontSize: 'clamp(14px, 2vw, 18px)', maxWidth: 460 }}
         >
           Live bingo cards powered by real NBA stats. Free to play. Every game.
         </p>
         <button
           type="button"
           onClick={() => navigate('/games')}
-          className="mt-6 inline-flex items-center gap-2 rounded-lg px-6 py-3 text-sm font-bold transition-all duration-200 hover:bg-[#F0705A]"
+          className="mt-6 inline-flex items-center gap-2 rounded-lg px-6 py-3 text-sm font-bold transition-all duration-200 hover:bg-[#ff8855]"
           style={{
-            background: '#E44D2E',
-            color: '#FFF',
-            boxShadow: '0 0 0 0 rgba(228,77,46,0)',
+            background: '#ff6b35',
+            color: '#0c0c14',
+            boxShadow: '0 0 0 0 rgba(255,107,53,0)',
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '0 0 20px rgba(228,77,46,0.3)' }}
-          onMouseLeave={(e) => { e.currentTarget.style.boxShadow = '0 0 0 0 rgba(228,77,46,0)' }}
+          onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '0 0 20px rgba(255,107,53,0.3)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.boxShadow = '0 0 0 0 rgba(255,107,53,0)' }}
         >
           Browse Tonight&apos;s Games →
         </button>

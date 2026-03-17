@@ -1,77 +1,159 @@
 /* ============================================================
-   DABBER — Brand Identity System / Cinnabar + Warm Grey
-   Old-school sports web feel
+   DABBER — Arcade Scoreboard Design System
+   Deep navy-black + burnt orange + monospace everything
    ============================================================ */
+
 :root {
-  /* Core Brand */
-  --db-primary:        #E44D2E; /* Cinnabar — primary accent, CTAs, marked squares */
-  --db-primary-light:  #F0705A; /* Hover states, highlights */
-  --db-primary-dark:   #C93D22; /* Pressed states, depth */
-  --db-secondary:      #EDEBE8; /* Warm grey — the page background */
-  --db-white:          #2D2A26; /* Primary text — dark on light */
-  --db-sand:           #EDEBE8; /* Same as secondary for this theme */
+  /* ── Brand Colors ── */
+  --db-primary:          #ff6b35;
+  --db-primary-light:    #ff8855;
+  --db-primary-dark:     #e05520;
+  --db-primary-muted:    rgba(255, 107, 53, 0.15);
+  --db-primary-subtle:   rgba(255, 107, 53, 0.08);
 
-  /* Live / Alert States */
-  --db-live:           #DC2626;
-  --db-live-glow:      rgba(220, 38, 38, 0.25);
+  /* ── Background Scale (darkest → lightest) ── */
+  --db-bg-page:          #0c0c14;
+  --db-bg-surface:       #12121e;
+  --db-bg-elevated:      #1a1a2e;
+  --db-bg-hover:         #22223a;
+  --db-bg-active:        #2a2a44;
+  --db-bg-input:         #1a1a2e;
+  --db-bg-marked:        #2a1a10;
+  --db-bg-overlay:       rgba(12, 12, 20, 0.85);
 
-  /* Win State */
-  --db-win-glow:       rgba(228, 77, 46, 0.30);
+  /* ── Text Scale (brightest → dimmest) ── */
+  --db-text-bright:      #f0f0ff;
+  --db-text-primary:     #e0e0f0;
+  --db-text-secondary:   #8888aa;
+  --db-text-muted:       #555577;
+  --db-text-ghost:       #3a3a55;
+  --db-text-on-primary:  #0c0c14;
 
-  /* Bingo Card States */
-  --db-marked:         #E44D2E; /* Marked square = cinnabar */
-  --db-unmarked:       #F5F3F0; /* Unmarked = card white */
-  --db-free:           #F5EDE8; /* Free space = tinted surface */
-  --db-free-text:      #E44D2E; /* FREE text = cinnabar */
+  /* ── Border Scale ── */
+  --db-border-subtle:    #1a1a2e;
+  --db-border-default:   #2a2a44;
+  --db-border-active:    #3a3a55;
+  --db-border-primary:   #ff6b35;
 
-  /* UI Neutrals — light-first, 100=lightest, 900=darkest */
-  --db-gray-100:       #F5F3F0;
-  --db-gray-200:       #EDEBE8;
-  --db-gray-300:       #E3E0DC;
-  --db-gray-400:       #D5D0CA;
-  --db-gray-500:       #B8B2AA;
-  --db-gray-600:       #9A9490;
-  --db-gray-700:       #6B6560;
-  --db-gray-800:       #5C5752;
-  --db-gray-900:       #2D2A26;
+  /* ── Semantic States ── */
+  --db-live:             #ff2d2d;
+  --db-live-bg:          rgba(255, 45, 45, 0.12);
+  --db-live-glow:        rgba(255, 45, 45, 0.25);
+  --db-success:          #22c55e;
+  --db-success-bg:       rgba(34, 197, 94, 0.12);
+  --db-warn:             #f59e0b;
+  --db-warn-bg:          rgba(245, 158, 11, 0.12);
+  --db-info:             #3b82f6;
+  --db-info-bg:          rgba(59, 130, 246, 0.12);
+  --db-danger:           #ef4444;
+  --db-danger-bg:        rgba(239, 68, 68, 0.12);
 
-  /* Warning / Secondary Accent */
-  --db-warn:           #D97706;
-  --db-info:           #2563EB;
+  /* ── Bingo Card States ── */
+  --db-marked:           #ff6b35;
+  --db-marked-bg:        #2a1a10;
+  --db-marked-border:    #ff6b35;
+  --db-unmarked:         #1a1a2e;
+  --db-unmarked-border:  #2a2a44;
+  --db-free:             #ff6b35;
+  --db-free-text:        #0c0c14;
+  --db-win-glow:         rgba(255, 107, 53, 0.30);
 
-  /* Typography */
-  --db-font-display:   'Bebas Neue', 'Anton', sans-serif;
-  --db-font-heading:   'DM Sans', 'Outfit', sans-serif;
-  --db-font-body:      'DM Sans', 'Outfit', sans-serif;
-  --db-font-mono:      'JetBrains Mono', monospace;
+  /* ── Typography ── */
+  --db-font-display:     'JetBrains Mono', 'Fira Code', 'SF Mono', 'Cascadia Code', monospace;
+  --db-font-heading:     'JetBrains Mono', 'Fira Code', 'SF Mono', 'Cascadia Code', monospace;
+  --db-font-body:        'JetBrains Mono', 'Fira Code', 'SF Mono', 'Cascadia Code', monospace;
+  --db-font-mono:        'JetBrains Mono', 'Fira Code', 'SF Mono', 'Cascadia Code', monospace;
 
-  /* Spacing Scale */
-  --db-radius-sm:      4px;
-  --db-radius-md:      8px;
-  --db-radius-lg:      16px;
-  --db-radius-xl:      24px;
-  --db-radius-pill:    999px;
+  /* ── Font Sizes ── */
+  --db-text-xs:    10px;
+  --db-text-sm:    11px;
+  --db-text-base:  13px;
+  --db-text-md:    14px;
+  --db-text-lg:    16px;
+  --db-text-xl:    20px;
+  --db-text-2xl:   24px;
+  --db-text-3xl:   32px;
 
-  /* Shadows */
-  --db-shadow-sm:      0 1px 3px rgba(0,0,0,0.08);
-  --db-shadow-md:      0 4px 16px rgba(0,0,0,0.10);
-  --db-shadow-lg:      0 8px 32px rgba(0,0,0,0.12);
-  --db-shadow-glow:    0 4px 20px rgba(228,77,46,0.20);
-  --db-shadow-amber:   0 4px 20px rgba(228,77,46,0.20); /* alias — keep for Tailwind class compat */
-  --db-shadow-live:    0 0 20px rgba(220,38,38,0.30);
+  /* ── Spacing & Radius ── */
+  --db-radius-xs:   2px;
+  --db-radius-sm:   3px;
+  --db-radius-md:   4px;
+  --db-radius-lg:   8px;
+  --db-radius-xl:   12px;
+  --db-radius-pill:  999px;
 
-  /* Gradients */
-  --db-gradient-primary:   linear-gradient(135deg, #E44D2E 0%, #C93D22 100%);
-  --db-gradient-dark:      linear-gradient(135deg, #EDEBE8 0%, #E3E0DC 100%);
-  --db-gradient-hero:      linear-gradient(135deg, #EDEBE8 0%, #E3E0DC 50%, #F5F3F0 100%);
-  --db-gradient-glow:      radial-gradient(ellipse at center, rgba(228,77,46,0.06) 0%, transparent 70%);
+  /* ── Shadows (minimal — only functional glows) ── */
+  --db-shadow-sm:      none;
+  --db-shadow-md:      0 4px 24px rgba(0, 0, 0, 0.5);
+  --db-shadow-lg:      0 8px 40px rgba(0, 0, 0, 0.6);
+  --db-shadow-glow:    0 0 20px rgba(255, 107, 53, 0.15);
+  --db-shadow-amber:   0 0 20px rgba(255, 107, 53, 0.15);
+  --db-shadow-live:    0 0 16px rgba(255, 45, 45, 0.30);
+  --db-shadow-inset:   inset 0 2px 8px rgba(0, 0, 0, 0.3);
 
-  /* Animation */
+  /* ── Gradients ── */
+  --db-gradient-primary:    linear-gradient(135deg, #ff6b35 0%, #e05520 100%);
+  --db-gradient-dark:       linear-gradient(180deg, #12121e 0%, #0c0c14 100%);
+  --db-gradient-hero:       linear-gradient(180deg, #0c0c14 0%, #12121e 50%, #0c0c14 100%);
+  --db-gradient-glow:       radial-gradient(ellipse at center, rgba(255,107,53,0.04) 0%, transparent 70%);
+  --db-gradient-scoreboard: linear-gradient(180deg, #1a1a2e 0%, #12121e 100%);
+
+  /* ── Z-Index Scale ── */
+  --db-z-base:     0;
+  --db-z-above:    10;
+  --db-z-modal:    100;
+  --db-z-toast:    200;
+  --db-z-overlay:  300;
+
+  /* ── Transitions ── */
   --db-ease-bounce:    cubic-bezier(0.34, 1.56, 0.64, 1);
   --db-ease-smooth:    cubic-bezier(0.4, 0, 0.2, 1);
-  --db-duration-fast:  150ms;
-  --db-duration-base:  250ms;
-  --db-duration-slow:  400ms;
+  --db-ease-snappy:    cubic-bezier(0.2, 0, 0, 1);
+  --db-duration-fast:  100ms;
+  --db-duration-base:  200ms;
+  --db-duration-slow:  350ms;
+}
+
+
+/* ============================================================
+   GLOBAL RESETS FOR ARCADE THEME
+   ============================================================ */
+
+*, *::before, *::after {
+  font-family: var(--db-font-body);
+}
+
+::selection {
+  background: rgba(255, 107, 53, 0.30);
+  color: #f0f0ff;
+}
+
+/* Scrollbar styling — thin, dark, orange thumb */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--db-bg-page);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--db-bg-active);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--db-text-muted);
+}
+
+/* Focus ring — orange */
+:focus-visible {
+  outline: 2px solid var(--db-primary);
+  outline-offset: 2px;
+}
+
+/* Placeholder text */
+::placeholder {
+  color: var(--db-text-ghost);
+  opacity: 1;
 }
 
 
@@ -79,78 +161,238 @@
    UTILITY CLASSES
    ============================================================ */
 
+.db-bg-page        { background-color: var(--db-bg-page); }
+.db-bg-surface     { background-color: var(--db-bg-surface); }
+.db-bg-elevated    { background-color: var(--db-bg-elevated); }
 .db-bg-primary     { background-color: var(--db-primary); }
-.db-bg-secondary   { background-color: var(--db-secondary); }
-.db-bg-sand        { background-color: var(--db-sand); }
 .db-text-primary   { color: var(--db-primary); }
-.db-text-secondary { color: var(--db-secondary); }
-.db-text-white     { color: var(--db-white); }
+.db-text-bright    { color: var(--db-text-bright); }
+.db-text-secondary { color: var(--db-text-secondary); }
+.db-text-muted     { color: var(--db-text-muted); }
 .db-border-primary { border-color: var(--db-primary); }
+.db-border-subtle  { border-color: var(--db-border-subtle); }
 
-.db-gradient-bg {
-  background: var(--db-gradient-primary);
+/* Arcade heading style — use on any label/title */
+.db-heading {
+  font-family: var(--db-font-display);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--db-primary);
 }
 
-.db-hero-bg {
-  background: var(--db-gradient-hero);
+/* Section label — smaller, for panel titles like LEADERBOARD, CHAT */
+.db-label {
+  font-family: var(--db-font-mono);
+  font-size: var(--db-text-xs);
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--db-primary);
 }
 
-.db-live-indicator {
-  color: var(--db-live);
-  text-shadow: var(--db-shadow-live);
+/* Monospace number display — for scores, Dabs count, etc. */
+.db-number {
+  font-family: var(--db-font-mono);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--db-text-bright);
 }
 
-.db-live-pulse {
+/* Primary CTA button */
+.db-btn-primary {
+  background: var(--db-primary);
+  color: var(--db-text-on-primary);
+  border: none;
+  border-radius: var(--db-radius-md);
+  font-family: var(--db-font-mono);
+  font-weight: 700;
+  font-size: var(--db-text-sm);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background var(--db-duration-fast) var(--db-ease-smooth),
+              transform var(--db-duration-fast) var(--db-ease-bounce);
+}
+.db-btn-primary:hover {
+  background: var(--db-primary-light);
+}
+.db-btn-primary:active {
+  transform: scale(0.97);
+  background: var(--db-primary-dark);
+}
+
+/* Ghost/secondary button */
+.db-btn-ghost {
+  background: transparent;
+  color: var(--db-text-secondary);
+  border: 1px solid var(--db-border-default);
+  border-radius: var(--db-radius-md);
+  font-family: var(--db-font-mono);
+  font-weight: 600;
+  font-size: var(--db-text-sm);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: all var(--db-duration-fast) var(--db-ease-smooth);
+}
+.db-btn-ghost:hover {
+  background: var(--db-bg-hover);
+  border-color: var(--db-border-active);
+  color: var(--db-text-primary);
+}
+
+/* Surface card — use for any panel/card container */
+.db-card {
+  background: var(--db-bg-surface);
+  border: 1px solid var(--db-border-subtle);
+  border-radius: var(--db-radius-lg);
+}
+
+/* Input field */
+.db-input {
+  width: 100%;
+  background: var(--db-bg-input);
+  border: 1px solid var(--db-border-default);
+  border-radius: var(--db-radius-md);
+  padding: 8px 12px;
+  font-family: var(--db-font-mono);
+  font-size: var(--db-text-base);
+  color: var(--db-text-primary);
+  transition: border-color var(--db-duration-fast) var(--db-ease-smooth);
+}
+.db-input:hover {
+  border-color: var(--db-border-active);
+}
+.db-input:focus {
+  border-color: var(--db-primary);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 107, 53, 0.15);
+}
+
+/* Live badge */
+.db-live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--db-live);
+  color: #fff;
+  font-family: var(--db-font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: var(--db-radius-xs);
+}
+.db-live-badge::before {
+  content: '';
+  display: block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #fff;
   animation: db-pulse 1.5s ease-in-out infinite;
 }
 
-.db-card {
-  background: var(--db-white);
-  border-radius: var(--db-radius-lg);
-  box-shadow: var(--db-shadow-md);
-}
-
-.db-btn-primary {
-  background: var(--db-gradient-primary);
-  color: var(--db-gray-100);
-  border-radius: var(--db-radius-md);
-  font-family: var(--db-font-heading);
+/* Lobby badge */
+.db-lobby-badge {
+  display: inline-flex;
+  align-items: center;
+  background: var(--db-bg-active);
+  color: var(--db-text-secondary);
+  font-family: var(--db-font-mono);
+  font-size: 9px;
   font-weight: 700;
-  box-shadow: var(--db-shadow-amber);
-  transition: transform var(--db-duration-fast) var(--db-ease-bounce),
-              box-shadow var(--db-duration-fast) var(--db-ease-smooth);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: var(--db-radius-xs);
 }
 
-.db-btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 28px rgba(228,77,46,0.35);
+
+/* ============================================================
+   BINGO SQUARE STATES
+   ============================================================ */
+
+.db-square {
+  background: var(--db-unmarked);
+  border: 1px solid var(--db-unmarked-border);
+  border-radius: var(--db-radius-sm);
+  font-family: var(--db-font-mono);
+  transition: all var(--db-duration-base) var(--db-ease-smooth);
+  cursor: pointer;
+  position: relative;
+}
+
+.db-square:hover {
+  border-color: var(--db-border-active);
+  background: var(--db-bg-hover);
 }
 
 .db-square-marked {
-  background: var(--db-marked);
-  color: var(--db-gray-100);
-  animation: db-mark 0.3s var(--db-ease-bounce);
+  background: var(--db-marked-bg);
+  border-color: var(--db-marked-border);
+}
+.db-square-marked .db-square-name,
+.db-square-marked .db-square-stat {
+  color: var(--db-primary);
 }
 
 .db-square-free {
   background: var(--db-free);
-  color: var(--db-free-text);
+  border-color: var(--db-primary-light);
+}
+.db-square-free .db-square-name {
+  color: var(--db-text-on-primary);
 }
 
-/* Bingo win flash */
-.db-bingo-flash {
-  animation: db-bingo 0.6s var(--db-ease-bounce);
+.db-square-name {
+  font-size: var(--db-text-xs);
+  font-weight: 700;
+  color: var(--db-text-primary);
+  line-height: 1.1;
 }
+
+.db-square-stat {
+  font-size: 8px;
+  color: var(--db-text-muted);
+  margin-top: 3px;
+}
+
+.db-square-winning {
+  animation: db-win-ring 1.5s ease-in-out infinite;
+}
+
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
 
 @keyframes db-pulse {
   0%, 100% { opacity: 1; }
-  50%       { opacity: 0.5; }
+  50%      { opacity: 0.4; }
 }
 
 @keyframes db-mark {
-  0%   { transform: scale(0.8); opacity: 0; }
-  60%  { transform: scale(1.1); }
-  100% { transform: scale(1);   opacity: 1; }
+  0%   { transform: scale(0.85); opacity: 0; }
+  50%  { transform: scale(1.06); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes db-win-ring {
+  0%, 100% {
+    box-shadow:
+      0 0 0 2px var(--db-primary),
+      0 0 12px rgba(255, 107, 53, 0.4);
+  }
+  50% {
+    box-shadow:
+      0 0 0 3px var(--db-primary-light),
+      0 0 24px rgba(255, 107, 53, 0.6);
+  }
 }
 
 @keyframes db-bingo {
@@ -159,3 +401,30 @@
   60%  { transform: scale(0.97); }
   100% { transform: scale(1); }
 }
+
+@keyframes db-slide-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes db-slide-down {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes db-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes db-flash {
+  0%   { background-color: rgba(255, 107, 53, 0.20); }
+  100% { background-color: transparent; }
+}
+
+.db-animate-mark       { animation: db-mark 0.3s var(--db-ease-bounce); }
+.db-animate-bingo      { animation: db-bingo 0.6s var(--db-ease-bounce); }
+.db-animate-slide-up   { animation: db-slide-up 200ms var(--db-ease-snappy); }
+.db-animate-slide-down { animation: db-slide-down 200ms var(--db-ease-snappy); }
+.db-animate-fade-in    { animation: db-fade-in 200ms var(--db-ease-smooth); }
+.db-animate-flash      { animation: db-flash 2s ease-out; }

@@ -4,9 +4,9 @@ function StatusBadge({ status }) {
       <span
         className="inline-flex items-center gap-1.5"
         style={{
-          background: 'rgba(220,38,38,0.10)',
-          border: '1px solid rgba(220,38,38,0.22)',
-          color: '#DC2626',
+          background: 'rgba(255,45,45,0.10)',
+          border: '1px solid rgba(255,45,45,0.22)',
+          color: '#ff2d2d',
           fontSize: 9.5,
           fontWeight: 700,
           letterSpacing: '0.10em',
@@ -20,7 +20,7 @@ function StatusBadge({ status }) {
             width: 5,
             height: 5,
             borderRadius: '50%',
-            background: '#DC2626',
+            background: '#ff2d2d',
             display: 'inline-block',
             animation: 'pulse-live 1.4s ease-in-out infinite',
             flexShrink: 0,
@@ -34,9 +34,9 @@ function StatusBadge({ status }) {
     return (
       <span
         style={{
-          background: 'rgba(228,77,46,0.08)',
-          border: '1px solid rgba(228,77,46,0.18)',
-          color: '#E44D2E',
+          background: 'rgba(255,107,53,0.08)',
+          border: '1px solid rgba(255,107,53,0.18)',
+          color: '#ff6b35',
           fontSize: 9.5,
           fontWeight: 700,
           letterSpacing: '0.10em',
@@ -53,8 +53,8 @@ function StatusBadge({ status }) {
   return (
     <span
       style={{
-        background: '#E3E0DC',
-        color: '#B8B2AA',
+        background: '#2a2a44',
+        color: '#555577',
         fontSize: 9.5,
         fontWeight: 700,
         letterSpacing: '0.10em',
@@ -74,26 +74,26 @@ export default function RoomCard({ room, onJoin, onContinue, isMyRoom, joining }
   const isLobby = room.status === 'lobby'
   const isFinished = room.status === 'finished'
 
-  const accentColor = isLive ? '#DC2626' : '#E44D2E'
+  const accentColor = isLive ? '#ff2d2d' : '#ff6b35'
   const showAccent = isLive || isLobby || isMyRoom
 
   return (
     <div
       className="flex flex-col justify-between rounded-xl transition-all duration-200"
       style={{
-        background: '#F5F3F0',
-        border: '1px solid #D5D0CA',
-        borderLeft: showAccent ? `3px solid ${accentColor}` : '1px solid #D5D0CA',
+        background: '#1a1a2e',
+        border: '1px solid #2a2a44',
+        borderLeft: showAccent ? `3px solid ${accentColor}` : '1px solid #2a2a44',
         padding: showAccent ? '16px 20px 16px 18px' : '16px 20px',
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = '#B8B2AA'
+        e.currentTarget.style.borderColor = '#555577'
         e.currentTarget.style.boxShadow = isLive
-          ? '0 4px 20px rgba(220,38,38,0.12)'
+          ? '0 4px 20px rgba(255,45,45,0.12)'
           : '0 4px 20px rgba(0,0,0,0.08)'
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = '#D5D0CA'
+        e.currentTarget.style.borderColor = '#2a2a44'
         e.currentTarget.style.boxShadow = 'none'
       }}
     >
@@ -101,7 +101,7 @@ export default function RoomCard({ room, onJoin, onContinue, isMyRoom, joining }
         <div className="min-w-0">
           <h3
             className="truncate font-semibold"
-            style={{ color: '#2D2A26', fontSize: 14, lineHeight: 1.3 }}
+            style={{ color: '#e0e0f0', fontSize: 14, lineHeight: 1.3 }}
           >
             {room.name}
           </h3>
@@ -117,7 +117,7 @@ export default function RoomCard({ room, onJoin, onContinue, isMyRoom, joining }
             height="12"
             viewBox="0 0 24 24"
             fill="none"
-            stroke="#B8B2AA"
+            stroke="#555577"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -127,8 +127,8 @@ export default function RoomCard({ room, onJoin, onContinue, isMyRoom, joining }
             <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
             <path d="M16 3.13a4 4 0 0 1 0 7.75" />
           </svg>
-          <span style={{ fontSize: 12, color: '#9A9490' }}>
-            <span style={{ color: '#5C5752', fontWeight: 600 }}>
+          <span style={{ fontSize: 12, color: '#555577' }}>
+            <span style={{ color: '#8888aa', fontWeight: 600 }}>
               {room.participant_count ?? 0}
             </span>{' '}
             {(room.participant_count ?? 0) === 1 ? 'player' : 'players'}
@@ -142,14 +142,14 @@ export default function RoomCard({ room, onJoin, onContinue, isMyRoom, joining }
               onClick={() => onContinue(room.id)}
               className="inline-flex items-center justify-center rounded-lg text-sm font-bold transition-all"
               style={{
-                border: '1px solid rgba(228,77,46,0.30)',
-                color: '#E44D2E',
-                background: 'rgba(228,77,46,0.06)',
+                border: '1px solid rgba(255,107,53,0.30)',
+                color: '#ff6b35',
+                background: 'rgba(255,107,53,0.06)',
                 padding: '6px 16px',
                 fontSize: 13,
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(228,77,46,0.12)' }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(228,77,46,0.06)' }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,107,53,0.12)' }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,107,53,0.06)' }}
             >
               Continue →
             </button>
@@ -160,14 +160,14 @@ export default function RoomCard({ room, onJoin, onContinue, isMyRoom, joining }
               disabled={joining}
               className="inline-flex items-center justify-center rounded-lg font-bold transition-all disabled:cursor-not-allowed disabled:opacity-55"
               style={{
-                background: '#E44D2E',
-                color: '#FFF',
+                background: '#ff6b35',
+                color: '#0c0c14',
                 padding: '6px 16px',
                 fontSize: 13,
-                boxShadow: '0 1px 4px rgba(228,77,46,0.28)',
+                boxShadow: '0 1px 4px rgba(255,107,53,0.28)',
               }}
-              onMouseEnter={(e) => { if (!joining) e.currentTarget.style.background = '#F0705A' }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = '#E44D2E' }}
+              onMouseEnter={(e) => { if (!joining) e.currentTarget.style.background = '#ff8855' }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = '#ff6b35' }}
             >
               {joining ? 'Joining…' : 'Join'}
             </button>

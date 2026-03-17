@@ -14,10 +14,10 @@ function App() {
   // Game room: full-screen, no sidebar or sport tabs
   if (isGameRoute) {
     return (
-      <div className="h-screen flex flex-col" style={{ background: '#EDEBE8' }}>
+      <div className="h-screen flex flex-col" style={{ background: '#0c0c14' }}>
         <header
           className="flex h-14 shrink-0 items-center justify-between px-4"
-          style={{ background: '#EDEBE8', borderBottom: '1px solid #D5D0CA' }}
+          style={{ background: '#0c0c14', borderBottom: '1px solid #2a2a44' }}
         >
           <Link
             to="/"
@@ -25,7 +25,7 @@ function App() {
               fontFamily: 'var(--db-font-display)',
               fontSize: 24,
               letterSpacing: '0.15em',
-              color: '#E44D2E',
+              color: '#ff6b35',
               textDecoration: 'none',
               lineHeight: 1,
             }}
@@ -33,7 +33,7 @@ function App() {
             DABBER
           </Link>
           {!loading && user && (
-            <span style={{ color: '#9A9490', fontSize: 12 }}>
+            <span style={{ color: '#555577', fontSize: 12 }}>
               {user.is_anonymous ? `Guest_${user.id.slice(0, 8)}` : user.email}
             </span>
           )}
@@ -59,7 +59,7 @@ function App() {
         <Route
           path="*"
           element={
-            <div className="p-8 text-center" style={{ color: '#9A9490' }}>
+            <div className="p-8 text-center" style={{ color: '#555577' }}>
               Page not found
             </div>
           }

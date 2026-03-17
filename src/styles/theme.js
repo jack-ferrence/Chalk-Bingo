@@ -1,23 +1,29 @@
 export const theme = {
   bg: {
-    primary:   '#EDEBE8', // warm grey — the page base
-    secondary: '#E3E0DC', // surface
-    card:      '#F5F3F0', // card white
-    hover:     '#D5D0CA', // hover state
+    page:     '#0c0c14',
+    surface:  '#12121e',
+    elevated: '#1a1a2e',
+    hover:    '#22223a',
+    active:   '#2a2a44',
   },
   border: {
-    subtle: '#D5D0CA',
-    active: '#B8B2AA',
+    subtle:  '#1a1a2e',
+    default: '#2a2a44',
+    active:  '#3a3a55',
   },
   text: {
-    primary:   '#2D2A26',
-    secondary: '#5C5752',
-    muted:     '#9A9490',
+    bright:    '#f0f0ff',
+    primary:   '#e0e0f0',
+    secondary: '#8888aa',
+    muted:     '#555577',
+    ghost:     '#3a3a55',
   },
   accent: {
-    primary: '#E44D2E', // cinnabar — CTAs, wins, marked
-    gold:    '#D97706', // warning / pending only
-    red:     '#DC2626', // live, urgent
-    purple:  '#8B5CF6',
+    primary: '#ff6b35', // burnt orange — CTAs, wins, marked
+    live:    '#ff2d2d', // red — ONLY for live game indicators
+    success: '#22c55e',
+    warn:    '#f59e0b',
+    info:    '#3b82f6',
+    danger:  '#ef4444',
   },
 }

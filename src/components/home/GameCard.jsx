@@ -63,7 +63,7 @@ export default function GameCard({ game, isJoined, joining, onJoin, onContinue }
               fontSize: 9,
               fontWeight: 700,
               letterSpacing: '0.10em',
-              color: '#B8B2AA',
+              color: '#555577',
               textTransform: 'uppercase',
             }}
           >
@@ -80,7 +80,7 @@ export default function GameCard({ game, isJoined, joining, onJoin, onContinue }
               fontSize: 9,
               fontWeight: 700,
               letterSpacing: '0.10em',
-              color: '#B8B2AA',
+              color: '#555577',
               textTransform: 'uppercase',
             }}
           >
@@ -101,7 +101,7 @@ export default function GameCard({ game, isJoined, joining, onJoin, onContinue }
           {isLive ? (
             <span
               style={{
-                color: '#DC2626',
+                color: '#ff2d2d',
                 fontSize: 11,
                 fontWeight: 700,
                 letterSpacing: '0.05em',
@@ -110,11 +110,11 @@ export default function GameCard({ game, isJoined, joining, onJoin, onContinue }
               ● IN PROGRESS
             </span>
           ) : (
-            <span style={{ color: '#9A9490', fontSize: 11, fontWeight: 600 }}>
+            <span style={{ color: '#555577', fontSize: 11, fontWeight: 600 }}>
               {formatTipoff(game.starts_at)}
             </span>
           )}
-          <div style={{ color: '#B8B2AA', fontSize: 11, marginTop: 2 }}>
+          <div style={{ color: '#555577', fontSize: 11, marginTop: 2 }}>
             {game.participant_count ?? 0} playing
           </div>
         </div>

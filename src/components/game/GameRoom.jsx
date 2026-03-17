@@ -194,7 +194,7 @@ function GameRoom({
       {dabsSummary && (
         <div
           className="shrink-0 border-b px-4 py-3 animate-in-from-top"
-          style={{ background: 'rgba(228,77,46,0.06)', borderColor: 'rgba(228,77,46,0.18)' }}
+          style={{ background: 'rgba(255,107,53,0.06)', borderColor: 'rgba(255,107,53,0.18)' }}
         >
           <div className="mx-auto flex max-w-lg flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             {/* Left: rank + total */}
@@ -203,31 +203,31 @@ function GameRoom({
                 {dabsSummary.myRank === 1 ? '🥇' : dabsSummary.myRank === 2 ? '🥈' : dabsSummary.myRank === 3 ? '🥉' : '🎯'}
               </span>
               <div>
-                <p className="text-xs font-semibold" style={{ color: '#2D2A26' }}>
+                <p className="text-xs font-semibold" style={{ color: '#e0e0f0' }}>
                   {dabsSummary.myRank > 0 ? `Finished ${dabsSummary.ordinal(dabsSummary.myRank)}` : 'Game Over'}
                 </p>
-                <p className="text-[10px]" style={{ color: '#9A9490' }}>
+                <p className="text-[10px]" style={{ color: '#555577' }}>
                   Game finished — Dabs awarded
                 </p>
               </div>
             </div>
 
             {/* Right: breakdown */}
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]" style={{ color: '#5C5752' }}>
-              <span>{card.squares_marked} squares × 2 = <strong style={{ color: '#E44D2E' }}>{dabsSummary.squareDabs}</strong></span>
-              <span style={{ color: '#D5D0CA' }}>·</span>
-              <span>{card.lines_completed} lines × 10 = <strong style={{ color: '#E44D2E' }}>{dabsSummary.lineDabs}</strong></span>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]" style={{ color: '#8888aa' }}>
+              <span>{card.squares_marked} squares × 2 = <strong style={{ color: '#ff6b35' }}>{dabsSummary.squareDabs}</strong></span>
+              <span style={{ color: '#2a2a44' }}>·</span>
+              <span>{card.lines_completed} lines × 10 = <strong style={{ color: '#ff6b35' }}>{dabsSummary.lineDabs}</strong></span>
               {dabsSummary.posBonus > 0 && (
                 <>
-                  <span style={{ color: '#D5D0CA' }}>·</span>
-                  <span>Position +<strong style={{ color: '#E44D2E' }}>{dabsSummary.posBonus}</strong></span>
+                  <span style={{ color: '#2a2a44' }}>·</span>
+                  <span>Position +<strong style={{ color: '#ff6b35' }}>{dabsSummary.posBonus}</strong></span>
                 </>
               )}
-              <span style={{ color: '#D5D0CA' }}>·</span>
-              <span>Participation +<strong style={{ color: '#E44D2E' }}>3</strong></span>
+              <span style={{ color: '#2a2a44' }}>·</span>
+              <span>Participation +<strong style={{ color: '#ff6b35' }}>3</strong></span>
               <span
                 className="ml-1 rounded-full px-2 py-0.5 text-xs font-bold"
-                style={{ background: 'rgba(228,77,46,0.12)', color: '#E44D2E', border: '1px solid rgba(228,77,46,0.25)' }}
+                style={{ background: 'rgba(255,107,53,0.12)', color: '#ff6b35', border: '1px solid rgba(255,107,53,0.25)' }}
               >
                 ◈ +{dabsSummary.total} Dabs
               </span>

@@ -4,69 +4,74 @@ export default {
   theme: {
     extend: {
       colors: {
-        // ── PRIMARY BRAND: DABBER ──────────────────────────────
+        // ── PRIMARY BRAND: DABBER — Arcade Scoreboard ──────────────
         db: {
-          // Primary — Cinnabar
+          // Primary — Burnt Orange
           primary: {
-            light:   '#F0705A',
-            DEFAULT: '#E44D2E',
-            dark:    '#C93D22',
+            light:   '#ff8855',
+            DEFAULT: '#ff6b35',
+            dark:    '#e05520',
           },
-          // Base — Warm Grey (light theme)
-          ink: {
-            DEFAULT: '#EDEBE8',
-            surface: '#E3E0DC',
-            raised:  '#F5F3F0',
+          // Backgrounds — dark navy scale
+          bg: {
+            page:     '#0c0c14',
+            surface:  '#12121e',
+            elevated: '#1a1a2e',
+            hover:    '#22223a',
+            active:   '#2a2a44',
+          },
+          // Text scale
+          text: {
+            bright:    '#f0f0ff',
+            primary:   '#e0e0f0',
+            secondary: '#8888aa',
+            muted:     '#555577',
+            ghost:     '#3a3a55',
+          },
+          // Borders
+          border: {
+            subtle:  '#1a1a2e',
+            DEFAULT: '#2a2a44',
+            active:  '#3a3a55',
           },
           // Semantic
-          white:  '#2D2A26',
-          live:   '#DC2626',
-          warn:   '#D97706',
-          info:   '#2563EB',
-
-          // Slate scale — light-first (100=lightest, 900=darkest)
-          slate: {
-            100: '#F5F3F0',
-            200: '#EDEBE8',
-            300: '#E3E0DC',
-            400: '#D5D0CA',
-            500: '#B8B2AA',
-            600: '#9A9490',
-            700: '#6B6560',
-            800: '#5C5752',
-            900: '#2D2A26',
-          },
+          live:    '#ff2d2d',
+          success: '#22c55e',
+          warn:    '#f59e0b',
+          info:    '#3b82f6',
+          danger:  '#ef4444',
         },
-
       },
 
       fontFamily: {
-        display: ['"Bebas Neue"', '"Anton"', 'sans-serif'],
-        heading:  ['"DM Sans"', '"Outfit"', 'sans-serif'],
-        body:     ['"DM Sans"', '"Outfit"', 'sans-serif'],
-        mono:     ['"JetBrains Mono"', 'monospace'],
+        display: ['"JetBrains Mono"', '"Fira Code"', '"SF Mono"', 'monospace'],
+        heading:  ['"JetBrains Mono"', '"Fira Code"', '"SF Mono"', 'monospace'],
+        body:     ['"JetBrains Mono"', '"Fira Code"', '"SF Mono"', 'monospace'],
+        mono:     ['"JetBrains Mono"', '"Fira Code"', '"SF Mono"', 'monospace'],
+        sans:     ['"JetBrains Mono"', '"Fira Code"', '"SF Mono"', 'monospace'],
       },
 
       backgroundImage: {
-        'db-primary': 'linear-gradient(135deg, #E44D2E 0%, #C93D22 100%)',
-        'db-hero':    'linear-gradient(135deg, #EDEBE8 0%, #E3E0DC 50%, #F5F3F0 100%)',
-        'db-glow':    'radial-gradient(ellipse at center, rgba(228,77,46,0.06) 0%, transparent 70%)',
+        'db-primary': 'linear-gradient(135deg, #ff6b35 0%, #e05520 100%)',
+        'db-hero':    'linear-gradient(180deg, #0c0c14 0%, #12121e 50%, #0c0c14 100%)',
+        'db-glow':    'radial-gradient(ellipse at center, rgba(255,107,53,0.04) 0%, transparent 70%)',
       },
 
       boxShadow: {
-        'db-sm':    '0 1px 3px rgba(0,0,0,0.08)',
-        'db-md':    '0 4px 16px rgba(0,0,0,0.10)',
-        'db-lg':    '0 8px 32px rgba(0,0,0,0.12)',
-        'db-glow':  '0 4px 20px rgba(228,77,46,0.20)',
-        'db-amber': '0 4px 20px rgba(228,77,46,0.20)', /* alias — keep for class compat */
-        'db-live':  '0 0 20px rgba(220,38,38,0.30)',
+        'db-sm':    'none',
+        'db-md':    '0 4px 24px rgba(0,0,0,0.5)',
+        'db-lg':    '0 8px 40px rgba(0,0,0,0.6)',
+        'db-glow':  '0 0 20px rgba(255,107,53,0.15)',
+        'db-amber': '0 0 20px rgba(255,107,53,0.15)',
+        'db-live':  '0 0 16px rgba(255,45,45,0.30)',
       },
 
       borderRadius: {
-        'db-sm': '4px',
-        'db-md': '8px',
-        'db-lg': '16px',
-        'db-xl': '24px',
+        'db-xs': '2px',
+        'db-sm': '3px',
+        'db-md': '4px',
+        'db-lg': '8px',
+        'db-xl': '12px',
       },
 
       animation: {
@@ -79,12 +84,12 @@ export default {
       keyframes: {
         'db-pulse': {
           '0%, 100%': { opacity: '1' },
-          '50%':      { opacity: '0.5' },
+          '50%':      { opacity: '0.4' },
         },
         'db-mark': {
-          '0%':   { transform: 'scale(0.8)', opacity: '0' },
-          '60%':  { transform: 'scale(1.1)' },
-          '100%': { transform: 'scale(1)',   opacity: '1' },
+          '0%':   { transform: 'scale(0.85)', opacity: '0' },
+          '50%':  { transform: 'scale(1.06)' },
+          '100%': { transform: 'scale(1)',    opacity: '1' },
         },
         'db-bingo': {
           '0%':   { transform: 'scale(1)' },

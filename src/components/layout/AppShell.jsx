@@ -8,7 +8,7 @@ export default function AppShell({ children }) {
   return (
     <div
       className="h-screen flex flex-col overflow-hidden"
-      style={{ background: '#EDEBE8', color: '#2D2A26' }}
+      style={{ background: '#0c0c14', color: '#e0e0f0' }}
     >
       <Navbar onMenuClick={() => setSidebarOpen(true)} />
 

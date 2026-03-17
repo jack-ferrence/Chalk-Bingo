@@ -20,7 +20,7 @@ export default function SportTabs({ onTabClick }) {
   return (
     <div
       className="flex items-center gap-1.5 overflow-x-auto px-4 pb-3"
-      style={{ borderBottom: '1px solid #D5D0CA', scrollbarWidth: 'none' }}
+      style={{ borderBottom: '1px solid #2a2a44', scrollbarWidth: 'none' }}
     >
       {SPORTS.map((sport) => (
         <button
@@ -32,17 +32,17 @@ export default function SportTabs({ onTabClick }) {
           style={
             sport.active
               ? {
-                  background: '#E44D2E',
-                  color: '#FFF',
+                  background: '#ff6b35',
+                  color: '#0c0c14',
                   padding: '5px 14px',
                   cursor: 'pointer',
-                  boxShadow: '0 1px 3px rgba(228,77,46,0.25)',
+                  boxShadow: '0 1px 3px rgba(255,107,53,0.25)',
                 }
               : {
-                  color: '#B8B2AA',
+                  color: '#555577',
                   padding: '5px 12px',
                   cursor: 'default',
-                  border: '1px solid #E3E0DC',
+                  border: '1px solid #2a2a44',
                   borderRadius: 20,
                 }
           }
@@ -55,7 +55,7 @@ export default function SportTabs({ onTabClick }) {
                 fontWeight: 800,
                 color: '#C8C3BE',
                 letterSpacing: '0.08em',
-                border: '1px solid #D5D0CA',
+                border: '1px solid #2a2a44',
                 padding: '1px 4px',
                 borderRadius: 3,
               }}

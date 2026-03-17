@@ -58,7 +58,7 @@ const BingoSquare = memo(function BingoSquare({ square, index, isWinning, isLine
         className={`
           group relative flex aspect-square flex-col items-center justify-center gap-0.5
           rounded-md border border-vegas-neon/70
-          bg-[radial-gradient(circle_at_center,_rgba(228,77,46,0.20)_0%,_rgba(228,77,46,0.08)_70%,_rgba(245,243,240,0.60)_100%)]
+          bg-[radial-gradient(circle_at_center,_rgba(255,107,53,0.20)_0%,_rgba(255,107,53,0.08)_70%,_rgba(245,243,240,0.60)_100%)]
           px-1 select-none cursor-pointer overflow-hidden
           sq-marked-glow
           ${justMarked ? 'sq-mark-in sq-shine' : ''}

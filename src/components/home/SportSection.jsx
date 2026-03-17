@@ -31,7 +31,7 @@ export default function SportSection({
             style={{
               width: 3,
               height: 30,
-              background: '#E44D2E',
+              background: '#ff6b35',
               borderRadius: 2,
               flexShrink: 0,
             }}
@@ -42,7 +42,7 @@ export default function SportSection({
               fontSize: 26,
               lineHeight: 1,
               letterSpacing: '0.04em',
-              color: '#2D2A26',
+              color: '#e0e0f0',
             }}
           >
             {label}
@@ -52,8 +52,8 @@ export default function SportSection({
               style={{
                 fontSize: 11,
                 fontWeight: 700,
-                color: '#9A9490',
-                background: '#E3E0DC',
+                color: '#555577',
+                background: '#2a2a44',
                 padding: '2px 8px',
                 borderRadius: 10,
                 letterSpacing: '0.03em',
@@ -68,9 +68,9 @@ export default function SportSection({
           <button
             type="button"
             className="flex items-center gap-1 text-xs font-semibold transition-colors"
-            style={{ color: '#B8B2AA', background: 'none', border: 'none', cursor: 'pointer' }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = '#5C5752' }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = '#B8B2AA' }}
+            style={{ color: '#555577', background: 'none', border: 'none', cursor: 'pointer' }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = '#8888aa' }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = '#555577' }}
             onClick={handleSeeAll}
           >
             See all
@@ -99,11 +99,11 @@ export default function SportSection({
         <div
           className="rounded-xl px-6 py-8 text-center"
           style={{
-            border: '1px dashed #D5D0CA',
+            border: '1px dashed #2a2a44',
             background: 'rgba(0,0,0,0.015)',
           }}
         >
-          <p className="text-sm" style={{ color: '#B8B2AA' }}>No games scheduled today</p>
+          <p className="text-sm" style={{ color: '#555577' }}>No games scheduled today</p>
         </div>
       ) : (
         <div
