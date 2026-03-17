@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import DabberLogo from '../components/ui/DabberLogo.jsx'
 
 const inputStyle = {
   width: '100%',
@@ -59,9 +60,10 @@ function LoginPage() {
     <div style={{ minHeight: '100vh', background: '#0c0c14', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px' }}>
       <div style={{ width: '100%', maxWidth: 380 }}>
 
-        {/* Wordmark */}
-        <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 24, fontWeight: 900, letterSpacing: '0.15em', color: '#ff6b35', textTransform: 'uppercase' }}>
+        {/* Logo lockup */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, marginBottom: 32 }}>
+          <DabberLogo size={64} />
+          <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 28, fontWeight: 900, letterSpacing: '6px', color: '#e0e0f0' }}>
             DABBER
           </span>
         </div>

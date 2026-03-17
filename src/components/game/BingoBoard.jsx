@@ -52,13 +52,6 @@ function BingoBoard({ squares = [], winningSquares = [], winningLines = [], hasB
         className="machine-glow"
         style={{ background: '#0c0c14', border: '1px solid #2a2a44', borderRadius: 8, padding: 12 }}
       >
-        {/* Header label */}
-        <div style={{ marginBottom: 8, textAlign: 'center' }}>
-          <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, fontWeight: 700, letterSpacing: '0.25em', textTransform: 'uppercase', color: '#3a3a55' }}>
-            DABBER
-          </span>
-        </div>
-
         {/* 5×5 Grid */}
         <div className="grid grid-cols-5 gap-1.5">
           {flat.slice(0, 25).map((square, index) => (

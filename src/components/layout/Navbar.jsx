@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth.jsx'
 import { useProfile } from '../../hooks/useProfile.js'
 import SportTabs from './SportTabs.jsx'
+import DabberLogo from '../ui/DabberLogo.jsx'
 
 export default function Navbar({ onMenuClick }) {
   const { user, loading } = useAuth()
@@ -33,18 +34,12 @@ export default function Navbar({ onMenuClick }) {
           </button>
           <Link
             to="/"
-            style={{
-              fontFamily: 'var(--db-font-mono)',
-              fontSize: 18,
-              fontWeight: 900,
-              letterSpacing: '0.15em',
-              color: '#ff6b35',
-              textDecoration: 'none',
-              lineHeight: 1,
-              textTransform: 'uppercase',
-            }}
+            style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}
           >
-            DABBER
+            <DabberLogo size={26} />
+            <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 16, fontWeight: 800, letterSpacing: '4px', color: '#e0e0f0', lineHeight: 1 }}>
+              DABBER
+            </span>
           </Link>
         </div>
 

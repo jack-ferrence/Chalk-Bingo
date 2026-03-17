@@ -14,7 +14,8 @@
       "Bash(npx vite:*)",
       "Bash(./node_modules/.bin/vite build:*)",
       "Bash(ls node_modules/.bin/vite 2>/dev/null || echo \"not found, installing\" && npm install --silent 2>&1 | tail -5)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(cp /Users/jackferrence/Downloads/dabber-favicon.svg /Users/jackferrence/Downloads/Chalk-Bingo-main/public/dabber-favicon.svg && cp /Users/jackferrence/Downloads/dabber-icon.svg /Users/jackferrence/Downloads/Chalk-Bingo-main/public/dabber-icon.svg && echo \"copied\")"
     ]
   }
 }

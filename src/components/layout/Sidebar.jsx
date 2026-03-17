@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth.jsx'
 import MyGameItem from '../home/MyGameItem.jsx'
+import DabberLogo from '../ui/DabberLogo.jsx'
 
 function SidebarContent({ onClose }) {
   const { user, signOut } = useAuth()
@@ -77,16 +78,12 @@ function SidebarContent({ onClose }) {
         <Link
           to="/"
           onClick={() => onClose?.()}
-          style={{
-            fontFamily: 'var(--db-font-display)',
-            fontSize: 26,
-            letterSpacing: '0.18em',
-            color: '#ff6b35',
-            textDecoration: 'none',
-            lineHeight: 1,
-          }}
+          style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}
         >
-          DABBER
+          <DabberLogo size={28} />
+          <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 16, fontWeight: 800, letterSpacing: '4px', color: '#e0e0f0', lineHeight: 1 }}>
+            DABBER
+          </span>
         </Link>
       </div>
 
@@ -238,16 +235,12 @@ export default function Sidebar({ open, onClose }) {
               className="flex h-14 flex-shrink-0 items-center justify-between px-5"
               style={{ borderBottom: '1px solid #2a2a44' }}
             >
-              <span
-                style={{
-                  fontFamily: 'var(--db-font-display)',
-                  fontSize: 22,
-                  letterSpacing: '0.18em',
-                  color: '#ff6b35',
-                }}
-              >
-                DABBER
-              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <DabberLogo size={24} />
+                <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 15, fontWeight: 800, letterSpacing: '4px', color: '#e0e0f0', lineHeight: 1 }}>
+                  DABBER
+                </span>
+              </div>
               <button
                 type="button"
                 onClick={onClose}
