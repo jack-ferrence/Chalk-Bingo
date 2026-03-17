@@ -1,11 +1,11 @@
 import { useNavigate } from 'react-router-dom'
 
 const SPORT_ICONS = {
-  nba: '🏀',
-  mlb: '⚾',
-  nhl: '🏒',
-  nfl: '🏈',
-  march_madness: '🏆',
+  nba:  '🏀',
+  ncaa: '🏆',
+  mlb:  '⚾',
+  nhl:  '🏒',
+  nfl:  '🏈',
 }
 
 function formatStartsAt(dateStr) {
@@ -31,9 +31,7 @@ export default function MyGameItem({ room }) {
       onClick={() => navigate(`/room/${room.id}`)}
     >
       {/* Sport icon */}
-      <span className="text-base flex-shrink-0" aria-hidden="true">
-        {icon}
-      </span>
+      <span className="text-sm flex-shrink-0" aria-hidden="true">{icon}</span>
 
       {/* Name + meta */}
       <div className="flex-1 min-w-0">
@@ -43,19 +41,28 @@ export default function MyGameItem({ room }) {
         >
           {room.name}
         </p>
-        <div className="flex items-center gap-1.5 mt-0.5">
+        <div className="flex items-center gap-2 mt-0.5">
           {isLive ? (
-            <span className="live-badge" style={{ fontSize: 9, padding: '1px 5px' }}>
-              <span className="live-dot" style={{ width: 5, height: 5 }} />
+            <span className="live-badge" style={{ fontSize: 8.5, padding: '2px 5px' }}>
+              <span className="live-dot" style={{ width: 4, height: 4 }} />
               LIVE
             </span>
           ) : (
-            <span className="text-[11px]" style={{ color: '#9A9490' }}>
+            <span style={{ fontSize: 11, color: '#B8B2AA' }}>
               {formatStartsAt(room.starts_at)}
             </span>
           )}
           {lines > 0 && (
-            <span className="text-[11px]" style={{ color: '#E44D2E' }}>
+            <span
+              style={{
+                fontSize: 10,
+                fontWeight: 700,
+                color: '#E44D2E',
+                background: 'rgba(228,77,46,0.10)',
+                padding: '1px 6px',
+                borderRadius: 4,
+              }}
+            >
               {lines} {lines === 1 ? 'line' : 'lines'}
             </span>
           )}

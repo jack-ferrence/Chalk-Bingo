@@ -25,17 +25,25 @@ export default function GameCard({ game, isJoined, joining, onJoin, onContinue }
 
   return (
     <div
-      className="game-card glass-card rounded-xl flex flex-col overflow-hidden"
+      className="game-card"
       style={{
-        width: 220,
-        minHeight: 140,
         '--home-color': homeColor,
-        '--team-glow': hexToRgba(homeColor, 0.35),
+        '--team-glow': hexToRgba(homeColor, 0.30),
       }}
     >
-      {/* LIVE badge — absolute top-right */}
+      {/* Dual team-color gradient wash */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background: `linear-gradient(135deg, ${hexToRgba(awayColor, 0.08)} 0%, transparent 42%, ${hexToRgba(homeColor, 0.08)} 100%)`,
+          pointerEvents: 'none',
+        }}
+      />
+
+      {/* LIVE badge */}
       {isLive && (
-        <div className="absolute top-2 right-2">
+        <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 1 }}>
           <span className="live-badge">
             <span className="live-dot" />
             LIVE
@@ -44,24 +52,71 @@ export default function GameCard({ game, isJoined, joining, onJoin, onContinue }
       )}
 
       {/* Team matchup */}
-      <div className="flex items-center justify-between px-4 pt-4 pb-2 flex-1">
-        <span className="team-abbr" style={{ color: awayColor }}>{away}</span>
-        <span className="vs-text">VS</span>
-        <span className="team-abbr" style={{ color: homeColor }}>{home}</span>
+      <div
+        className="flex items-end justify-between relative"
+        style={{ padding: '18px 20px 12px' }}
+      >
+        <div className="flex flex-col items-center gap-1">
+          <span className="team-abbr" style={{ color: awayColor }}>{away}</span>
+          <span
+            style={{
+              fontSize: 9,
+              fontWeight: 700,
+              letterSpacing: '0.10em',
+              color: '#B8B2AA',
+              textTransform: 'uppercase',
+            }}
+          >
+            Away
+          </span>
+        </div>
+
+        <span className="vs-text" style={{ marginBottom: 16 }}>VS</span>
+
+        <div className="flex flex-col items-center gap-1">
+          <span className="team-abbr" style={{ color: homeColor }}>{home}</span>
+          <span
+            style={{
+              fontSize: 9,
+              fontWeight: 700,
+              letterSpacing: '0.10em',
+              color: '#B8B2AA',
+              textTransform: 'uppercase',
+            }}
+          >
+            Home
+          </span>
+        </div>
       </div>
 
-      {/* Bottom: time/status + player count + CTA */}
-      <div className="flex items-center justify-between px-4 pb-4 gap-2">
-        <div className="flex flex-col gap-0.5 min-w-0">
-          <span
-            className="text-xs font-semibold"
-            style={{ color: isLive ? '#EF4444' : '#94A3B8' }}
-          >
-            {isLive ? '● LIVE' : formatTipoff(game.starts_at)}
-          </span>
-          <span className="text-[11px]" style={{ color: '#64748B' }}>
-            👥 {game.participant_count ?? 0} playing
-          </span>
+      {/* Footer */}
+      <div
+        className="flex items-center justify-between relative mt-auto"
+        style={{
+          padding: '9px 20px 16px',
+          borderTop: '1px solid rgba(0,0,0,0.05)',
+        }}
+      >
+        <div>
+          {isLive ? (
+            <span
+              style={{
+                color: '#DC2626',
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: '0.05em',
+              }}
+            >
+              ● IN PROGRESS
+            </span>
+          ) : (
+            <span style={{ color: '#9A9490', fontSize: 11, fontWeight: 600 }}>
+              {formatTipoff(game.starts_at)}
+            </span>
+          )}
+          <div style={{ color: '#B8B2AA', fontSize: 11, marginTop: 2 }}>
+            {game.participant_count ?? 0} playing
+          </div>
         </div>
 
         {isJoined ? (

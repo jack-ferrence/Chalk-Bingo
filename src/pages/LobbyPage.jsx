@@ -61,21 +61,52 @@ export default function LobbyPage() {
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
+  const liveCount = allRooms.filter((r) => r.status === 'live').length
+
   return (
     <div className="px-6 py-8 max-w-[1200px] mx-auto">
       {/* Page header */}
-      <div className="mb-8">
-        <h1
-          style={{
-            fontFamily: 'var(--db-font-display)',
-            fontSize: 'clamp(32px, 4vw, 48px)',
-            letterSpacing: '0.05em',
-            lineHeight: 1,
-            color: '#2D2A26',
-          }}
-        >
-          Tonight&apos;s Games
-        </h1>
+      <div className="mb-9">
+        <div className="flex items-baseline gap-3 flex-wrap">
+          <h1
+            style={{
+              fontFamily: 'var(--db-font-display)',
+              fontSize: 'clamp(36px, 4vw, 52px)',
+              letterSpacing: '0.05em',
+              lineHeight: 1,
+              color: '#2D2A26',
+            }}
+          >
+            Tonight&apos;s Games
+          </h1>
+          {!loading && liveCount > 0 && (
+            <span
+              className="inline-flex items-center gap-1.5"
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: '0.08em',
+                color: '#DC2626',
+                background: 'rgba(220,38,38,0.10)',
+                border: '1px solid rgba(220,38,38,0.22)',
+                padding: '3px 9px',
+                borderRadius: 6,
+              }}
+            >
+              <span
+                style={{
+                  width: 5,
+                  height: 5,
+                  borderRadius: '50%',
+                  background: '#DC2626',
+                  display: 'inline-block',
+                  animation: 'pulse-live 1.4s ease-in-out infinite',
+                }}
+              />
+              {liveCount} LIVE
+            </span>
+          )}
+        </div>
         <p className="mt-2 text-sm" style={{ color: '#9A9490' }}>
           Live bingo powered by real stats. Pick a game and play.
         </p>
