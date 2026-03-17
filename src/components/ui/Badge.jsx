@@ -1,21 +1,39 @@
 const VARIANTS = {
-  success:
-    'bg-accent-green/15 text-accent-green ring-1 ring-accent-green/30',
-  warning:
-    'bg-accent-gold/15 text-accent-gold ring-1 ring-accent-gold/30',
-  danger:
-    'bg-accent-red/15 text-accent-red ring-1 ring-accent-red/30',
-  muted:
-    'bg-bg-hover text-text-muted ring-1 ring-border-subtle',
+  success: { background: 'rgba(34,197,94,0.12)',  color: '#22c55e', border: '1px solid rgba(34,197,94,0.25)' },
+  warning: { background: 'rgba(245,158,11,0.12)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.25)' },
+  danger:  { background: 'rgba(255,45,45,0.12)',  color: '#ff2d2d', border: '1px solid rgba(255,45,45,0.25)' },
+  muted:   { background: '#22223a',               color: '#555577', border: '1px solid #2a2a44' },
 }
 
 function Badge({ variant = 'muted', pulse = false, pop = false, className = '', children }) {
+  const vs = VARIANTS[variant] ?? VARIANTS.muted
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${VARIANTS[variant] ?? VARIANTS.muted} ${pop ? 'badge-pop' : ''} ${className}`}
+      className={`inline-flex items-center gap-1 ${pop ? 'badge-pop' : ''} ${className}`}
+      style={{
+        ...vs,
+        borderRadius: 4,
+        padding: '2px 8px',
+        fontFamily: 'var(--db-font-mono)',
+        fontSize: 9,
+        fontWeight: 700,
+        letterSpacing: '0.1em',
+        textTransform: 'uppercase',
+        whiteSpace: 'nowrap',
+      }}
     >
       {pulse && (
-        <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-current" />
+        <span
+          style={{
+            display: 'inline-block',
+            width: 5,
+            height: 5,
+            borderRadius: '50%',
+            background: 'currentColor',
+            animation: 'db-pulse 1.5s ease-in-out infinite',
+            flexShrink: 0,
+          }}
+        />
       )}
       {children}
     </span>

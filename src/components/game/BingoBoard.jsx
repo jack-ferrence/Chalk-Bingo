@@ -47,16 +47,19 @@ function BingoBoard({ squares = [], winningSquares = [], winningLines = [], hasB
 
   return (
     <div className="relative w-full max-w-lg">
-      {/* Machine frame */}
-      <div className="rounded-2xl border-2 border-accent-gold/50 bg-gradient-to-b from-vegas-felt/80 via-bg-primary to-bg-primary p-3 sm:p-4 machine-glow">
-        {/* Header strip */}
-        <div className="mb-2 flex items-center justify-center">
-          <span className="font-display text-[10px] font-bold uppercase tracking-[0.25em] text-accent-gold/60">
-            Dabber
+      {/* Board frame */}
+      <div
+        className="machine-glow"
+        style={{ background: '#0c0c14', border: '1px solid #2a2a44', borderRadius: 8, padding: 12 }}
+      >
+        {/* Header label */}
+        <div style={{ marginBottom: 8, textAlign: 'center' }}>
+          <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, fontWeight: 700, letterSpacing: '0.25em', textTransform: 'uppercase', color: '#3a3a55' }}>
+            DABBER
           </span>
         </div>
 
-        {/* 5x5 Grid */}
+        {/* 5×5 Grid */}
         <div className="grid grid-cols-5 gap-1.5">
           {flat.slice(0, 25).map((square, index) => (
             <BingoSquare
@@ -70,23 +73,31 @@ function BingoBoard({ squares = [], winningSquares = [], winningLines = [], hasB
           ))}
         </div>
 
-        {/* Footer strip */}
-        <div className="mt-2 flex items-center justify-center">
-          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-accent-gold/20 to-transparent" />
-        </div>
+        {/* Footer divider */}
+        <div style={{ marginTop: 8, height: 1, background: '#1a1a2e' }} />
       </div>
 
       {/* Full-board BINGO overlay */}
       {hasBingo && (
         <div
-          className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-2xl bg-bg-primary/90 backdrop-blur-sm"
+          className="absolute inset-0 z-10 flex flex-col items-center justify-center"
+          style={{ borderRadius: 8, background: 'rgba(12,12,20,0.92)', backdropFilter: 'blur(4px)' }}
           role="alert"
           aria-live="polite"
         >
-          <div className="animate-bounce font-display text-3xl font-bold tracking-wide text-accent-gold">
+          <div
+            style={{
+              fontFamily: 'var(--db-font-mono)',
+              fontSize: 36,
+              fontWeight: 900,
+              letterSpacing: '0.1em',
+              color: '#ff6b35',
+              animation: 'db-bingo 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)',
+            }}
+          >
             BINGO!
           </div>
-          <p className="mt-2 text-sm text-text-secondary">
+          <p style={{ marginTop: 8, fontFamily: 'var(--db-font-mono)', fontSize: 12, color: '#8888aa' }}>
             {winningLines.length} line{winningLines.length === 1 ? '' : 's'} completed
           </p>
         </div>
@@ -97,7 +108,10 @@ function BingoBoard({ squares = [], winningSquares = [], winningLines = [], hasB
         <div
           className={`absolute left-1/2 top-4 z-20 -translate-x-1/2 ${toast.exiting ? 'bingo-toast-exit' : 'bingo-toast-enter'}`}
         >
-          <div className="relative overflow-hidden rounded-lg border border-accent-gold/50 bg-bg-secondary/95 px-5 py-2.5 shadow-lg backdrop-blur-sm">
+          <div
+            className="relative overflow-hidden"
+            style={{ background: '#12121e', border: '1px solid rgba(255,107,53,0.5)', borderRadius: 6, padding: '8px 20px' }}
+          >
             <div className="bingo-toast-confetti" aria-hidden="true">
               {CONFETTI_COLORS.map((color, i) => (
                 <span
@@ -111,10 +125,10 @@ function BingoBoard({ squares = [], winningSquares = [], winningLines = [], hasB
                 />
               ))}
             </div>
-            <p className="font-display text-sm font-bold tracking-wide text-accent-gold">
+            <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 13, fontWeight: 800, color: '#ff6b35', letterSpacing: '0.06em' }}>
               BINGO!
             </p>
-            <p className="text-[10px] text-text-secondary">
+            <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, color: '#8888aa' }}>
               Line {toast.lineNum} completed!
             </p>
           </div>

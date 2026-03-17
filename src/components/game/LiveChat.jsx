@@ -7,16 +7,7 @@ const MAX_CHARS = 280
 const RATE_LIMIT_MS = 2000
 const SCROLL_THROTTLE_MS = 200
 
-const USER_COLORS = [
-  'text-accent-purple',
-  'text-accent-gold',
-  'text-accent-green',
-  'text-accent-red',
-  'text-sky-400',
-  'text-pink-400',
-  'text-orange-400',
-  'text-teal-400',
-]
+const USER_COLORS = ['#ff6b35', '#8b5cf6', '#22c55e', '#3b82f6', '#f59e0b', '#c0c0d8', '#ff8855', '#8888aa']
 
 function userColor(userId) {
   let hash = 0
@@ -28,12 +19,12 @@ function userColor(userId) {
 
 const ChatMessage = memo(function ChatMessage({ msg, isNew }) {
   return (
-    <div className={`px-1 text-xs leading-relaxed break-words ${isNew ? 'chat-msg-in' : ''}`}>
-      <span className={`font-semibold ${userColor(msg.user_id)}`}>
+    <div className={`px-1 leading-relaxed break-words ${isNew ? 'chat-msg-in' : ''}`} style={{ fontSize: 11 }}>
+      <span style={{ fontFamily: 'var(--db-font-mono)', fontWeight: 700, color: userColor(msg.user_id) }}>
         {msg.username}
       </span>
-      <span className="text-text-muted">: </span>
-      <span className="text-text-secondary">{msg.message}</span>
+      <span style={{ color: '#555577' }}>: </span>
+      <span style={{ color: '#8888aa' }}>{msg.message}</span>
     </div>
   )
 })

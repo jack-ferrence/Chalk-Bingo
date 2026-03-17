@@ -31,21 +31,21 @@ const BingoSquare = memo(function BingoSquare({ square, index, isWinning, isLine
     return (
       <button
         type="button"
-        className={`
-          group relative flex aspect-square flex-col items-center justify-center
-          rounded-md border border-accent-gold/60
-          bg-gradient-to-br from-accent-gold/20 via-accent-gold/10 to-transparent
-          select-none sq-free-glow
-          ${isWinning ? 'sq-winning' : ''}
-          ${isLineFlash ? 'sq-line-flash' : ''}
-        `}
+        className={`select-none sq-free-glow ${isWinning ? 'sq-winning' : ''} ${isLineFlash ? 'sq-line-flash' : ''}`}
+        style={{
+          aspectRatio: '1',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: '#ff6b35',
+          border: '1px solid #ff8855',
+          borderRadius: 4,
+          cursor: 'default',
+        }}
       >
-        <span className="font-display text-sm font-bold tracking-widest text-accent-gold">
-          ★
-        </span>
-        <span className="font-display text-[10px] font-bold tracking-wider text-accent-gold">
-          FREE
-        </span>
+        <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 13, fontWeight: 900, color: '#0c0c14' }}>★</span>
+        <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 8, fontWeight: 800, letterSpacing: '0.1em', color: '#0c0c14' }}>FREE</span>
       </button>
     )
   }
@@ -55,26 +55,32 @@ const BingoSquare = memo(function BingoSquare({ square, index, isWinning, isLine
       <button
         type="button"
         onClick={() => onClick?.(square)}
-        className={`
-          group relative flex aspect-square flex-col items-center justify-center gap-0.5
-          rounded-md border border-vegas-neon/70
-          bg-[radial-gradient(circle_at_center,_rgba(255,107,53,0.20)_0%,_rgba(255,107,53,0.08)_70%,_rgba(245,243,240,0.60)_100%)]
-          px-1 select-none cursor-pointer overflow-hidden
-          sq-marked-glow
-          ${justMarked ? 'sq-mark-in sq-shine' : ''}
-          ${isWinning ? 'sq-winning' : ''}
-          ${isLineFlash ? 'sq-line-flash' : ''}
-        `}
+        className={`select-none sq-marked-glow ${justMarked ? 'sq-mark-in sq-shine' : ''} ${isWinning ? 'sq-winning' : ''} ${isLineFlash ? 'sq-line-flash' : ''}`}
+        style={{
+          aspectRatio: '1',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 2,
+          background: '#2a1a10',
+          border: '1px solid #ff6b35',
+          borderRadius: 4,
+          padding: 4,
+          cursor: 'pointer',
+          overflow: 'hidden',
+          position: 'relative',
+        }}
       >
         {playerLabel && (
-          <span className="w-full truncate text-center text-[8px] font-medium text-vegas-neon/80">
+          <span style={{ width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'center', fontFamily: 'var(--db-font-mono)', fontSize: 8, fontWeight: 700, color: 'rgba(255,107,53,0.8)' }}>
             {playerLabel}
           </span>
         )}
-        <span className="font-display text-[10px] font-bold leading-tight text-accent-gold">
+        <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 800, color: '#ff6b35', lineHeight: 1.2 }}>
           {statLabel}
         </span>
-        <span className="absolute right-0.5 top-0.5 text-[8px] text-vegas-neon">✓</span>
+        <span style={{ position: 'absolute', right: 3, top: 2, fontSize: 8, color: '#ff6b35' }}>✓</span>
       </button>
     )
   }
@@ -83,22 +89,30 @@ const BingoSquare = memo(function BingoSquare({ square, index, isWinning, isLine
     <button
       type="button"
       onClick={() => onClick?.(square)}
-      className={`
-        group relative flex aspect-square flex-col items-center justify-center gap-0.5
-        rounded-md border border-border-active
-        bg-gradient-to-br from-bg-card to-bg-secondary
-        px-1 select-none cursor-pointer
-        transition-all duration-150 ease-out
-        hover:border-text-muted hover:scale-[1.02]
-        card-bevel
-      `}
+      className="select-none"
+      style={{
+        aspectRatio: '1',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 2,
+        background: '#1a1a2e',
+        border: '1px solid #2a2a44',
+        borderRadius: 4,
+        padding: 4,
+        cursor: 'pointer',
+        transition: 'all 150ms ease',
+      }}
+      onMouseEnter={(e) => { e.currentTarget.style.background = '#22223a'; e.currentTarget.style.borderColor = '#3a3a55' }}
+      onMouseLeave={(e) => { e.currentTarget.style.background = '#1a1a2e'; e.currentTarget.style.borderColor = '#2a2a44' }}
     >
       {playerLabel && (
-        <span className="w-full truncate text-center text-[8px] font-medium text-text-secondary">
+        <span style={{ width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'center', fontFamily: 'var(--db-font-mono)', fontSize: 8, fontWeight: 600, color: '#8888aa' }}>
           {playerLabel}
         </span>
       )}
-      <span className="font-display text-[10px] font-medium leading-tight text-text-primary">
+      <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 600, color: '#e0e0f0', lineHeight: 1.2 }}>
         {statLabel}
       </span>
     </button>

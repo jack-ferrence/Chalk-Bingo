@@ -156,7 +156,9 @@ function GameRoom({
                 <button
                   type="button"
                   onClick={onStartGame}
-                  className="rounded-md bg-accent-green px-3 py-1 text-[11px] font-semibold text-white shadow-sm hover:bg-accent-green/80"
+                  style={{ background: '#22c55e', color: '#0c0c14', border: 'none', borderRadius: 4, padding: '4px 12px', fontFamily: 'var(--db-font-mono)', fontSize: 11, fontWeight: 700, cursor: 'pointer', transition: 'background 100ms ease' }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = '#16a34a' }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = '#22c55e' }}
                 >
                   Start Game
                 </button>
@@ -226,8 +228,7 @@ function GameRoom({
               <span style={{ color: '#2a2a44' }}>·</span>
               <span>Participation +<strong style={{ color: '#ff6b35' }}>3</strong></span>
               <span
-                className="ml-1 rounded-full px-2 py-0.5 text-xs font-bold"
-                style={{ background: 'rgba(255,107,53,0.12)', color: '#ff6b35', border: '1px solid rgba(255,107,53,0.25)' }}
+                style={{ marginLeft: 4, borderRadius: 4, padding: '2px 8px', fontFamily: 'var(--db-font-mono)', fontSize: 11, fontWeight: 800, background: 'rgba(255,107,53,0.12)', color: '#ff6b35', border: '1px solid rgba(255,107,53,0.25)' }}
               >
                 ◈ +{dabsSummary.total} Dabs
               </span>
@@ -242,7 +243,7 @@ function GameRoom({
         {/* LEFT: Bingo Board */}
         <div className={`flex shrink-0 items-center justify-center overflow-y-auto p-4 transition-all duration-200 ${selectedSquare ? 'w-full lg:w-[45%]' : 'w-full lg:w-[65%]'}`}>
           {loadingCard ? (
-            <div className="text-sm text-text-secondary">Loading your card...</div>
+            <div style={{ fontFamily: 'var(--db-font-mono)', fontSize: 12, color: '#555577' }}>Loading your card...</div>
           ) : card ? (
             <BingoBoard
               squares={card.squares}
@@ -252,7 +253,7 @@ function GameRoom({
               onSquareClick={handleSquareClick}
             />
           ) : (
-            <div className="text-sm text-text-secondary">No card available.</div>
+            <div style={{ fontFamily: 'var(--db-font-mono)', fontSize: 12, color: '#555577' }}>No card available.</div>
           )}
         </div>
 
@@ -396,7 +397,7 @@ function GameRoom({
       {/* ── Mobile chat FAB + overlay ── */}
       <div className="md:hidden">
         {mobileChat && (
-          <div className="fixed inset-0 z-50 flex flex-col bg-bg-primary/95 backdrop-blur-sm">
+          <div className="fixed inset-0 z-50 flex flex-col" style={{ background: 'rgba(12,12,20,0.95)', backdropFilter: 'blur(6px)' }}>
             <div className="flex h-12 items-center justify-between border-b border-border-subtle px-4">
               <span className="text-xs font-semibold uppercase tracking-wider text-text-muted">Chat</span>
               <button
@@ -427,7 +428,10 @@ function GameRoom({
           <button
             type="button"
             onClick={handleOpenMobileChat}
-            className="fixed bottom-16 right-4 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-accent-purple shadow-lg shadow-accent-purple/30 transition hover:bg-accent-purple/80"
+            className="fixed bottom-16 right-4 z-40 flex h-12 w-12 items-center justify-center transition"
+            style={{ background: '#8b5cf6', borderRadius: '50%', boxShadow: '0 4px 16px rgba(139,92,246,0.3)', border: 'none', cursor: 'pointer' }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = '#7c3aed' }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = '#8b5cf6' }}
             aria-label="Open chat"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -445,7 +449,7 @@ function GameRoom({
           aria-modal="true"
           aria-label="Final leaderboard"
         >
-          <div className="w-full max-w-md rounded-2xl border-2 border-accent-gold/40 bg-bg-secondary p-6 shadow-2xl machine-glow">
+          <div className="w-full max-w-md machine-glow" style={{ background: '#12121e', border: '1px solid rgba(255,107,53,0.3)', borderRadius: 8, padding: 24 }}>
             <h2 className="font-display text-lg font-bold tracking-wide text-accent-gold">
               Game Over
             </h2>
