@@ -18,7 +18,7 @@ export function useProfile() {
     const load = async () => {
       const { data } = await supabase
         .from('profiles')
-        .select('dabs_balance')
+        .select('dabs_balance, username')
         .eq('id', user.id)
         .single()
       if (!cancelled) setProfile(data ?? null)
@@ -41,5 +41,5 @@ export function useProfile() {
     }
   }, [user?.id])
 
-  return { dabsBalance: profile?.dabs_balance ?? null }
+  return { dabsBalance: profile?.dabs_balance ?? null, username: profile?.username ?? null }
 }

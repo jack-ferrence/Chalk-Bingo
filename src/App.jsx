@@ -1,5 +1,6 @@
 import { Routes, Route, Link, useMatch } from 'react-router-dom'
 import { useAuth } from './hooks/useAuth.jsx'
+import { useProfile } from './hooks/useProfile.js'
 import LobbyPage from './pages/LobbyPage.jsx'
 import GamePage from './pages/GamePage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
@@ -9,6 +10,7 @@ import AppShell from './components/layout/AppShell.jsx'
 
 function App() {
   const { user, loading } = useAuth()
+  const { username: profileUsername } = useProfile()
   const isGameRoute = useMatch('/room/:roomId')
 
   // Game room: full-screen, no sidebar or sport tabs
@@ -33,8 +35,8 @@ function App() {
             DABBER
           </Link>
           {!loading && user && (
-            <span style={{ color: '#555577', fontSize: 12 }}>
-              {user.is_anonymous ? `Guest_${user.id.slice(0, 8)}` : user.email}
+            <span style={{ color: '#555577', fontSize: 12, fontFamily: 'var(--db-font-mono)' }}>
+              {profileUsername ?? (user.is_anonymous ? `Guest_${user.id.slice(0, 8)}` : user.email)}
             </span>
           )}
         </header>

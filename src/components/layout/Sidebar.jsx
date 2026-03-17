@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth.jsx'
+import { useProfile } from '../../hooks/useProfile.js'
 import MyGameItem from '../home/MyGameItem.jsx'
 
 function SidebarContent({ onClose }) {
   const { user, signOut } = useAuth()
+  const { username: profileUsername } = useProfile()
   const navigate = useNavigate()
   const [myRooms, setMyRooms] = useState([])
 
@@ -58,9 +60,7 @@ function SidebarContent({ onClose }) {
   }
 
   const displayName = user
-    ? user.is_anonymous
-      ? `Guest_${user.id.slice(0, 6)}`
-      : (user.email ?? 'Player')
+    ? (profileUsername ?? (user.is_anonymous ? `Guest_${user.id.slice(0, 6)}` : (user.email ?? 'Player')))
     : null
 
   const initials = displayName

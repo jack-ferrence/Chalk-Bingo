@@ -6,6 +6,7 @@ import PlayerStatsPanel from './PlayerStatsPanel.jsx'
 import Badge from '../ui/Badge.jsx'
 import { checkBingo } from '../../game/statProcessor.js'
 import { useCountdown } from '../../hooks/useCountdown.js'
+import { useProfile } from '../../hooks/useProfile.js'
 
 const Leaderboard = lazy(() => import('./Leaderboard.jsx'))
 const LiveChat = lazy(() => import('./LiveChat.jsx'))
@@ -112,9 +113,9 @@ function GameRoom({
   const handleOpenMobileChat = useCallback(() => setMobileChat(true), [])
   const handleCloseMobileChat = useCallback(() => setMobileChat(false), [])
 
-  const username = user?.is_anonymous
-    ? `Guest_${user.id.slice(0, 8)}`
-    : (user?.email ?? 'Guest')
+  const { username: profileUsername } = useProfile()
+  const username = profileUsername
+    ?? (user?.is_anonymous ? `Guest_${user.id.slice(0, 8)}` : (user?.email ?? 'Guest'))
 
   const statusVariant = room?.status === 'live' ? 'success' : room?.status === 'finished' ? 'muted' : 'warning'
   const statusLabel = room?.status === 'live' ? 'Live' : room?.status === 'finished' ? 'Finished' : 'Lobby'

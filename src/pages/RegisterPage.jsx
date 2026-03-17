@@ -31,20 +31,52 @@ function RegisterPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [username, setUsername] = useState('')
+  const [usernameError, setUsernameError] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
+  const USERNAME_RE = /^[a-zA-Z0-9_]{3,20}$/
+
+  const validateUsername = (val) => {
+    if (!USERNAME_RE.test(val)) return '3–20 characters, letters/numbers/underscores only'
+    return ''
+  }
+
+  const handleUsernameChange = (e) => {
+    const val = e.target.value
+    setUsername(val)
+    if (val) setUsernameError(validateUsername(val))
+    else setUsernameError('')
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+
+    const uErr = validateUsername(username.trim())
+    if (uErr) { setUsernameError(uErr); return }
+
     setLoading(true)
+
+    // Check if username is already taken
+    const { data: existing } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('username', username.trim())
+      .maybeSingle()
+
+    if (existing) {
+      setError('Username is already taken')
+      setLoading(false)
+      return
+    }
 
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: { username },
+        data: { username: username.trim() },
       },
     })
 
@@ -91,13 +123,20 @@ function RegisterPage() {
                 id="username"
                 type="text"
                 required
+                minLength={3}
+                maxLength={20}
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="hoopsfan23"
-                style={inputStyle}
-                onFocus={(e) => { e.currentTarget.style.border = '1px solid #ff6b35'; e.currentTarget.style.boxShadow = '0 0 0 2px rgba(255,107,53,0.12)' }}
-                onBlur={(e) => { e.currentTarget.style.border = '1px solid #2a2a44'; e.currentTarget.style.boxShadow = 'none' }}
+                onChange={handleUsernameChange}
+                placeholder="pick a name..."
+                style={{ ...inputStyle, borderColor: usernameError ? '#ff2d2d' : '#2a2a44' }}
+                onFocus={(e) => { e.currentTarget.style.border = `1px solid ${usernameError ? '#ff2d2d' : '#ff6b35'}`; e.currentTarget.style.boxShadow = '0 0 0 2px rgba(255,107,53,0.12)' }}
+                onBlur={(e) => { e.currentTarget.style.border = `1px solid ${usernameError ? '#ff2d2d' : '#2a2a44'}`; e.currentTarget.style.boxShadow = 'none' }}
               />
+              {usernameError && (
+                <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, color: '#ff2d2d', marginTop: 4 }}>
+                  {usernameError}
+                </p>
+              )}
             </div>
 
             <div style={{ marginBottom: 16 }}>

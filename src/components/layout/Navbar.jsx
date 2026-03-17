@@ -7,7 +7,7 @@ import DabberLogo from '../ui/DabberLogo.jsx'
 
 export default function Navbar({ onMenuClick }) {
   const { user, loading } = useAuth()
-  const { dabsBalance } = useProfile()
+  const { dabsBalance, username: profileUsername } = useProfile()
   const [dropdownOpen, setDropdownOpen] = useState(false)
 
   return (
@@ -79,13 +79,13 @@ export default function Navbar({ onMenuClick }) {
                   className="flex h-7 w-7 items-center justify-center text-xs font-bold flex-shrink-0"
                   style={{ background: '#ff6b35', color: '#0c0c14', borderRadius: 4, fontFamily: 'var(--db-font-mono)', fontWeight: 800 }}
                 >
-                  {user.is_anonymous ? 'G' : (user.email?.[0]?.toUpperCase() ?? 'U')}
+                  {(profileUsername ?? (user.is_anonymous ? 'G' : user.email))?.[0]?.toUpperCase() ?? 'U'}
                 </span>
                 <span
                   className="hidden sm:block max-w-[160px] truncate"
                   style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, color: '#555577' }}
                 >
-                  {user.is_anonymous ? `Guest_${user.id.slice(0, 6)}` : user.email}
+                  {profileUsername ?? (user.is_anonymous ? `Guest_${user.id.slice(0, 6)}` : user.email)}
                 </span>
               </button>
 
