@@ -59,6 +59,7 @@ function GameBrowserPage() {
       .insert({
         name: roomName,
         game_id: game.id,
+        sport: game.sport ?? 'nba',
         status: 'lobby',
         created_by: user.id,
       })

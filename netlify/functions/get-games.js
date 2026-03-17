@@ -24,6 +24,7 @@ function parseGame(event) {
 
   return {
     id: String(event.id),
+    sport: 'nba',
     name: event.name ?? '',
     shortName: event.shortName ?? '',
     date: event.date ?? '',
