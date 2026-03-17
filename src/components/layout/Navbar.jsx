@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth.jsx'
 import { useProfile } from '../../hooks/useProfile.js'
-import SportTabs from './SportTabs.jsx'
 import DabberLogo from '../ui/DabberLogo.jsx'
 
 export default function Navbar({ onMenuClick }) {
@@ -134,8 +133,6 @@ export default function Navbar({ onMenuClick }) {
         )}
       </div>
 
-      {/* Sport tabs */}
-      <SportTabs />
     </header>
   )
 }

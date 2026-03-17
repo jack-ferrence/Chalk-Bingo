@@ -8,7 +8,6 @@ import SportSection from '../components/home/SportSection.jsx'
 const SPORT_SECTIONS = [
   { sport: 'nba',  label: '🏀 NBA' },
   { sport: 'ncaa', label: '🏆 NCAA Tournament' },
-  { sport: 'mlb',  label: '⚾ MLB' },
 ]
 
 export default function LobbyPage() {
