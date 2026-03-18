@@ -54,27 +54,34 @@ function parsePlayerStats(athlete, period) {
       events.push({ player_id: pid, player_name: pname, stat_type: `points_${threshold}`, value: pts, period })
     }
   }
+  // Generic format for odds-based cards
+  if (pts > 0) events.push({ player_id: pid, player_name: pname, stat_type: 'points', value: pts, period })
 
   for (const threshold of STAT_THRESHOLDS.rebounds) {
     if (reb >= threshold) {
       events.push({ player_id: pid, player_name: pname, stat_type: `rebound_${threshold}`, value: reb, period })
     }
   }
+  if (reb > 0) events.push({ player_id: pid, player_name: pname, stat_type: 'rebounds', value: reb, period })
 
   for (const threshold of STAT_THRESHOLDS.assists) {
     if (ast >= threshold) {
       events.push({ player_id: pid, player_name: pname, stat_type: `assist_${threshold}`, value: ast, period })
     }
   }
+  if (ast > 0) events.push({ player_id: pid, player_name: pname, stat_type: 'assists', value: ast, period })
 
   if (threes >= 1) {
     events.push({ player_id: pid, player_name: pname, stat_type: 'three_pointer', value: threes, period })
+    events.push({ player_id: pid, player_name: pname, stat_type: 'threes', value: threes, period })
   }
   if (stl >= 1) {
     events.push({ player_id: pid, player_name: pname, stat_type: 'steal', value: stl, period })
+    events.push({ player_id: pid, player_name: pname, stat_type: 'steals', value: stl, period })
   }
   if (blk >= 1) {
     events.push({ player_id: pid, player_name: pname, stat_type: 'block', value: blk, period })
+    events.push({ player_id: pid, player_name: pname, stat_type: 'blocks', value: blk, period })
   }
 
   return events
@@ -199,24 +206,33 @@ function mapStatsByLabel(athlete, labels, period) {
       events.push({ player_id: pid, player_name: pname, stat_type: `points_${threshold}`, value: pts, period })
     }
   }
+  if (pts > 0) events.push({ player_id: pid, player_name: pname, stat_type: 'points', value: pts, period })
+
   for (const threshold of STAT_THRESHOLDS.rebounds) {
     if (reb >= threshold) {
       events.push({ player_id: pid, player_name: pname, stat_type: `rebound_${threshold}`, value: reb, period })
     }
   }
+  if (reb > 0) events.push({ player_id: pid, player_name: pname, stat_type: 'rebounds', value: reb, period })
+
   for (const threshold of STAT_THRESHOLDS.assists) {
     if (ast >= threshold) {
       events.push({ player_id: pid, player_name: pname, stat_type: `assist_${threshold}`, value: ast, period })
     }
   }
+  if (ast > 0) events.push({ player_id: pid, player_name: pname, stat_type: 'assists', value: ast, period })
+
   if (threes >= 1) {
     events.push({ player_id: pid, player_name: pname, stat_type: 'three_pointer', value: threes, period })
+    events.push({ player_id: pid, player_name: pname, stat_type: 'threes', value: threes, period })
   }
   if (stl >= 1) {
     events.push({ player_id: pid, player_name: pname, stat_type: 'steal', value: stl, period })
+    events.push({ player_id: pid, player_name: pname, stat_type: 'steals', value: stl, period })
   }
   if (blk >= 1) {
     events.push({ player_id: pid, player_name: pname, stat_type: 'block', value: blk, period })
+    events.push({ player_id: pid, player_name: pname, stat_type: 'blocks', value: blk, period })
   }
 
   return events
@@ -271,6 +287,13 @@ const MOCK_STAT_TYPES = [
   { stat_type: 'assist_10',     min: 10, max: 18 },
   { stat_type: 'steal',         min: 1,  max: 5 },
   { stat_type: 'block',         min: 1,  max: 5 },
+  // Generic types for odds-based cards
+  { stat_type: 'points',        min: 8,  max: 45 },
+  { stat_type: 'rebounds',      min: 3,  max: 18 },
+  { stat_type: 'assists',       min: 2,  max: 15 },
+  { stat_type: 'threes',        min: 1,  max: 8 },
+  { stat_type: 'steals',        min: 1,  max: 5 },
+  { stat_type: 'blocks',        min: 1,  max: 5 },
 ]
 
 function randomInt(min, max) {

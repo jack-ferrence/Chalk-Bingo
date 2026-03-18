@@ -1,3 +1,7 @@
+// Generic stat types used by odds-based cards (stat_type without threshold).
+// The mark_squares_for_event RPC matches on player_id + stat_type + value >= threshold.
+export const STAT_TYPES_GENERIC = ['points', 'rebounds', 'assists', 'threes', 'steals', 'blocks']
+
 const TOTAL_SQUARES = 25
 const CENTER_INDEX = 12
 const NON_CENTER_SQUARES = TOTAL_SQUARES - 1

@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { useRoomChannel } from '../hooks/useRoomChannel.js'
 import GameRoom from '../components/game/GameRoom.jsx'
+import { matchOddsToRoster, generateOddsBasedCard } from '../game/oddsCardGenerator.js'
 
 function GamePage() {
   const { roomId } = useParams()
@@ -84,27 +85,22 @@ function GamePage() {
       setLoadingCard(true)
       setError('')
 
-      // ── Step 1: Fetch roster (best-effort, failures are non-fatal) ──────────
-      let players = null
-      if (room.game_id) {
-        try {
-          const rosterUrl = `/.netlify/functions/get-roster?game_id=${room.game_id}&sport=${room.sport || 'nba'}`
-          const res = await fetch(rosterUrl)
-          if (res.ok) {
-            const roster = await res.json()
-            players = (roster.players ?? []).map((p) => ({
-              id: p.id,
-              name: p.name,
-              lastName: p.lastName,
-            }))
-            setRosterPlayers(players)
-          } else if (debug) {
-            console.warn('[GamePage] roster fetch non-ok', res.status)
-          }
-        } catch (rosterErr) {
-          if (debug) console.warn('[GamePage] roster fetch threw', rosterErr)
-          // Non-fatal — RPC will use its fallback roster
+      // ── Step 1: Check if card already exists ────────────────────────────────
+      try {
+        const { data: existingCard } = await supabase
+          .from('cards')
+          .select('*')
+          .eq('room_id', roomId)
+          .eq('user_id', user.id)
+          .maybeSingle()
+        if (existingCard) {
+          setCard(existingCard)
+          setLoadingCard(false)
+          return
         }
+      } catch (e) {
+        if (debug) console.warn('[GamePage] existing card check threw', e)
+        // Non-fatal — proceed to generation
       }
 
       // ── Step 2: Charge entry fee (no-op if already joined or NCAA) ──────────
@@ -115,7 +111,6 @@ function GamePage() {
         })
 
         if (feeError) {
-          // If the function doesn't exist in this DB, skip the fee gracefully
           const missing = feeError.code === 'PGRST202' || feeError.code === '42883' ||
             feeError.message?.toLowerCase().includes('function')
           if (!missing) {
@@ -137,10 +132,89 @@ function GamePage() {
         }
       } catch (feeErr) {
         if (debug) console.warn('[GamePage] deduct_entry_fee threw', feeErr)
-        // Non-fatal — continue to card generation
       }
 
-      // ── Step 3: Generate (or retrieve) card ─────────────────────────────────
+      // ── Step 3: Fetch roster ─────────────────────────────────────────────────
+      let players = null
+      let rosterTeams = []
+      if (room.game_id) {
+        try {
+          const rosterUrl = `/.netlify/functions/get-roster?game_id=${room.game_id}&sport=${room.sport || 'nba'}`
+          const res = await fetch(rosterUrl)
+          if (res.ok) {
+            const roster = await res.json()
+            players = (roster.players ?? []).map((p) => ({
+              id: p.id,
+              name: p.name,
+              lastName: p.lastName,
+              team: p.team,
+            }))
+            setRosterPlayers(players)
+            // Extract unique team names for odds lookup
+            const teams = [...new Set(players.map((p) => p.team).filter(Boolean))]
+            rosterTeams = teams
+          } else if (debug) {
+            console.warn('[GamePage] roster fetch non-ok', res.status)
+          }
+        } catch (rosterErr) {
+          if (debug) console.warn('[GamePage] roster fetch threw', rosterErr)
+        }
+      }
+
+      // ── Step 4: Fetch odds (NBA only, best-effort) ───────────────────────────
+      let oddsProps = null
+      if (room.sport !== 'ncaa' && rosterTeams.length >= 2) {
+        try {
+          const homeTeam = encodeURIComponent(rosterTeams[0])
+          const awayTeam = encodeURIComponent(rosterTeams[1])
+          const oddsUrl = `/.netlify/functions/get-odds?home_team=${homeTeam}&away_team=${awayTeam}`
+          const res = await fetch(oddsUrl)
+          if (res.ok) {
+            const oddsData = await res.json()
+            if (oddsData.props?.length > 0) {
+              oddsProps = oddsData.props
+              if (debug) console.log(`[GamePage] odds: ${oddsProps.length} props for ${oddsData.meta?.home_team} vs ${oddsData.meta?.away_team}`)
+            } else if (debug) {
+              console.warn('[GamePage] odds returned empty pool', oddsData.meta)
+            }
+          }
+        } catch (oddsErr) {
+          if (debug) console.warn('[GamePage] odds fetch threw', oddsErr)
+        }
+      }
+
+      // ── Step 5: Try odds-based card generation ───────────────────────────────
+      if (oddsProps && players) {
+        try {
+          const matched = matchOddsToRoster(oddsProps, players)
+          const oddsCard = generateOddsBasedCard(matched)
+          if (oddsCard) {
+            // Save the client-generated card to the database
+            const { data: savedCard, error: saveError } = await supabase
+              .from('cards')
+              .insert({ room_id: roomId, user_id: user.id, squares: oddsCard })
+              .select()
+              .maybeSingle()
+
+            if (!saveError && savedCard) {
+              if (debug) console.log('[GamePage] odds-based card saved', savedCard.id)
+              setCard(savedCard)
+              setLoadingCard(false)
+              return
+            }
+            if (debug) console.warn('[GamePage] card save failed, using in-memory', saveError?.message)
+            // Use card in-memory if save failed (will regenerate on refresh)
+            setCard({ room_id: roomId, user_id: user.id, squares: oddsCard })
+            setLoadingCard(false)
+            return
+          }
+          if (debug) console.warn('[GamePage] generateOddsBasedCard returned null, falling back to RPC')
+        } catch (oddsCardErr) {
+          if (debug) console.warn('[GamePage] odds card generation threw', oddsCardErr)
+        }
+      }
+
+      // ── Step 6: Fallback to generate_card_for_room RPC ──────────────────────
       try {
         const rpcParams = { p_room_id: roomId }
         if (players && players.length > 0) rpcParams.p_players = players
@@ -154,7 +228,6 @@ function GamePage() {
           rpcError.message?.toLowerCase().includes('function') ||
           rpcError.message?.includes('p_players')
         )) {
-          // DB predates p_players parameter — retry without roster
           if (debug) console.warn('[GamePage] p_players rejected by RPC, retrying without roster')
           ;({ data, error: rpcError } = await supabase
             .rpc('generate_card_for_room', { p_room_id: roomId })

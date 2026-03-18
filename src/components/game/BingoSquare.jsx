@@ -43,6 +43,10 @@ const BingoSquare = memo(function BingoSquare({
     }
   }
 
+  const TIER_COLORS = { easy: '#22c55e', medium: '#3b82f6', hard: '#f59e0b', longshot: '#ef4444' }
+  const tierColor = square?.tier ? TIER_COLORS[square.tier] : null
+  const tierPct = square?.implied_prob != null ? Math.round(square.implied_prob * 100) : null
+
   // ── FREE square ──────────────────────────────────────────────────────────────
   if (isFree) {
     return (
@@ -162,6 +166,12 @@ const BingoSquare = memo(function BingoSquare({
           {statLabel}
         </span>
         <span style={{ position: 'absolute', right: 3, top: 2, fontSize: 8, color: '#ff6b35' }}>✓</span>
+        {tierColor && (
+          <span
+            title={tierPct != null ? `${square.tier} — ${tierPct}%` : square.tier}
+            style={{ position: 'absolute', left: 3, top: 3, width: 5, height: 5, borderRadius: '50%', background: tierColor, opacity: 0.6, flexShrink: 0 }}
+          />
+        )}
       </button>
     )
   }
@@ -209,6 +219,14 @@ const BingoSquare = memo(function BingoSquare({
       <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 600, color: '#e0e0f0', lineHeight: 1.2 }}>
         {statLabel}
       </span>
+
+      {/* Tier difficulty dot — shown on odds-based cards */}
+      {tierColor && (
+        <span
+          title={tierPct != null ? `${square.tier} — ${tierPct}%` : square.tier}
+          style={{ position: 'absolute', left: 3, top: 3, width: 5, height: 5, borderRadius: '50%', background: tierColor, opacity: 0.6, flexShrink: 0 }}
+        />
+      )}
 
       {/* Swap button — lobby only, shown on hover */}
       {showSwapBtn && (
