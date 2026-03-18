@@ -223,7 +223,7 @@ export default function StoreItemCard({ item, owned, equipped, dabsBalance, isEm
               <button
                 type="button"
                 onClick={!canBuy ? onVerifyNeeded : handleBuyClick}
-                disabled={purchasing || !canAfford || !canBuy}
+                disabled={canBuy && (purchasing || !canAfford)}
                 style={{
                   width: '100%',
                   background: !canBuy ? '#1a1a2e' : canAfford ? '#ff6b35' : '#1a1a2e',
