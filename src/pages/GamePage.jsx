@@ -165,13 +165,13 @@ function GamePage() {
         }
       }
 
-      // ── Step 4: Fetch odds (NBA only, best-effort) ───────────────────────────
+      // ── Step 4: Fetch odds (NBA + NCAA, best-effort) ─────────────────────────
       let oddsProps = null
-      if (room.sport !== 'ncaa' && rosterTeams.length >= 2) {
+      if (rosterTeams.length >= 2) {
         try {
           const homeTeam = encodeURIComponent(rosterTeams[0])
           const awayTeam = encodeURIComponent(rosterTeams[1])
-          const oddsUrl = `/.netlify/functions/get-odds?home_team=${homeTeam}&away_team=${awayTeam}`
+          const oddsUrl = `/.netlify/functions/get-odds?home_team=${homeTeam}&away_team=${awayTeam}&sport=${room.sport || 'nba'}`
           const res = await fetch(oddsUrl)
           if (res.ok) {
             const oddsData = await res.json()

@@ -1,8 +1,12 @@
-// Fetches NBA player prop odds from TheOddsAPI and returns a tiered prop pool.
+// Fetches NBA/NCAA player prop odds from TheOddsAPI and returns a tiered prop pool.
 // CRITICAL: API key must be set as ODDS_API_KEY environment variable — never hardcoded.
 
 const ODDS_API_BASE = 'https://api.the-odds-api.com/v4'
-const SPORT_KEY = 'basketball_nba'
+
+const SPORT_KEY_MAP = {
+  nba:  'basketball_nba',
+  ncaa: 'basketball_ncaab',
+}
 
 // All player prop markets we want (including combos for PRA-style props)
 const MARKETS = [
@@ -88,13 +92,15 @@ exports.handler = async function(event) {
 
   const homeTeam = event.queryStringParameters?.home_team
   const awayTeam = event.queryStringParameters?.away_team
+  const sport = (event.queryStringParameters?.sport || 'nba').toLowerCase()
+  const sportKey = SPORT_KEY_MAP[sport] ?? SPORT_KEY_MAP.nba
 
   if (!homeTeam || !awayTeam) {
     return { statusCode: 400, body: JSON.stringify({ error: 'home_team and away_team required' }) }
   }
 
-  // Check cache
-  const cacheKey = `${normalizeTeam(awayTeam)}|${normalizeTeam(homeTeam)}`
+  // Check cache (sport-aware key)
+  const cacheKey = `${sport}|${normalizeTeam(awayTeam)}|${normalizeTeam(homeTeam)}`
   const now = Date.now()
   const cached = cache.get(cacheKey)
   if (cached && now - cached.ts < CACHE_TTL) {
@@ -107,7 +113,7 @@ exports.handler = async function(event) {
 
   try {
     // Step 1: Find matching event
-    const eventsUrl = `${ODDS_API_BASE}/sports/${SPORT_KEY}/events?apiKey=${API_KEY}`
+    const eventsUrl = `${ODDS_API_BASE}/sports/${sportKey}/events?apiKey=${API_KEY}`
     const eventsRes = await fetch(eventsUrl)
     if (!eventsRes.ok) throw new Error(`Events API: ${eventsRes.status}`)
     const events = await eventsRes.json()
@@ -126,7 +132,7 @@ exports.handler = async function(event) {
     }
 
     // Step 2: Fetch odds
-    const oddsUrl = `${ODDS_API_BASE}/sports/${SPORT_KEY}/events/${matched.id}/odds?apiKey=${API_KEY}&regions=us&markets=${MARKETS}&oddsFormat=american`
+    const oddsUrl = `${ODDS_API_BASE}/sports/${sportKey}/events/${matched.id}/odds?apiKey=${API_KEY}&regions=us&markets=${MARKETS}&oddsFormat=american`
     const oddsRes = await fetch(oddsUrl)
     if (!oddsRes.ok) throw new Error(`Odds API: ${oddsRes.status}`)
     const oddsData = await oddsRes.json()
