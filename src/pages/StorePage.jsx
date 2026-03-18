@@ -1,20 +1,24 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { useProfile } from '../hooks/useProfile.js'
 import StoreItemCard from '../components/store/StoreItemCard.jsx'
 import CategoryTabs from '../components/store/CategoryTabs.jsx'
+import VerifyEmailModal from '../components/store/VerifyEmailModal.jsx'
 
 const TABS = [
   { key: 'name_color', label: 'COLORS' },
   { key: 'name_font',  label: 'FONTS' },
   { key: 'badge',      label: 'BADGES' },
   { key: 'board_skin', label: 'BOARD SKINS' },
+  { key: 'chat_emote', label: 'EMOTES' },
 ]
 
 export default function StorePage() {
   const { user } = useAuth()
   const { dabsBalance, nameColor, nameFont, equippedBadge, boardSkin } = useProfile()
+  const [searchParams] = useSearchParams()
 
   const isEmailVerified = user?.email_confirmed_at != null
 
@@ -22,20 +26,9 @@ export default function StorePage() {
   const [inventory, setInventory] = useState(new Set())
   // Local equip overrides — tracks what we optimistically equipped this session
   const [localEquipped, setLocalEquipped] = useState({})
-  const [tab, setTab] = useState('name_color')
+  const [tab, setTab] = useState(() => searchParams.get('tab') || 'name_color')
   const [loading, setLoading] = useState(true)
-  const [resendStatus, setResendStatus] = useState(null) // null | 'sending' | 'sent' | 'error'
-
-  const handleResend = async () => {
-    if (!user?.email || resendStatus === 'sending' || resendStatus === 'sent') return
-    setResendStatus('sending')
-    const { error } = await supabase.auth.resend({
-      type: 'signup',
-      email: user.email,
-      options: { emailRedirectTo: window.location.origin },
-    })
-    setResendStatus(error ? 'error' : 'sent')
-  }
+  const [showVerifyModal, setShowVerifyModal] = useState(false)
 
   useEffect(() => {
     if (!user) return
@@ -143,8 +136,7 @@ export default function StorePage() {
             </div>
             <button
               type="button"
-              onClick={handleResend}
-              disabled={resendStatus === 'sending' || resendStatus === 'sent'}
+              onClick={() => setShowVerifyModal(true)}
               style={{
                 background: 'none',
                 border: '1px solid rgba(255,107,53,0.4)',
@@ -153,16 +145,16 @@ export default function StorePage() {
                 fontSize: 10,
                 fontWeight: 700,
                 letterSpacing: '0.06em',
-                color: resendStatus === 'sent' ? '#22c55e' : '#ff6b35',
+                color: '#ff6b35',
                 padding: '5px 14px',
-                cursor: resendStatus === 'sending' || resendStatus === 'sent' ? 'default' : 'pointer',
+                cursor: 'pointer',
                 whiteSpace: 'nowrap',
                 transition: 'all 100ms ease',
               }}
-              onMouseEnter={(e) => { if (!resendStatus) e.currentTarget.style.background = 'rgba(255,107,53,0.12)' }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,107,53,0.12)' }}
               onMouseLeave={(e) => { e.currentTarget.style.background = 'none' }}
             >
-              {resendStatus === 'sending' ? 'SENDING...' : resendStatus === 'sent' ? '✓ EMAIL SENT' : resendStatus === 'error' ? 'RETRY' : 'RESEND VERIFICATION EMAIL'}
+              RESEND VERIFICATION EMAIL
             </button>
           </div>
         )}
@@ -191,11 +183,16 @@ export default function StorePage() {
                 isEmailVerified={isEmailVerified}
                 onPurchased={handlePurchased}
                 onEquipped={handleEquipped}
+                onVerifyNeeded={() => setShowVerifyModal(true)}
               />
             ))}
           </div>
         )}
       </div>
+
+      {showVerifyModal && (
+        <VerifyEmailModal email={user?.email} onClose={() => setShowVerifyModal(false)} />
+      )}
     </div>
   )
 }

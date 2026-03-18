@@ -1,5 +1,5 @@
 import { lazy, Suspense, useState, useMemo, useCallback, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import BingoBoard from './BingoBoard.jsx'
 import PlayerStatsPanel from './PlayerStatsPanel.jsx'
@@ -116,6 +116,19 @@ function GameRoom({
   // ── Card swap state ─────────────────────────────────────────────────────────
   const [swappingSquareIndex, setSwappingSquareIndex] = useState(null)
   const [swapError, setSwapError] = useState('')
+  const [storePromoDismissed, setStorePromoDismissed] = useState(
+    () => typeof sessionStorage !== 'undefined' && sessionStorage.getItem('store-promo-dismissed') === '1'
+  )
+  const handleDismissStorePromo = () => {
+    sessionStorage.setItem('store-promo-dismissed', '1')
+    setStorePromoDismissed(true)
+  }
+
+  const [swapCount, setSwapCount] = useState(0)
+
+  useEffect(() => {
+    if (card?.swap_count != null) setSwapCount(card.swap_count)
+  }, [card?.swap_count])
 
   const handleSwapRequest = useCallback(async (squareIndex) => {
     setSwappingSquareIndex(squareIndex)
@@ -132,13 +145,19 @@ function GameRoom({
     }
     if (!result?.success) {
       const reason = result?.reason
-      if (reason === 'insufficient_dabs') setSwapError(`Need 5 Dabs (have ${result.balance ?? 0})`)
+      if (reason === 'insufficient_dabs') setSwapError(`Need ${result.cost ?? (swapCount === 0 ? 10 : 50)} Dabs (have ${result.balance ?? 0})`)
       else if (reason === 'game_already_started') setSwapError('Too late — game is live!')
+      else if (reason === 'max_swaps_reached') setSwapError('Max 2 swaps per game reached')
       else setSwapError(reason || 'Swap failed')
       return
     }
+    if (result.swap_count != null) {
+      setSwapCount(result.swap_count)
+    } else {
+      setSwapCount((c) => c + 1)
+    }
     onCardSwap?.({ squareIndex: result.square_index, newSquare: result.new_square })
-  }, [roomId, rosterPlayers, onCardSwap])
+  }, [roomId, rosterPlayers, onCardSwap, swapCount])
   const handleToggleMobileLeaderboard = useCallback(() => setMobileLeaderboard((v) => !v), [])
   const handleOpenMobileChat = useCallback(() => setMobileChat(true), [])
   const handleCloseMobileChat = useCallback(() => setMobileChat(false), [])
@@ -370,6 +389,7 @@ function GameRoom({
                 isLobby={room?.status === 'lobby'}
                 onSwapRequest={handleSwapRequest}
                 swappingSquareIndex={swappingSquareIndex}
+                swapCount={swapCount}
               />
 
               {/* Swap hint + error (lobby only) */}
@@ -380,9 +400,34 @@ function GameRoom({
                       {swapError}
                     </p>
                   )}
-                  <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, color: '#3a3a55', textAlign: 'center', letterSpacing: '0.04em' }}>
-                    Hover any square to swap it — 5 ◈ per swap
-                  </p>
+                  {swapCount < 2 ? (
+                    <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, color: '#3a3a55', textAlign: 'center', letterSpacing: '0.04em' }}>
+                      {swapCount === 0
+                        ? 'Hover any square to swap it — 10 ◈ (swap 1) · 50 ◈ (swap 2)'
+                        : 'One swap left — 50 ◈ (1/2 used)'}
+                    </p>
+                  ) : (
+                    <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, color: '#555577', textAlign: 'center', letterSpacing: '0.04em' }}>
+                      Max swaps reached (2/2)
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Store promo banner (lobby only) */}
+              {room?.status === 'lobby' && !storePromoDismissed && (
+                <div style={{ width: '100%', maxWidth: 512, display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#12121e', border: '1px solid #2a2a44', borderRadius: 4, padding: '8px 16px' }}>
+                  <Link to="/store" style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, color: '#8888aa', textDecoration: 'none', letterSpacing: '0.04em' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = '#ff6b35' }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = '#8888aa' }}
+                  >
+                    CUSTOMIZE YOUR LOOK IN THE DABS STORE →
+                  </Link>
+                  <button type="button" onClick={handleDismissStorePromo}
+                    style={{ background: 'none', border: 'none', color: '#3a3a55', cursor: 'pointer', fontFamily: 'var(--db-font-mono)', fontSize: 12, padding: '0 0 0 12px', lineHeight: 1 }}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = '#555577' }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = '#3a3a55' }}
+                  >✕</button>
                 </div>
               )}
             </>

@@ -13,6 +13,7 @@ function BingoBoard({
   isLobby = false,
   onSwapRequest,
   swappingSquareIndex = null,
+  swapCount = 0,
 }) {
   const flat = Array.isArray(squares[0]) ? squares.flat() : squares
   const winSet = new Set(winningSquares)
@@ -79,6 +80,8 @@ function BingoBoard({
               isLobby={isLobby && index !== 12}
               onSwapRequest={onSwapRequest}
               isSwapping={swappingSquareIndex === index}
+              swapsExhausted={swapCount >= 2}
+              nextSwapCost={swapCount === 0 ? 10 : 50}
             />
           ))}
         </div>

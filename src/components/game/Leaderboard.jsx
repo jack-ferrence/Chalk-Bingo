@@ -56,7 +56,10 @@ const LeaderboardRow = memo(function LeaderboardRow({
         {rank}
       </span>
 
-      <span className="min-w-0 flex-1 truncate text-xs font-medium" style={{ color: nameColor || '#e0e0f0', fontFamily: getFontFamily(nameFont) }}>
+      <span
+        className={`min-w-0 flex-1 truncate text-xs font-medium ${nameColor === 'rainbow' ? 'name-rainbow' : ''}`}
+        style={{ color: nameColor && nameColor !== 'rainbow' ? nameColor : undefined, fontFamily: getFontFamily(nameFont) }}
+      >
         {badge && <span style={{ marginRight: 3, fontSize: 11 }}>{badge.emoji}</span>}
         {username.length > 12 ? username.slice(0, 12) + '…' : username}
         {isMe && (

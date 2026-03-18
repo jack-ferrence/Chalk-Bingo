@@ -9,6 +9,8 @@ const BingoSquare = memo(function BingoSquare({
   isLobby = false,
   onSwapRequest,
   isSwapping = false,
+  swapsExhausted = false,
+  nextSwapCost = 10,
 }) {
   const isFree = index === 12
   const marked = square?.marked === true
@@ -112,7 +114,7 @@ const BingoSquare = memo(function BingoSquare({
           Swap?
         </span>
         <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 8, color: '#ff6b35', fontWeight: 700 }}>
-          5 ◈
+          {nextSwapCost} ◈
         </span>
         <div style={{ display: 'flex', gap: 4 }}>
           <button
@@ -177,7 +179,7 @@ const BingoSquare = memo(function BingoSquare({
   }
 
   // ── Normal (unmarked) square ─────────────────────────────────────────────────
-  const showSwapBtn = isLobby && hovered
+  const showSwapBtn = isLobby && hovered && !swapsExhausted
 
   return (
     <button

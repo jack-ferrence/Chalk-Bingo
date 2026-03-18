@@ -66,7 +66,9 @@ export default function Navbar({ onMenuClick }) {
 
             {/* Dabs balance */}
             {dabsBalance !== null && (
-              <div
+              <Link
+                to="/store"
+                title="Open Dabs Store"
                 className="hidden sm:flex items-center"
                 style={{
                   background: '#1a1a2e',
@@ -74,15 +76,20 @@ export default function Navbar({ onMenuClick }) {
                   borderRadius: 4,
                   padding: '4px 10px',
                   gap: 4,
+                  textDecoration: 'none',
+                  cursor: 'pointer',
                 }}
+                onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '0 0 12px rgba(255,107,53,0.2)' }}
+                onMouseLeave={(e) => { e.currentTarget.style.boxShadow = '' }}
               >
+                <span style={{ color: '#ff6b35', fontSize: 10, marginRight: 4 }}>◆</span>
                 <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 12, fontWeight: 800, color: '#ff6b35' }}>
                   {dabsBalance.toLocaleString()}
                 </span>
                 <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, color: '#555577', marginLeft: 3 }}>
                   DABS
                 </span>
-              </div>
+              </Link>
             )}
 
             {/* User button + dropdown */}

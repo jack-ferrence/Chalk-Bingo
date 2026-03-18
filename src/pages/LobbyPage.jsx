@@ -24,13 +24,23 @@ export default function LobbyPage() {
     [myRooms]
   )
 
-  // Group all public rooms by sport (default 'nba' if column absent)
+  // Group all public rooms by sport, sorted: live → lobby → finished
   const roomsBySport = useMemo(() => {
+    const statusRank = (r) => r.status === 'live' ? 0 : r.status === 'lobby' ? 1 : 2
     const groups = Object.fromEntries(SPORT_SECTIONS.map((s) => [s.sport, []]))
     for (const room of allRooms) {
       const sport = room.sport ?? 'nba'
       if (groups[sport]) groups[sport].push(room)
       else groups.nba.push(room)
+    }
+    for (const sport of Object.keys(groups)) {
+      groups[sport].sort((a, b) => {
+        const rankDiff = statusRank(a) - statusRank(b)
+        if (rankDiff !== 0) return rankDiff
+        // Within same status: scheduled by starts_at asc, finished by starts_at desc
+        if (a.status === 'finished') return (b.starts_at ?? '') > (a.starts_at ?? '') ? 1 : -1
+        return (a.starts_at ?? '') > (b.starts_at ?? '') ? 1 : -1
+      })
     }
     return groups
   }, [allRooms])

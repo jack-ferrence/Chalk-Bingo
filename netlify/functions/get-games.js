@@ -39,6 +39,18 @@ function parseGame(event) {
   }
 }
 
+function sortGames(games) {
+  return [...games].sort((a, b) => {
+    const rank = (g) => {
+      if (g.isLive) return 0
+      if (g.isScheduled) return 1
+      if (g.isFinished) return 2
+      return 3
+    }
+    return rank(a) - rank(b)
+  })
+}
+
 exports.handler = async function () {
   const now = Date.now()
 
@@ -50,17 +62,51 @@ exports.handler = async function () {
     }
   }
 
+  // Build tomorrow's date string in YYYYMMDD format (UTC)
+  const tomorrow = new Date()
+  tomorrow.setUTCDate(tomorrow.getUTCDate() + 1)
+  const tomorrowStr = tomorrow.toISOString().slice(0, 10).replace(/-/g, '')
+
   try {
-    const res = await fetch(ESPN_SCOREBOARD)
-    if (!res.ok) {
-      throw new Error(`ESPN returned ${res.status}`)
+    const [todayRes, tomorrowRes] = await Promise.all([
+      fetch(ESPN_SCOREBOARD),
+      fetch(`${ESPN_SCOREBOARD}?dates=${tomorrowStr}`),
+    ])
+
+    if (!todayRes.ok) {
+      throw new Error(`ESPN returned ${todayRes.status} for today`)
     }
 
-    const raw = await res.json()
-    const games = (raw.events ?? []).map(parseGame)
+    const todayRaw = await todayRes.json()
+    const todayGames = (todayRaw.events ?? []).map(parseGame)
+
+    // Tomorrow's fetch is non-fatal — fall back to empty array if it fails
+    let tomorrowGames = []
+    if (tomorrowRes.ok) {
+      try {
+        const tomorrowRaw = await tomorrowRes.json()
+        tomorrowGames = (tomorrowRaw.events ?? []).map(parseGame)
+      } catch (parseErr) {
+        console.warn('get-games: failed to parse tomorrow ESPN response', parseErr.message)
+      }
+    } else {
+      console.warn(`get-games: ESPN returned ${tomorrowRes.status} for tomorrow — skipping`)
+    }
+
+    // Combine and deduplicate by game ID (today takes precedence for live status)
+    const seenIds = new Set()
+    const combined = []
+    for (const game of [...todayGames, ...tomorrowGames]) {
+      if (!seenIds.has(game.id)) {
+        seenIds.add(game.id)
+        combined.push(game)
+      }
+    }
+
+    const games = sortGames(combined)
 
     const result = {
-      date: raw.day?.date ?? new Date().toISOString().slice(0, 10),
+      date: todayRaw.day?.date ?? new Date().toISOString().slice(0, 10),
       games,
     }
 

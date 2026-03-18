@@ -93,7 +93,7 @@ function ItemPreview({ item }) {
 
 // ── Main card ─────────────────────────────────────────────────────────────────
 
-export default function StoreItemCard({ item, owned, equipped, dabsBalance, isEmailVerified = true, onPurchased, onEquipped }) {
+export default function StoreItemCard({ item, owned, equipped, dabsBalance, isEmailVerified = true, onPurchased, onEquipped, onVerifyNeeded }) {
   const [confirming, setConfirming] = useState(false)
   const [purchasing, setPurchasing] = useState(false)
   const [equipping, setEquipping] = useState(false)
@@ -222,7 +222,7 @@ export default function StoreItemCard({ item, owned, equipped, dabsBalance, isEm
             {!owned && !isFree && (
               <button
                 type="button"
-                onClick={canBuy ? handleBuyClick : undefined}
+                onClick={!canBuy ? onVerifyNeeded : handleBuyClick}
                 disabled={purchasing || !canAfford || !canBuy}
                 style={{
                   width: '100%',

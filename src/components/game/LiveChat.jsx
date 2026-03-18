@@ -1,7 +1,8 @@
 import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import Panel from '../ui/Panel.jsx'
-import { getFontFamily, getBadge } from '../../lib/fontMap'
+import { getFontFamily, getBadge, EMOTE_CODE_MAP } from '../../lib/fontMap'
+import EmotePicker from '../chat/EmotePicker.jsx'
 
 const MAX_CHAT = 100
 const MAX_CHARS = 280
@@ -18,6 +19,14 @@ function userColor(userId) {
   return USER_COLORS[Math.abs(hash) % USER_COLORS.length]
 }
 
+function renderMessageText(text) {
+  let result = text
+  for (const [code, emoji] of Object.entries(EMOTE_CODE_MAP)) {
+    result = result.split(code).join(emoji)
+  }
+  return result
+}
+
 const ChatMessage = memo(function ChatMessage({ msg, isNew, profile }) {
   const nameColor = profile?.nameColor || userColor(msg.user_id)
   const fontFamily = getFontFamily(profile?.nameFont)
@@ -30,7 +39,7 @@ const ChatMessage = memo(function ChatMessage({ msg, isNew, profile }) {
         {msg.username}
       </span>
       <span style={{ color: '#555577' }}>: </span>
-      <span style={{ color: '#8888aa' }}>{msg.message}</span>
+      <span style={{ color: '#8888aa' }}>{renderMessageText(msg.message)}</span>
     </div>
   )
 })
@@ -208,6 +217,7 @@ function LiveChat({ roomId, userId, username, realtimeMessages, initChatMessages
             placeholder="Send a message..."
             className="min-w-0 flex-1 rounded-md border border-border-subtle bg-bg-card px-2.5 py-1.5 text-xs text-text-primary placeholder:text-text-muted focus:border-accent-purple focus:outline-none focus:ring-1 focus:ring-accent-purple disabled:opacity-50"
           />
+          <EmotePicker userId={userId} onSelect={(code) => setInput((v) => v + code)} />
           <button
             type="button"
             onClick={handleSend}

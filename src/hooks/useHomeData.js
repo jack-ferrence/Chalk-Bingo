@@ -25,7 +25,7 @@ export function useHomeData() {
           .from('rooms_with_counts')
           .select('*')
           .eq('room_type', 'public')
-          .in('status', ['lobby', 'live'])
+          .in('status', ['lobby', 'live', 'finished'])
           .order('starts_at', { ascending: true, nullsFirst: false }),
         user
           ? supabase
@@ -47,7 +47,7 @@ export function useHomeData() {
             .from('rooms_with_counts')
             .select('*')
             .in('id', joinedIds)
-            .in('status', ['lobby', 'live'])
+            .in('status', ['lobby', 'live', 'finished'])
             .order('starts_at', { ascending: false }),
           supabase
             .from('cards')

@@ -23,6 +23,7 @@ export default function GameCard({ game, isJoined, joining, onJoin, onContinue }
   const homeColor = NBA_TEAM_COLORS[home] ?? NBA_TEAM_COLORS.DEFAULT
   const awayColor = NBA_TEAM_COLORS[away] ?? NBA_TEAM_COLORS.DEFAULT
   const isLive = game.status === 'live'
+  const isFinished = game.status === 'finished'
   const { dabsBalance } = useProfile()
   const isNcaa = game.sport === 'ncaa'
   const ENTRY_COST = 10
@@ -46,12 +47,19 @@ export default function GameCard({ game, isJoined, joining, onJoin, onContinue }
         }}
       />
 
-      {/* LIVE badge */}
+      {/* LIVE / FINAL badge */}
       {isLive && (
         <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 1 }}>
           <span className="live-badge">
             <span className="live-dot" />
             LIVE
+          </span>
+        </div>
+      )}
+      {isFinished && (
+        <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 1 }}>
+          <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, fontWeight: 700, letterSpacing: '0.10em', color: '#555577', background: '#1a1a2e', border: '1px solid #2a2a44', borderRadius: 3, padding: '2px 6px' }}>
+            FINAL
           </span>
         </div>
       )}
@@ -104,15 +112,12 @@ export default function GameCard({ game, isJoined, joining, onJoin, onContinue }
       >
         <div>
           {isLive ? (
-            <span
-              style={{
-                color: '#ff2d2d',
-                fontSize: 11,
-                fontWeight: 700,
-                letterSpacing: '0.05em',
-              }}
-            >
+            <span style={{ color: '#ff2d2d', fontSize: 11, fontWeight: 700, letterSpacing: '0.05em' }}>
               ● IN PROGRESS
+            </span>
+          ) : isFinished ? (
+            <span style={{ color: '#555577', fontSize: 11, fontWeight: 700, letterSpacing: '0.05em' }}>
+              GAME OVER
             </span>
           ) : (
             <span style={{ color: '#555577', fontSize: 11, fontWeight: 600 }}>
@@ -124,12 +129,18 @@ export default function GameCard({ game, isJoined, joining, onJoin, onContinue }
           </div>
         </div>
 
-        {isJoined ? (
-          <button
-            type="button"
-            onClick={() => onContinue(game.id)}
-            className="btn-joined"
-          >
+        {isFinished ? (
+          isJoined ? (
+            <button type="button" onClick={() => onContinue(game.id)} className="btn-joined">
+              VIEW RESULTS
+            </button>
+          ) : (
+            <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 600, color: '#3a3a55', letterSpacing: '0.06em' }}>
+              FINISHED
+            </span>
+          )
+        ) : isJoined ? (
+          <button type="button" onClick={() => onContinue(game.id)} className="btn-joined">
             JOINED ✓
           </button>
         ) : (

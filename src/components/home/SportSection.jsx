@@ -14,6 +14,7 @@ export default function SportSection({
   onContinue,
   style,
 }) {
+  const hasUpcoming = games.some((g) => g.status === 'live' || g.status === 'lobby')
   return (
     <section className="sport-section" style={style}>
       {/* Header */}
@@ -94,13 +95,31 @@ export default function SportSection({
       ) : games.length === 0 ? (
         <div
           className="rounded-xl px-6 py-8 text-center"
-          style={{
-            border: '1px dashed #2a2a44',
-            background: 'rgba(0,0,0,0.015)',
-          }}
+          style={{ border: '1px dashed #2a2a44', background: 'rgba(0,0,0,0.015)' }}
         >
-          <p className="text-sm" style={{ color: '#555577' }}>No games scheduled today</p>
+          <p className="text-sm" style={{ color: '#555577' }}>No upcoming games. Check back tomorrow!</p>
         </div>
+      ) : !hasUpcoming ? (
+        <>
+          <div className="mb-3 px-1">
+            <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, color: '#555577' }}>
+              No upcoming games right now — showing today's results below.
+            </p>
+          </div>
+          <HorizontalSlider>
+            {games.map((game) => (
+              <div key={game.id} style={{ scrollSnapAlign: 'start', flexShrink: 0 }}>
+                <GameCard
+                  game={game}
+                  isJoined={joinedRoomIds.has(game.id)}
+                  joining={joiningRoomId === game.id}
+                  onJoin={onJoin}
+                  onContinue={onContinue}
+                />
+              </div>
+            ))}
+          </HorizontalSlider>
+        </>
       ) : (
         <HorizontalSlider>
           {games.map((game) => (
