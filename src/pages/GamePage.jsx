@@ -90,52 +90,59 @@ function GamePage() {
       setError('')
 
       // ── Step 1: Check if card already exists ────────────────────────────────
+      let existingCard = null
+      let cardAlreadyExists = false
       try {
-        const { data: existingCard } = await supabase
+        const { data } = await supabase
           .from('cards')
           .select('*')
           .eq('room_id', roomId)
           .eq('user_id', user.id)
           .maybeSingle()
-        if (existingCard) {
-          setCard(existingCard)
-          setLoadingCard(false)
-          return
-        }
+        existingCard = data
       } catch (e) {
         if (debug) console.warn('[GamePage] existing card check threw', e)
         // Non-fatal — proceed to generation
       }
 
-      // ── Step 2: Charge entry fee (no-op if already joined or NCAA) ──────────
-      try {
-        const { data: feeResult, error: feeError } = await supabase.rpc('deduct_entry_fee', {
-          p_user_id: user.id,
-          p_room_id: roomId,
-        })
+      if (existingCard) {
+        setCard(existingCard)
+        setLoadingCard(false)
+        cardAlreadyExists = true
+        // DON'T return — continue to fetch roster + odds for display and swaps
+      }
 
-        if (feeError) {
-          const missing = feeError.code === 'PGRST202' || feeError.code === '42883' ||
-            feeError.message?.toLowerCase().includes('function')
-          if (!missing) {
-            setError('Failed to process entry fee: ' + feeError.message)
-            setLoadingCard(false)
-            return
+      // ── Step 2: Charge entry fee (skip for returning users) ─────────────────
+      if (!cardAlreadyExists) {
+        try {
+          const { data: feeResult, error: feeError } = await supabase.rpc('deduct_entry_fee', {
+            p_user_id: user.id,
+            p_room_id: roomId,
+          })
+
+          if (feeError) {
+            const missing = feeError.code === 'PGRST202' || feeError.code === '42883' ||
+              feeError.message?.toLowerCase().includes('function')
+            if (!missing) {
+              setError('Failed to process entry fee: ' + feeError.message)
+              setLoadingCard(false)
+              return
+            }
+            if (debug) console.warn('[GamePage] deduct_entry_fee not found, skipping', feeError.message)
+          } else if (feeResult && !feeResult.success) {
+            if (feeResult.reason === 'insufficient_dabs') {
+              setError(`Not enough Dobs! You need 10 but only have ${feeResult.balance}. Play more games to earn Dobs.`)
+            } else if (feeResult.reason !== 'already_joined' && feeResult.reason !== 'free_entry') {
+              setError('Could not join: ' + feeResult.reason)
+            }
+            if (feeResult.reason === 'insufficient_dabs') {
+              setLoadingCard(false)
+              return
+            }
           }
-          if (debug) console.warn('[GamePage] deduct_entry_fee not found, skipping', feeError.message)
-        } else if (feeResult && !feeResult.success) {
-          if (feeResult.reason === 'insufficient_dabs') {
-            setError(`Not enough Dobs! You need 10 but only have ${feeResult.balance}. Play more games to earn Dobs.`)
-          } else if (feeResult.reason !== 'already_joined' && feeResult.reason !== 'free_entry') {
-            setError('Could not join: ' + feeResult.reason)
-          }
-          if (feeResult.reason === 'insufficient_dabs') {
-            setLoadingCard(false)
-            return
-          }
+        } catch (feeErr) {
+          if (debug) console.warn('[GamePage] deduct_entry_fee threw', feeErr)
         }
-      } catch (feeErr) {
-        if (debug) console.warn('[GamePage] deduct_entry_fee threw', feeErr)
       }
 
       // ── Step 3: Fetch roster ─────────────────────────────────────────────────
@@ -187,11 +194,62 @@ function GamePage() {
         }
       }
 
-      // ── Step 5: Try odds-based card generation ───────────────────────────────
+      // ── Step 4b: Match odds to roster, populate oddsPool, build enrichment ──
+      let matched = []
+      let enrichSquares = null
       if (oddsProps && players) {
+        matched = matchOddsToRoster(oddsProps, players)
+        setOddsPool(matched)
+
+        if (matched.length > 0) {
+          // Normalize RPC stat_types → TheOddsAPI stat_types for lookup
+          const normalizeStatType = (st) => {
+            if (!st) return st
+            if (st.startsWith('points_')) return 'points'
+            if (st.startsWith('rebound_')) return 'rebounds'
+            if (st.startsWith('assist_')) return 'assists'
+            if (st === 'three_pointer') return 'threes'
+            if (st === 'steal') return 'steals'
+            if (st === 'block') return 'blocks'
+            return st
+          }
+          // Build lookup: Map<"playerName|normalizedStat", props[]>
+          const oddsLookup = new Map()
+          for (const prop of matched) {
+            const key = `${prop.player_name}|${prop.stat_type}`
+            if (!oddsLookup.has(key)) oddsLookup.set(key, [])
+            oddsLookup.get(key).push(prop)
+          }
+          // Client-side only: overlay american_odds/implied_prob/tier onto null-odds squares
+          enrichSquares = (squares) => {
+            if (!squares?.length) return squares
+            const flat = Array.isArray(squares[0]) ? squares.flat() : squares
+            return flat.map((sq) => {
+              if (!sq || sq.stat_type === 'free' || sq.american_odds != null) return sq
+              const key = `${sq.player_name}|${normalizeStatType(sq.stat_type)}`
+              const props = oddsLookup.get(key)
+              if (!props?.length) return sq
+              const best = props.reduce((a, b) =>
+                Math.abs(a.threshold - sq.threshold) <= Math.abs(b.threshold - sq.threshold) ? a : b
+              )
+              return { ...sq, american_odds: best.american_odds, implied_prob: best.implied_prob, tier: best.tier }
+            })
+          }
+        }
+      }
+
+      // Enrich existing card squares for returning users (client-side only, not saved to DB)
+      if (cardAlreadyExists && existingCard && enrichSquares) {
+        const enrichedSquares = enrichSquares(existingCard.squares)
+        setCard({ ...existingCard, squares: enrichedSquares })
+      }
+
+      // Returning users: roster + odds now loaded for display and swaps — done
+      if (cardAlreadyExists) return
+
+      // ── Step 5: Try odds-based card generation ───────────────────────────────
+      if (matched.length > 0) {
         try {
-          const matched = matchOddsToRoster(oddsProps, players)
-          setOddsPool(matched)
           const oddsCard = generateOddsBasedCard(matched)
           if (oddsCard) {
             // Save the client-generated card to the database
@@ -246,7 +304,12 @@ function GamePage() {
           return
         }
 
-        setCard(data ?? null)
+        // Enrich RPC card squares with odds if available (client-side only)
+        const cardData = data ?? null
+        const enrichedCardData = cardData && enrichSquares
+          ? { ...cardData, squares: enrichSquares(cardData.squares) }
+          : cardData
+        setCard(enrichedCardData)
         setLoadingCard(false)
       } catch (cardErr) {
         if (debug) console.error('[GamePage] card generation threw', cardErr)
