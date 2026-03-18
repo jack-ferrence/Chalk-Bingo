@@ -1191,3 +1191,255 @@ BEGIN
   EXCEPTION WHEN duplicate_object THEN NULL;
   END;
 END $$;
+
+-- =============================================================================
+-- 009: Add p_new_square parameter to swap_card_square RPC
+-- =============================================================================
+
+DROP FUNCTION IF EXISTS public.swap_card_square(uuid, jsonb, int);
+DROP FUNCTION IF EXISTS public.swap_card_square(uuid, int, jsonb);
+DROP FUNCTION IF EXISTS public.swap_card_square(uuid, jsonb, int, jsonb);
+
+CREATE OR REPLACE FUNCTION public.swap_card_square(
+  p_room_id      uuid,
+  p_square_index int,
+  p_roster       jsonb    DEFAULT NULL,
+  p_new_square   jsonb    DEFAULT NULL
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_user_id      uuid := auth.uid();
+  v_card         record;
+  v_room         record;
+  v_squares      jsonb;
+  v_swap_count   int;
+  v_cost         int;
+  v_balance      int;
+  v_new_square   jsonb;
+  v_player       jsonb;
+  v_stat_types   text[] := ARRAY[
+    'pts','reb','ast','stl','blk','to','3pm',
+    'pts_reb_ast','pts_reb','pts_ast','reb_ast'
+  ];
+  v_stat_type    text;
+  v_threshold    numeric;
+  v_player_name  text;
+  v_player_id    uuid;
+  v_display_text text;
+  v_rand_idx     int;
+  v_roster_len   int;
+BEGIN
+  SELECT * INTO v_room FROM public.rooms WHERE id = p_room_id;
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('success', false, 'reason', 'room_not_found');
+  END IF;
+
+  IF v_room.status <> 'lobby' THEN
+    RETURN jsonb_build_object('success', false, 'reason', 'game_already_started');
+  END IF;
+
+  SELECT * INTO v_card
+  FROM public.cards
+  WHERE room_id = p_room_id AND user_id = v_user_id;
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('success', false, 'reason', 'card_not_found');
+  END IF;
+
+  v_squares    := v_card.squares;
+  v_swap_count := COALESCE(v_card.swap_count, 0);
+
+  IF v_swap_count >= 2 THEN
+    RETURN jsonb_build_object('success', false, 'reason', 'max_swaps_reached');
+  END IF;
+
+  v_cost := CASE WHEN v_swap_count = 0 THEN 10 ELSE 50 END;
+
+  SELECT dabs_balance INTO v_balance FROM public.profiles WHERE id = v_user_id;
+  IF v_balance IS NULL OR v_balance < v_cost THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'reason', 'insufficient_dabs',
+      'balance', COALESCE(v_balance, 0),
+      'cost', v_cost
+    );
+  END IF;
+
+  IF p_square_index < 0 OR p_square_index > 24 OR p_square_index = 12 THEN
+    RETURN jsonb_build_object('success', false, 'reason', 'invalid_square_index');
+  END IF;
+
+  IF p_new_square IS NOT NULL THEN
+    v_new_square := p_new_square || jsonb_build_object(
+      'marked', false,
+      'id', gen_random_uuid()
+    );
+  ELSIF p_roster IS NOT NULL AND jsonb_array_length(p_roster) > 0 THEN
+    v_roster_len := jsonb_array_length(p_roster);
+    v_rand_idx   := floor(random() * v_roster_len)::int;
+    v_player     := p_roster -> v_rand_idx;
+
+    v_player_name  := v_player ->> 'name';
+    v_player_id    := (v_player ->> 'id')::uuid;
+    v_stat_type    := v_stat_types[1 + floor(random() * array_length(v_stat_types, 1))::int];
+    v_threshold    := CASE
+      WHEN v_stat_type = 'pts'         THEN (10 + floor(random() * 25))::numeric
+      WHEN v_stat_type = 'reb'         THEN (3  + floor(random() * 10))::numeric
+      WHEN v_stat_type = 'ast'         THEN (2  + floor(random() * 10))::numeric
+      WHEN v_stat_type = 'stl'         THEN (0  + floor(random() * 4))::numeric + 0.5
+      WHEN v_stat_type = 'blk'         THEN (0  + floor(random() * 4))::numeric + 0.5
+      WHEN v_stat_type = 'to'          THEN (1  + floor(random() * 4))::numeric
+      WHEN v_stat_type = '3pm'         THEN (1  + floor(random() * 4))::numeric
+      WHEN v_stat_type = 'pts_reb_ast' THEN (20 + floor(random() * 20))::numeric
+      WHEN v_stat_type = 'pts_reb'     THEN (15 + floor(random() * 15))::numeric
+      WHEN v_stat_type = 'pts_ast'     THEN (12 + floor(random() * 15))::numeric
+      WHEN v_stat_type = 'reb_ast'     THEN (5  + floor(random() * 12))::numeric
+      ELSE (10 + floor(random() * 20))::numeric
+    END;
+
+    v_display_text := split_part(v_player_name, ' ', 2) || ' ' || v_threshold || '+ ' || v_stat_type;
+    IF v_display_text = '' THEN v_display_text := v_player_name || ' ' || v_threshold || '+ ' || v_stat_type; END IF;
+
+    v_new_square := jsonb_build_object(
+      'id',           gen_random_uuid(),
+      'player_id',    v_player_id,
+      'player_name',  v_player_name,
+      'stat_type',    v_stat_type,
+      'threshold',    v_threshold,
+      'display_text', v_display_text,
+      'marked',       false
+    );
+  ELSE
+    v_stat_type := v_stat_types[1 + floor(random() * array_length(v_stat_types, 1))::int];
+    v_threshold := (10 + floor(random() * 20))::numeric;
+    v_new_square := jsonb_build_object(
+      'id',           gen_random_uuid(),
+      'player_id',    null,
+      'player_name',  null,
+      'stat_type',    v_stat_type,
+      'threshold',    v_threshold,
+      'display_text', v_threshold || '+ ' || v_stat_type,
+      'marked',       false
+    );
+  END IF;
+
+  UPDATE public.profiles
+  SET dabs_balance = dabs_balance - v_cost
+  WHERE id = v_user_id;
+
+  v_squares := jsonb_set(v_squares, ARRAY[p_square_index::text], v_new_square);
+
+  UPDATE public.cards
+  SET squares    = v_squares,
+      swap_count = v_swap_count + 1
+  WHERE id = v_card.id;
+
+  RETURN jsonb_build_object(
+    'success',      true,
+    'square_index', p_square_index,
+    'new_square',   v_new_square,
+    'swap_count',   v_swap_count + 1,
+    'cost',         v_cost,
+    'balance',      v_balance - v_cost
+  );
+END;
+$$;
+
+-- =============================================================================
+-- 010: Fix "record v_item has no field cost" in store purchase/equip RPCs
+-- =============================================================================
+
+ALTER TABLE public.store_items ADD COLUMN IF NOT EXISTS cost int;
+
+CREATE OR REPLACE FUNCTION public.purchase_store_item(p_item_id text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE
+  v_uid           uuid;
+  v_item          store_items;
+  v_balance       int;
+  v_already_owned boolean;
+  v_price         int;
+BEGIN
+  v_uid := auth.uid();
+  IF v_uid IS NULL THEN
+    RETURN jsonb_build_object('success', false, 'reason', 'not_authenticated');
+  END IF;
+
+  SELECT * INTO v_item FROM store_items WHERE id = p_item_id AND is_active = true;
+  IF v_item.id IS NULL THEN
+    RETURN jsonb_build_object('success', false, 'reason', 'item_not_found');
+  END IF;
+
+  v_price := COALESCE(v_item.price, v_item.cost, 0);
+  IF v_price = 0 THEN
+    RETURN jsonb_build_object('success', true, 'charged', 0, 'reason', 'free_item');
+  END IF;
+
+  SELECT EXISTS(SELECT 1 FROM user_inventory WHERE user_id = v_uid AND item_id = p_item_id)
+    INTO v_already_owned;
+  IF v_already_owned THEN
+    RETURN jsonb_build_object('success', false, 'reason', 'already_owned');
+  END IF;
+
+  SELECT dabs_balance INTO v_balance FROM profiles WHERE id = v_uid FOR UPDATE;
+  IF v_balance < v_price THEN
+    RETURN jsonb_build_object('success', false, 'reason', 'insufficient_dabs', 'balance', v_balance, 'cost', v_price);
+  END IF;
+
+  UPDATE profiles SET dabs_balance = dabs_balance - v_price WHERE id = v_uid;
+  INSERT INTO dabs_transactions (user_id, amount, reason, room_id)
+    VALUES (v_uid, -v_price, 'store_purchase:' || p_item_id, NULL);
+  INSERT INTO user_inventory (user_id, item_id) VALUES (v_uid, p_item_id);
+
+  RETURN jsonb_build_object(
+    'success', true, 'charged', v_price,
+    'item_id', p_item_id, 'new_balance', v_balance - v_price
+  );
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.equip_store_item(p_item_id text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE
+  v_uid   uuid;
+  v_item  store_items;
+  v_owned boolean;
+  v_price int;
+BEGIN
+  v_uid := auth.uid();
+  IF v_uid IS NULL THEN
+    RETURN jsonb_build_object('success', false, 'reason', 'not_authenticated');
+  END IF;
+
+  SELECT * INTO v_item FROM store_items WHERE id = p_item_id;
+  IF v_item.id IS NULL THEN
+    RETURN jsonb_build_object('success', false, 'reason', 'item_not_found');
+  END IF;
+
+  v_price := COALESCE(v_item.price, v_item.cost, 0);
+  IF v_price > 0 THEN
+    SELECT EXISTS(SELECT 1 FROM user_inventory WHERE user_id = v_uid AND item_id = p_item_id)
+      INTO v_owned;
+    IF NOT v_owned THEN
+      RETURN jsonb_build_object('success', false, 'reason', 'not_owned');
+    END IF;
+  END IF;
+
+  CASE v_item.category
+    WHEN 'name_color' THEN
+      UPDATE profiles SET name_color = COALESCE(v_item.metadata->>'hex', v_item.value) WHERE id = v_uid;
+    WHEN 'name_font' THEN
+      UPDATE profiles SET name_font = COALESCE(v_item.metadata->>'font', v_item.value) WHERE id = v_uid;
+    WHEN 'badge' THEN
+      UPDATE profiles SET equipped_badge = p_item_id WHERE id = v_uid;
+    WHEN 'board_skin' THEN
+      UPDATE profiles SET board_skin = COALESCE(v_item.metadata->>'class', v_item.value) WHERE id = v_uid;
+    ELSE
+      RETURN jsonb_build_object('success', false, 'reason', 'not_equippable');
+  END CASE;
+
+  RETURN jsonb_build_object('success', true, 'equipped', p_item_id, 'category', v_item.category);
+END;
+$$;
