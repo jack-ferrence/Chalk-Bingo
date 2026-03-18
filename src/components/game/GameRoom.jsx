@@ -137,6 +137,7 @@ function GameRoom({
   const [swapCount, setSwapCount] = useState(0)
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (card?.swap_count != null) setSwapCount(card.swap_count)
   }, [card?.swap_count])
 
@@ -168,7 +169,7 @@ function GameRoom({
       setSwapCount((c) => c + 1)
     }
     onCardSwap?.({ squareIndex: result.square_index, newSquare: result.new_square })
-  }, [roomId, rosterPlayers, onCardSwap, swapCount, oddsPool])
+  }, [roomId, rosterPlayers, onCardSwap, swapCount])
   const handleToggleMobileLeaderboard = useCallback(() => setMobileLeaderboard((v) => !v), [])
 
   const { username: profileUsername, dobsBalance, boardSkin } = useProfile()
