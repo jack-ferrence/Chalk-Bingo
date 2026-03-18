@@ -36,6 +36,7 @@ function GameRoom({
   participantJoined,
   initChatMessages,
   resetStatEvents,
+  rosterPlayers,
 }) {
   const navigate = useNavigate()
   const [selectedSquare, setSelectedSquare] = useState(null)
@@ -97,17 +98,13 @@ function GameRoom({
     [flatSquares]
   )
 
-  const handleSquareClick = useCallback((sq, index) => {
+  const handleSquareClick = useCallback((sq) => {
     if (sq?.stat_type === 'free') return
-    if (swapMode) {
-      setSwapConfirmIndex(index)
-      return
-    }
     setSelectedSquare((prev) =>
       prev?.player_id === sq?.player_id ? null : sq
     )
     setMobileStats(true)
-  }, [swapMode])
+  }, [])
 
   const handleCloseStats = useCallback(() => setSelectedSquare(null), [])
   const handleCloseStatsMobile = useCallback(() => {
@@ -116,55 +113,36 @@ function GameRoom({
   }, [])
 
   // ── Card swap state ─────────────────────────────────────────────────────────
-  const [swapMode, setSwapMode] = useState(false)
-  const [swapConfirmIndex, setSwapConfirmIndex] = useState(null)
-  const [swapping, setSwapping] = useState(false)
+  const [swappingSquareIndex, setSwappingSquareIndex] = useState(null)
   const [swapError, setSwapError] = useState('')
-  const [swapFlashIndex, setSwapFlashIndex] = useState(null)
 
-  const handleEnterSwapMode = () => {
-    if (!dabsBalance || dabsBalance < 5) return
-    setSwapMode(true)
-    setSwapConfirmIndex(null)
+  const handleSwapRequest = useCallback(async (squareIndex) => {
+    setSwappingSquareIndex(squareIndex)
     setSwapError('')
-  }
-  const handleExitSwapMode = useCallback(() => {
-    setSwapMode(false)
-    setSwapConfirmIndex(null)
-    setSwapError('')
-  }, [])
-
-  // Exit swap mode on Escape
-  useEffect(() => {
-    if (!swapMode) return
-    const handler = (e) => { if (e.key === 'Escape') handleExitSwapMode() }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [swapMode, handleExitSwapMode])
-
-  const handleSwapConfirm = async () => {
-    if (swapConfirmIndex === null) return
-    setSwapping(true)
-    setSwapError('')
-    const { data, error: rpcError } = await supabase
-      .rpc('swap_card_square', { p_room_id: roomId, p_square_index: swapConfirmIndex })
-    setSwapping(false)
+    const { data: result, error: rpcError } = await supabase.rpc('swap_card_square', {
+      p_room_id: roomId,
+      p_square_index: squareIndex,
+      p_roster: rosterPlayers ?? null,
+    })
+    setSwappingSquareIndex(null)
     if (rpcError) {
       setSwapError(rpcError.message)
-      setSwapConfirmIndex(null)
       return
     }
-    const updatedCard = Array.isArray(data) ? data[0] : data
-    if (updatedCard) onCardSwap?.(updatedCard)
-    setSwapFlashIndex(swapConfirmIndex)
-    setTimeout(() => setSwapFlashIndex(null), 700)
-    handleExitSwapMode()
-  }
+    if (!result?.success) {
+      const reason = result?.reason
+      if (reason === 'insufficient_dabs') setSwapError(`Need 5 Dabs (have ${result.balance ?? 0})`)
+      else if (reason === 'game_already_started') setSwapError('Too late — game is live!')
+      else setSwapError(reason || 'Swap failed')
+      return
+    }
+    onCardSwap?.({ squareIndex: result.square_index, newSquare: result.new_square })
+  }, [roomId, rosterPlayers, onCardSwap])
   const handleToggleMobileLeaderboard = useCallback(() => setMobileLeaderboard((v) => !v), [])
   const handleOpenMobileChat = useCallback(() => setMobileChat(true), [])
   const handleCloseMobileChat = useCallback(() => setMobileChat(false), [])
 
-  const { username: profileUsername, dabsBalance, equipped } = useProfile()
+  const { username: profileUsername, dabsBalance, boardSkin } = useProfile()
   const username = profileUsername
     ?? (user?.is_anonymous ? `Guest_${user.id.slice(0, 8)}` : (user?.email ?? 'Guest'))
 
@@ -387,102 +365,23 @@ function GameRoom({
                 winningLines={winningLines}
                 hasBingo={bingoResult.hasBingo}
                 onSquareClick={handleSquareClick}
-                boardSkin={equipped?.board_skin ?? null}
-                swapMode={swapMode}
+                boardSkin={boardSkin}
+                isLobby={room?.status === 'lobby'}
+                onSwapRequest={handleSwapRequest}
+                swappingSquareIndex={swappingSquareIndex}
               />
 
-              {/* ── Card Swap Bar (lobby only) ── */}
+              {/* Swap hint + error (lobby only) */}
               {room?.status === 'lobby' && (
-                <div
-                  style={{
-                    width: '100%',
-                    maxWidth: 512,
-                    background: '#12121e',
-                    border: `1px solid ${swapMode ? '#ff6b35' : '#2a2a44'}`,
-                    borderRadius: 6,
-                    padding: '10px 14px',
-                    transition: 'border-color 150ms ease',
-                  }}
-                >
-                  {/* Swap mode inactive */}
-                  {!swapMode && (
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                      <div>
-                        <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, fontWeight: 700, color: '#8888aa', letterSpacing: '0.05em' }}>
-                          ◈ SWAP A SQUARE
-                          <span style={{ fontWeight: 400, color: '#555577', marginLeft: 6 }}>— 5 Dabs per swap</span>
-                        </p>
-                        {swapError && (
-                          <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, color: '#ff2d2d', marginTop: 3 }}>{swapError}</p>
-                        )}
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
-                        <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, color: '#555577' }}>
-                          ◈ {dabsBalance ?? '–'}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={handleEnterSwapMode}
-                          disabled={!dabsBalance || dabsBalance < 5}
-                          title={(!dabsBalance || dabsBalance < 5) ? 'Not enough Dabs (need 5)' : 'Click a square to swap it'}
-                          style={{
-                            background: (!dabsBalance || dabsBalance < 5) ? '#1a1a2e' : '#ff6b35',
-                            color:      (!dabsBalance || dabsBalance < 5) ? '#3a3a55' : '#0c0c14',
-                            border: 'none', borderRadius: 4, cursor: (!dabsBalance || dabsBalance < 5) ? 'not-allowed' : 'pointer',
-                            fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em',
-                            padding: '5px 12px', transition: 'background 100ms ease',
-                          }}
-                          onMouseEnter={(e) => { if (dabsBalance >= 5) e.currentTarget.style.background = '#ff8855' }}
-                          onMouseLeave={(e) => { if (dabsBalance >= 5) e.currentTarget.style.background = '#ff6b35' }}
-                        >
-                          SWAP
-                        </button>
-                      </div>
-                    </div>
+                <div style={{ width: '100%', maxWidth: 512 }}>
+                  {swapError && (
+                    <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, color: '#ff2d2d', marginBottom: 4, textAlign: 'center' }}>
+                      {swapError}
+                    </p>
                   )}
-
-                  {/* Swap mode active — no confirm yet */}
-                  {swapMode && swapConfirmIndex === null && (
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                      <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, color: '#ff6b35', letterSpacing: '0.04em' }}>
-                        Click any square to swap it
-                      </p>
-                      <button
-                        type="button"
-                        onClick={handleExitSwapMode}
-                        style={{ background: 'none', color: '#555577', border: '1px solid #2a2a44', borderRadius: 4, fontFamily: 'var(--db-font-mono)', fontSize: 10, padding: '4px 10px', cursor: 'pointer' }}
-                      >
-                        CANCEL
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Swap mode — confirm specific square */}
-                  {swapMode && swapConfirmIndex !== null && (
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                      <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, color: '#e0e0f0' }}>
-                        Swap square for{' '}
-                        <span style={{ color: '#ff6b35', fontWeight: 700 }}>5 Dabs</span>?
-                      </p>
-                      <div style={{ display: 'flex', gap: 6 }}>
-                        <button
-                          type="button"
-                          onClick={handleSwapConfirm}
-                          disabled={swapping}
-                          style={{ background: '#ff6b35', color: '#0c0c14', border: 'none', borderRadius: 4, fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 800, padding: '5px 12px', cursor: swapping ? 'wait' : 'pointer' }}
-                        >
-                          {swapping ? '...' : 'CONFIRM'}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setSwapConfirmIndex(null)}
-                          style={{ background: 'none', color: '#555577', border: '1px solid #2a2a44', borderRadius: 4, fontFamily: 'var(--db-font-mono)', fontSize: 10, padding: '5px 10px', cursor: 'pointer' }}
-                        >
-                          CANCEL
-                        </button>
-                      </div>
-                    </div>
-                  )}
+                  <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, color: '#3a3a55', textAlign: 'center', letterSpacing: '0.04em' }}>
+                    Hover any square to swap it — 5 ◈ per swap
+                  </p>
                 </div>
               )}
             </>

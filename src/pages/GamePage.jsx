@@ -11,6 +11,7 @@ function GamePage() {
 
   const [room, setRoom] = useState(null)
   const [card, setCard] = useState(null)
+  const [rosterPlayers, setRosterPlayers] = useState(null)
   const [loadingRoom, setLoadingRoom] = useState(true)
   const [loadingCard, setLoadingCard] = useState(true)
   const [error, setError] = useState('')
@@ -96,6 +97,7 @@ function GamePage() {
               name: p.name,
               lastName: p.lastName,
             }))
+            setRosterPlayers(players)
             if (debug) console.log('[GamePage] roster players', players.length, players.slice(0, 3))
           } else {
             if (debug) console.warn('[GamePage] roster fetch non-ok', res.status, await res.text())
@@ -178,8 +180,19 @@ function GamePage() {
     if (e) setError(e.message)
   }, [roomId, isCreator])
 
-  const handleCardSwap = useCallback((updatedCard) => {
-    setCard(updatedCard)
+  const handleCardSwap = useCallback((update) => {
+    if (update && typeof update.squareIndex === 'number' && update.newSquare) {
+      // Partial update from swap RPC: replace one square
+      setCard((prev) => {
+        if (!prev?.squares) return prev
+        const flat = Array.isArray(prev.squares[0]) ? prev.squares.flat() : [...prev.squares]
+        flat[update.squareIndex] = update.newSquare
+        return { ...prev, squares: flat }
+      })
+    } else {
+      // Full card replacement (legacy)
+      setCard(update)
+    }
   }, [])
 
   if (loadingRoom || authLoading) {
@@ -218,6 +231,7 @@ function GamePage() {
       participantJoined={participantJoined}
       initChatMessages={initChatMessages}
       resetStatEvents={resetStatEvents}
+      rosterPlayers={rosterPlayers}
     />
   )
 }

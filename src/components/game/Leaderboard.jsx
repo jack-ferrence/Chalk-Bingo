@@ -1,6 +1,7 @@
 import { memo, useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
 import Panel from '../ui/Panel.jsx'
+import { getFontFamily, getBadge } from '../../lib/fontMap'
 
 const RANK_COLORS = ['text-accent-green', 'text-text-secondary', 'text-text-muted']
 const MAX_VISIBLE = 10
@@ -27,6 +28,9 @@ function binaryInsert(arr, item) {
 const LeaderboardRow = memo(function LeaderboardRow({
   rank,
   username,
+  nameColor,
+  nameFont,
+  equippedBadge,
   linesCompleted,
   squaresMarked,
   isMe,
@@ -34,6 +38,7 @@ const LeaderboardRow = memo(function LeaderboardRow({
   hasRankChange,
 }) {
   const rankColor = rank <= 3 ? RANK_COLORS[rank - 1] : 'text-text-muted'
+  const badge = equippedBadge ? getBadge(equippedBadge) : null
 
   return (
     <div
@@ -51,7 +56,8 @@ const LeaderboardRow = memo(function LeaderboardRow({
         {rank}
       </span>
 
-      <span className="min-w-0 flex-1 truncate text-xs font-medium text-text-primary">
+      <span className="min-w-0 flex-1 truncate text-xs font-medium" style={{ color: nameColor || '#e0e0f0', fontFamily: getFontFamily(nameFont) }}>
+        {badge && <span style={{ marginRight: 3, fontSize: 11 }}>{badge.emoji}</span>}
         {username.length > 12 ? username.slice(0, 12) + '…' : username}
         {isMe && (
           <span className="ml-1 text-[9px] text-accent-green">(you)</span>
@@ -100,11 +106,16 @@ function Leaderboard({ roomId, currentUserId, realtimeCards, participantJoined }
         .in('user_id', userIds),
       supabase
         .from('profiles')
-        .select('id, username')
+        .select('id, username, name_color, name_font, equipped_badge')
         .in('id', userIds),
     ])
 
-    const pMap = Object.fromEntries((profilesData ?? []).map((p) => [p.id, p.username]))
+    const pMap = Object.fromEntries((profilesData ?? []).map((p) => [p.id, {
+      username:      p.username,
+      nameColor:     p.name_color,
+      nameFont:      p.name_font,
+      equippedBadge: p.equipped_badge,
+    }]))
     setProfiles((prev) => ({ ...prev, ...pMap }))
 
     const built = userIds.map((uid) => {
@@ -239,7 +250,10 @@ function Leaderboard({ roomId, currentUserId, realtimeCards, participantJoined }
               <LeaderboardRow
                 key={row.user_id}
                 rank={row.rank}
-                username={profiles[row.user_id] ?? 'Guest'}
+                username={profiles[row.user_id]?.username ?? 'Guest'}
+                nameColor={profiles[row.user_id]?.nameColor ?? null}
+                nameFont={profiles[row.user_id]?.nameFont ?? 'default'}
+                equippedBadge={profiles[row.user_id]?.equippedBadge ?? null}
                 linesCompleted={row.lines_completed}
                 squaresMarked={row.squares_marked}
                 isMe={row.user_id === currentUserId}

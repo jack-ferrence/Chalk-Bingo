@@ -3,7 +3,17 @@ import BingoSquare from './BingoSquare.jsx'
 
 const CONFETTI_COLORS = ['#FFD700', '#00D46E', '#8B5CF6', '#FF4757', '#00FF88', '#FF6B6B']
 
-function BingoBoard({ squares = [], winningSquares = [], winningLines = [], hasBingo = false, onSquareClick, boardSkin = null, swapMode = false }) {
+function BingoBoard({
+  squares = [],
+  winningSquares = [],
+  winningLines = [],
+  hasBingo = false,
+  onSquareClick,
+  boardSkin = 'default',
+  isLobby = false,
+  onSwapRequest,
+  swappingSquareIndex = null,
+}) {
   const flat = Array.isArray(squares[0]) ? squares.flat() : squares
   const winSet = new Set(winningSquares)
 
@@ -45,16 +55,15 @@ function BingoBoard({ squares = [], winningSquares = [], winningLines = [], hasB
     return () => clearTimeout(remove)
   }, [toast?.exiting])
 
+  const skinClass = boardSkin && boardSkin !== 'default' ? `board-skin-${boardSkin}` : ''
+
   return (
     <div className="relative w-full max-w-lg">
       {/* Board frame */}
       <div
-        className="machine-glow"
-        data-skin={boardSkin || undefined}
+        className={`machine-glow ${skinClass}`}
         style={{
           background: '#0c0c14', border: '1px solid #2a2a44', borderRadius: 8, padding: 12,
-          outline: swapMode ? '2px dashed #ff6b35' : undefined,
-          outlineOffset: swapMode ? 3 : undefined,
         }}
       >
         {/* 5×5 Grid */}
@@ -67,7 +76,9 @@ function BingoBoard({ squares = [], winningSquares = [], winningLines = [], hasB
               isWinning={winSet.has(square?.id)}
               isLineFlash={flashIndices.has(index)}
               onClick={onSquareClick}
-              swapMode={swapMode && index !== 12}
+              isLobby={isLobby && index !== 12}
+              onSwapRequest={onSwapRequest}
+              isSwapping={swappingSquareIndex === index}
             />
           ))}
         </div>

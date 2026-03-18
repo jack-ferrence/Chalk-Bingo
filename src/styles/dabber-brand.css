@@ -510,3 +510,67 @@
   border-color: #e05520 !important;
   box-shadow: 0 0 10px rgba(224, 85, 32, 0.4) !important;
 }
+
+/* ============================================================
+   BOARD SKINS — class-based (v2)
+   Applied via board-skin-{class} on the machine-glow wrapper
+   ============================================================ */
+
+/* ── Neon Glow ── */
+.board-skin-neon {
+  border-color: rgba(255, 107, 53, 0.5) !important;
+  box-shadow: 0 0 16px rgba(255, 107, 53, 0.12), inset 0 0 20px rgba(255, 107, 53, 0.04) !important;
+}
+.board-skin-neon button:not([class*="sq-free"]):not([class*="sq-marked"]) {
+  border-color: rgba(255, 107, 53, 0.3) !important;
+}
+.board-skin-neon .sq-marked-glow {
+  box-shadow: 0 0 10px rgba(255, 107, 53, 0.4) !important;
+}
+
+/* ── Retro CRT ── */
+.board-skin-retro {
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(255, 255, 255, 0.015) 2px,
+    rgba(255, 255, 255, 0.015) 4px
+  ) !important;
+}
+.board-skin-retro button:not([class*="sq-free"]):not([class*="sq-marked"]) {
+  border-color: rgba(255, 107, 53, 0.2) !important;
+}
+
+/* ── Minimal ── */
+.board-skin-minimal {
+  padding: 16px !important;
+}
+.board-skin-minimal button:not([class*="sq-free"]) {
+  border-width: 0.5px !important;
+  border-radius: 2px !important;
+}
+.board-skin-minimal button:not([class*="sq-free"]):not([class*="sq-marked"]) {
+  border-color: rgba(42, 42, 68, 0.6) !important;
+  background: transparent !important;
+}
+
+/* ── Gold Edition ── */
+.board-skin-gold {
+  border-color: rgba(245, 158, 11, 0.4) !important;
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.08) !important;
+}
+.board-skin-gold button:not([class*="sq-free"]):not([class*="sq-marked"]) {
+  border-color: rgba(245, 158, 11, 0.25) !important;
+}
+.board-skin-gold .sq-marked-glow {
+  border-color: #f59e0b !important;
+  background: rgba(245, 158, 11, 0.08) !important;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.3) !important;
+}
+
+/* ── Spin animation for swap loading ── */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}

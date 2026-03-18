@@ -18,7 +18,7 @@ export function useProfile() {
     const load = async () => {
       const { data } = await supabase
         .from('profiles')
-        .select('dabs_balance, username, name_color, name_font, cosmetics, equipped')
+        .select('dabs_balance, username, name_color, name_font, equipped_badge, board_skin')
         .eq('id', user.id)
         .single()
       if (!cancelled) setProfile(data ?? null)
@@ -42,11 +42,11 @@ export function useProfile() {
   }, [user?.id])
 
   return {
-    dabsBalance: profile?.dabs_balance ?? null,
-    username:    profile?.username    ?? null,
-    nameColor:   profile?.name_color  ?? null,
-    nameFont:    profile?.name_font   ?? 'default',
-    cosmetics:   profile?.cosmetics   ?? { badges: [], board_skins: [] },
-    equipped:    profile?.equipped    ?? { badge: null, board_skin: null },
+    dabsBalance:   profile?.dabs_balance   ?? null,
+    username:      profile?.username       ?? null,
+    nameColor:     profile?.name_color     ?? null,
+    nameFont:      profile?.name_font      ?? 'default',
+    equippedBadge: profile?.equipped_badge ?? null,
+    boardSkin:     profile?.board_skin     ?? 'default',
   }
 }

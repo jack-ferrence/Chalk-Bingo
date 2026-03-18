@@ -1,11 +1,22 @@
 import { memo, useEffect, useRef, useState } from 'react'
 
-const BingoSquare = memo(function BingoSquare({ square, index, isWinning, isLineFlash, onClick, swapMode = false }) {
+const BingoSquare = memo(function BingoSquare({
+  square,
+  index,
+  isWinning,
+  isLineFlash,
+  onClick,
+  isLobby = false,
+  onSwapRequest,
+  isSwapping = false,
+}) {
   const isFree = index === 12
   const marked = square?.marked === true
   const displayText = square?.display_text ?? ''
   const prevMarkedRef = useRef(marked)
   const [justMarked, setJustMarked] = useState(false)
+  const [hovered, setHovered] = useState(false)
+  const [swapConfirm, setSwapConfirm] = useState(false)
 
   useEffect(() => {
     if (marked && !prevMarkedRef.current) {
@@ -17,6 +28,11 @@ const BingoSquare = memo(function BingoSquare({ square, index, isWinning, isLine
     prevMarkedRef.current = marked
   }, [marked])
 
+  // Reset confirm when parent starts swapping
+  useEffect(() => {
+    if (isSwapping) setSwapConfirm(false)
+  }, [isSwapping])
+
   let playerLabel = ''
   let statLabel = displayText
   if (!isFree && displayText) {
@@ -27,6 +43,7 @@ const BingoSquare = memo(function BingoSquare({ square, index, isWinning, isLine
     }
   }
 
+  // ── FREE square ──────────────────────────────────────────────────────────────
   if (isFree) {
     return (
       <button
@@ -50,6 +67,70 @@ const BingoSquare = memo(function BingoSquare({ square, index, isWinning, isLine
     )
   }
 
+  // ── Swap loading state ───────────────────────────────────────────────────────
+  if (isSwapping) {
+    return (
+      <div
+        style={{
+          aspectRatio: '1',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: '#1a1a2e',
+          border: '1px solid #ff6b35',
+          borderRadius: 4,
+          opacity: 0.7,
+        }}
+      >
+        <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 14, color: '#ff6b35', animation: 'spin 1s linear infinite' }}>⟳</span>
+      </div>
+    )
+  }
+
+  // ── Swap confirm overlay ─────────────────────────────────────────────────────
+  if (swapConfirm) {
+    return (
+      <div
+        style={{
+          aspectRatio: '1',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 4,
+          background: '#150a04',
+          border: '1px dashed #ff6b35',
+          borderRadius: 4,
+          padding: 4,
+        }}
+      >
+        <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 8, color: '#e0e0f0', textAlign: 'center', lineHeight: 1.3 }}>
+          Swap?
+        </span>
+        <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 8, color: '#ff6b35', fontWeight: 700 }}>
+          5 ◈
+        </span>
+        <div style={{ display: 'flex', gap: 4 }}>
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onSwapRequest?.(index); setSwapConfirm(false) }}
+            style={{ width: 20, height: 20, borderRadius: 3, background: '#ff6b35', color: '#0c0c14', border: 'none', fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 900, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
+          >
+            ✓
+          </button>
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); setSwapConfirm(false) }}
+            style={{ width: 20, height: 20, borderRadius: 3, background: 'none', color: '#555577', border: '1px solid #2a2a44', fontFamily: 'var(--db-font-mono)', fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
+          >
+            ✗
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // ── Marked square ────────────────────────────────────────────────────────────
   if (marked) {
     return (
       <button
@@ -85,10 +166,23 @@ const BingoSquare = memo(function BingoSquare({ square, index, isWinning, isLine
     )
   }
 
+  // ── Normal (unmarked) square ─────────────────────────────────────────────────
+  const showSwapBtn = isLobby && hovered
+
   return (
     <button
       type="button"
       onClick={() => onClick?.(square, index)}
+      onMouseEnter={(e) => {
+        setHovered(true)
+        e.currentTarget.style.background = '#22223a'
+        e.currentTarget.style.borderColor = '#ff6b35'
+      }}
+      onMouseLeave={(e) => {
+        setHovered(false)
+        e.currentTarget.style.background = '#1a1a2e'
+        e.currentTarget.style.borderColor = '#2a2a44'
+      }}
       className="select-none"
       style={{
         aspectRatio: '1',
@@ -98,14 +192,14 @@ const BingoSquare = memo(function BingoSquare({ square, index, isWinning, isLine
         justifyContent: 'center',
         gap: 2,
         background: '#1a1a2e',
-        border: swapMode ? '1px dashed #ff6b35' : '1px solid #2a2a44',
+        border: '1px solid #2a2a44',
         borderRadius: 4,
         padding: 4,
-        cursor: swapMode ? 'crosshair' : 'pointer',
+        cursor: 'pointer',
         transition: 'all 150ms ease',
+        position: 'relative',
+        overflow: 'hidden',
       }}
-      onMouseEnter={(e) => { e.currentTarget.style.background = swapMode ? '#2a1a10' : '#22223a'; e.currentTarget.style.borderColor = '#ff6b35' }}
-      onMouseLeave={(e) => { e.currentTarget.style.background = '#1a1a2e'; e.currentTarget.style.borderColor = swapMode ? '#ff6b35' : '#2a2a44' }}
     >
       {playerLabel && (
         <span style={{ width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'center', fontFamily: 'var(--db-font-mono)', fontSize: 8, fontWeight: 600, color: '#8888aa' }}>
@@ -115,6 +209,40 @@ const BingoSquare = memo(function BingoSquare({ square, index, isWinning, isLine
       <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 600, color: '#e0e0f0', lineHeight: 1.2 }}>
         {statLabel}
       </span>
+
+      {/* Swap button — lobby only, shown on hover */}
+      {showSwapBtn && (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); setSwapConfirm(true) }}
+          title="Swap this square (5 Dabs)"
+          style={{
+            position: 'absolute',
+            top: 2,
+            right: 2,
+            width: 14,
+            height: 14,
+            borderRadius: '50%',
+            background: 'rgba(42,42,68,0.9)',
+            color: '#8888aa',
+            border: 'none',
+            cursor: 'pointer',
+            fontFamily: 'var(--db-font-mono)',
+            fontSize: 9,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            lineHeight: 1,
+            padding: 0,
+            zIndex: 2,
+            transition: 'background 100ms ease, color 100ms ease',
+          }}
+          onMouseEnter={(e) => { e.stopPropagation(); e.currentTarget.style.background = '#ff6b35'; e.currentTarget.style.color = '#0c0c14' }}
+          onMouseLeave={(e) => { e.stopPropagation(); e.currentTarget.style.background = 'rgba(42,42,68,0.9)'; e.currentTarget.style.color = '#8888aa' }}
+        >
+          ↻
+        </button>
+      )}
     </button>
   )
 })

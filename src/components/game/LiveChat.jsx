@@ -1,6 +1,7 @@
 import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import Panel from '../ui/Panel.jsx'
+import { getFontFamily, getBadge } from '../../lib/fontMap'
 
 const MAX_CHAT = 100
 const MAX_CHARS = 280
@@ -17,10 +18,15 @@ function userColor(userId) {
   return USER_COLORS[Math.abs(hash) % USER_COLORS.length]
 }
 
-const ChatMessage = memo(function ChatMessage({ msg, isNew }) {
+const ChatMessage = memo(function ChatMessage({ msg, isNew, profile }) {
+  const nameColor = profile?.nameColor || userColor(msg.user_id)
+  const fontFamily = getFontFamily(profile?.nameFont)
+  const badge = profile?.equippedBadge ? getBadge(profile.equippedBadge) : null
+
   return (
     <div className={`px-1 leading-relaxed break-words ${isNew ? 'chat-msg-in' : ''}`} style={{ fontSize: 11 }}>
-      <span style={{ fontFamily: 'var(--db-font-mono)', fontWeight: 700, color: userColor(msg.user_id) }}>
+      {badge && <span style={{ marginRight: 2 }}>{badge.emoji}</span>}
+      <span style={{ fontFamily, fontWeight: 700, color: nameColor }}>
         {msg.username}
       </span>
       <span style={{ color: '#555577' }}>: </span>
@@ -31,6 +37,7 @@ const ChatMessage = memo(function ChatMessage({ msg, isNew }) {
 
 function LiveChat({ roomId, userId, username, realtimeMessages, initChatMessages }) {
   const [localMessages, setLocalMessages] = useState([])
+  const [chatProfiles, setChatProfiles] = useState({}) // userId → { nameColor, nameFont, equippedBadge }
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
   const [slowDown, setSlowDown] = useState(false)
@@ -40,6 +47,26 @@ function LiveChat({ roomId, userId, username, realtimeMessages, initChatMessages
   const [animatedIds] = useState(() => new Set())
   const scrollThrottleRef = useRef(null)
   const initialLoadRef = useRef(false)
+  const knownProfileIds = useRef(new Set())
+
+  const fetchProfiles = useCallback(async (userIds) => {
+    const unknown = userIds.filter((id) => !knownProfileIds.current.has(id))
+    if (unknown.length === 0) return
+    for (const id of unknown) knownProfileIds.current.add(id)
+    const { data } = await supabase
+      .from('profiles')
+      .select('id, name_color, name_font, equipped_badge')
+      .in('id', unknown)
+    if (data) {
+      setChatProfiles((prev) => {
+        const next = { ...prev }
+        for (const p of data) {
+          next[p.id] = { nameColor: p.name_color, nameFont: p.name_font, equippedBadge: p.equipped_badge }
+        }
+        return next
+      })
+    }
+  }, [])
 
   const throttledScrollToBottom = useCallback(() => {
     if (scrollThrottleRef.current) return
@@ -71,6 +98,7 @@ function LiveChat({ roomId, userId, username, realtimeMessages, initChatMessages
       const msgs = data ?? []
       setLocalMessages(msgs)
       if (initChatMessages) initChatMessages(msgs)
+      fetchProfiles(msgs.map((m) => m.user_id))
       requestAnimationFrame(() => {
         const el = listRef.current
         if (el) el.scrollTop = el.scrollHeight
@@ -89,13 +117,14 @@ function LiveChat({ roomId, userId, username, realtimeMessages, initChatMessages
       const newMsgs = realtimeMessages.filter((m) => !existingIds.has(m.id))
       if (newMsgs.length === 0) return prev
 
+      fetchProfiles(newMsgs.map((m) => m.user_id))
       for (const m of newMsgs) animatedIds.add(m.id)
 
       const next = [...prev, ...newMsgs]
       if (isNearBottomRef.current) throttledScrollToBottom()
       return next.length > MAX_CHAT ? next.slice(-MAX_CHAT) : next
     })
-  }, [realtimeMessages, throttledScrollToBottom, animatedIds])
+  }, [realtimeMessages, throttledScrollToBottom, animatedIds, fetchProfiles])
 
   const handleSend = useCallback(async () => {
     const text = input.trim()
@@ -151,6 +180,7 @@ function LiveChat({ roomId, userId, username, realtimeMessages, initChatMessages
                 key={msg.id}
                 msg={msg}
                 isNew={animatedIds.has(msg.id)}
+                profile={chatProfiles[msg.user_id]}
               />
             ))}
           </div>
