@@ -23,19 +23,6 @@ const DIFFICULTY_BIAS = {
   3: 1.0,  // hard: base weight
 }
 
-const GENERIC_THRESHOLDS = {
-  points:   [10, 15, 20, 25],
-  rebounds: [5, 8, 10],
-  assists:  [5, 8, 10],
-  threes:   [1, 2, 3],
-  steals:   [1, 2],
-  blocks:   [1, 2],
-}
-
-const GENERIC_LABELS = {
-  points: 'PTS', rebounds: 'REB', assists: 'AST',
-  threes: '3PM', steals: 'STL', blocks: 'BLK',
-}
 
 function randomId() {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID()
@@ -79,45 +66,6 @@ function pickOneWeighted(pool, usedIds, usedConflictKeys, tier) {
     if (roll <= 0) return candidates[i]
   }
   return candidates[candidates.length - 1]
-}
-
-/**
- * Generate generic filler props from matched roster players when odds pool is thin.
- * Fillers have american_odds: null so the UI can display them without odds.
- */
-function generateGenericFillers(matchedProps, usedIds, usedConflictKeys, needed) {
-  const fillers = []
-  const players = [...new Map(matchedProps.map(p => [p.player_id, p])).values()]
-
-  for (const stat of Object.keys(GENERIC_THRESHOLDS)) {
-    for (const threshold of GENERIC_THRESHOLDS[stat]) {
-      for (const player of shuffle(players)) {
-        if (fillers.length >= needed) return fillers
-
-        const conflictKey = `${player.player_name}|${stat}`
-        const displayText = `${getLastName(player.player_name)} ${threshold}+ ${GENERIC_LABELS[stat]}`
-
-        if (usedConflictKeys.has(conflictKey)) continue
-        if (usedIds.has(displayText)) continue
-
-        usedIds.add(displayText)
-        usedConflictKeys.add(conflictKey)
-
-        fillers.push({
-          player_id: player.player_id,
-          player_name: player.player_name,
-          stat_type: stat,
-          threshold,
-          display_text: displayText,
-          american_odds: null,
-          implied_prob: null,
-          tier: 2,
-          conflict_key: conflictKey,
-        })
-      }
-    }
-  }
-  return fillers
 }
 
 /**
@@ -169,7 +117,7 @@ export function generateOddsBasedCard(matchedProps) {
   const usedIds = new Set()
   const usedConflictKeys = new Set()
 
-  // Pick from each tier according to quotas
+  // First pass: fill exact tier quotas
   for (const [tier, quota] of Object.entries(TIER_QUOTAS)) {
     let picked = 0
     const t = Number(tier)
@@ -182,29 +130,22 @@ export function generateOddsBasedCard(matchedProps) {
       selected.push(prop)
       picked++
     }
+  }
 
-    // If quota not met, borrow from adjacent tier (deterministic: 1→2, 2→1, 3→2)
-    if (picked < quota) {
-      const fallbackTier = t === 2 ? 1 : 2
-      for (let attempt = 0; attempt < MAX_PICK_ATTEMPTS && picked < quota; attempt++) {
-        const prop = pickOneWeighted(matchedProps, usedIds, usedConflictKeys, fallbackTier)
-        if (!prop) break
+  // Second pass: backfill from any tier if quotas weren't fully met
+  for (let attempt = 0; attempt < MAX_PICK_ATTEMPTS && selected.length < 24; attempt++) {
+    for (const t of [2, 1, 3]) {
+      const prop = pickOneWeighted(matchedProps, usedIds, usedConflictKeys, t)
+      if (prop) {
         usedIds.add(prop.display_text)
         usedConflictKeys.add(prop.conflict_key)
         selected.push(prop)
-        picked++
+        break
       }
     }
   }
 
-  // If we have at least 18 props, fill remaining slots with generic roster-based props
-  if (selected.length < 24 && selected.length >= 18) {
-    const needed = 24 - selected.length
-    const genericProps = generateGenericFillers(matchedProps, usedIds, usedConflictKeys, needed)
-    selected.push(...genericProps)
-  }
-
-  // Need 24 non-free squares minimum
+  // Must have 24 real props — no fabrication
   if (selected.length < 24) return null
 
   // Shuffle all 24 selected — completely random positions

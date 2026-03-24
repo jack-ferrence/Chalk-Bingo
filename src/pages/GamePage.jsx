@@ -271,58 +271,17 @@ function GamePage() {
             setLoadingCard(false)
             return
           }
-          if (debug) console.warn('[GamePage] generateOddsBasedCard returned null, falling back to RPC')
+          if (debug) console.warn('[GamePage] generateOddsBasedCard returned null — not enough real props to fill a card')
         } catch (oddsCardErr) {
           if (debug) console.warn('[GamePage] odds card generation threw', oddsCardErr)
         }
       }
 
-      // ── Step 6: Fallback — NCAA only (NBA without odds = not ready yet) ──────
-      const sport = room?.sport ?? 'nba'
-      if (sport !== 'ncaa') {
-        setError('Props not available yet. Try again closer to game time.')
-        setLoadingCard(false)
-        return
-      }
-
-      try {
-        const rpcParams = { p_room_id: roomId }
-        if (players && players.length > 0) rpcParams.p_players = players
-
-        let { data, error: rpcError } = await supabase
-          .rpc('generate_card_for_room', rpcParams)
-          .maybeSingle()
-
-        if (rpcError && rpcParams.p_players && (
-          rpcError.code === 'PGRST202' ||
-          rpcError.message?.toLowerCase().includes('function') ||
-          rpcError.message?.includes('p_players')
-        )) {
-          if (debug) console.warn('[GamePage] p_players rejected by RPC, retrying without roster')
-          ;({ data, error: rpcError } = await supabase
-            .rpc('generate_card_for_room', { p_room_id: roomId })
-            .maybeSingle())
-        }
-
-        if (rpcError) {
-          if (debug) console.error('[GamePage] generate_card_for_room failed', rpcError)
-          setError(rpcError.message || 'Failed to generate card')
-          setLoadingCard(false)
-          return
-        }
-
-        // Enrich RPC card squares with odds if available (client-side only)
-        const cardData = data ?? null
-        const enrichedCardData = cardData && enrichSquares
-          ? { ...cardData, squares: enrichSquares(cardData.squares) }
-          : cardData
-        setCard(enrichedCardData)
-        setLoadingCard(false)
-      } catch (cardErr) {
-        if (debug) console.error('[GamePage] card generation threw', cardErr)
-        setError('Connection error generating card. Please try again.')
-        setLoadingCard(false)
-      }
+      // ── Step 6: No odds available — show error ──────────────────────────────
+      // Dobber requires real odds to generate cards. If we got here, the game
+      // doesn't have enough prop data from sportsbooks to create a bingo card.
+      setError("This game doesn't have enough prop odds available yet. Try again closer to game time, or pick a different game.")
+      setLoadingCard(false)
     }
     loadOrCreateCard()
   }, [roomId, user, authLoading, room?.id, retryCount])

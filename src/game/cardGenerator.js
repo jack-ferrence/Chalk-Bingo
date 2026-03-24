@@ -1,3 +1,11 @@
+/**
+ * LEGACY — This card generator uses fabricated stat thresholds and is no longer
+ * used in production. All cards are now generated via oddsCardGenerator.js using
+ * real player prop odds from TheOddsAPI.
+ *
+ * Kept for reference only. Do not import or call generateCard() from new code.
+ */
+
 // Generic stat types used by odds-based cards (stat_type without threshold).
 // The mark_squares_for_event RPC matches on player_id + stat_type + value >= threshold.
 export const STAT_TYPES_GENERIC = ['points', 'rebounds', 'assists', 'threes', 'steals', 'blocks']
