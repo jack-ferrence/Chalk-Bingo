@@ -277,7 +277,14 @@ function GamePage() {
         }
       }
 
-      // ── Step 6: Fallback to generate_card_for_room RPC ──────────────────────
+      // ── Step 6: Fallback — NCAA only (NBA without odds = not ready yet) ──────
+      const sport = room?.sport ?? 'nba'
+      if (sport !== 'ncaa') {
+        setError('Props not available yet. Try again closer to game time.')
+        setLoadingCard(false)
+        return
+      }
+
       try {
         const rpcParams = { p_room_id: roomId }
         if (players && players.length > 0) rpcParams.p_players = players

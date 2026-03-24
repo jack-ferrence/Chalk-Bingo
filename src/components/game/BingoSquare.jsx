@@ -34,14 +34,19 @@ const BingoSquare = memo(function BingoSquare({
   let playerLabel = ''
   let statLabel = displayText
   if (!isFree && displayText) {
-    const match = displayText.match(/^(.+?)\s+(\d+\+?\s+\S+)$/)
+    const match = displayText.match(/^(.+?)\s+([\d.]+\+?\s+\S+)$/)
     if (match) {
       playerLabel = match[1]
       statLabel = match[2]
     }
   }
 
-  const TIER_COLORS = { easy: '#22c55e', medium: '#3b82f6', hard: '#f59e0b', longshot: '#ef4444' }
+  const TIER_COLORS = {
+    1: '#22c55e', easy: '#22c55e',
+    2: '#3b82f6', medium: '#3b82f6',
+    3: '#f59e0b', hard: '#f59e0b',
+    longshot: '#ef4444',
+  }
   const tierColor = square?.tier ? TIER_COLORS[square.tier] : null
   const tierPct = square?.implied_prob != null ? Math.round(square.implied_prob * 100) : null
 
@@ -132,7 +137,7 @@ const BingoSquare = memo(function BingoSquare({
         {tierColor && (
           <span
             title={tierPct != null ? `${square.tier} — ${tierPct}%` : square.tier}
-            style={{ position: 'absolute', left: 3, top: 3, width: 5, height: 5, borderRadius: '50%', background: tierColor, opacity: 0.6, flexShrink: 0 }}
+            style={{ position: 'absolute', left: 3, top: 3, width: 4, height: 4, borderRadius: '50%', background: tierColor, opacity: 0.7, flexShrink: 0 }}
           />
         )}
       </button>
@@ -146,16 +151,8 @@ const BingoSquare = memo(function BingoSquare({
     <button
       type="button"
       onClick={() => onClick?.(square, index)}
-      onMouseEnter={(e) => {
-        setHovered(true)
-        e.currentTarget.style.background = '#22223a'
-        e.currentTarget.style.borderColor = '#ff6b35'
-      }}
-      onMouseLeave={(e) => {
-        setHovered(false)
-        e.currentTarget.style.background = '#1a1a2e'
-        e.currentTarget.style.borderColor = '#2a2a44'
-      }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       className="select-none"
       style={{
         aspectRatio: '1',
@@ -163,13 +160,13 @@ const BingoSquare = memo(function BingoSquare({
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 2,
-        background: '#1a1a2e',
-        border: '1px solid #2a2a44',
+        gap: 1,
+        background: hovered ? '#22223a' : '#1a1a2e',
+        border: `1px solid ${hovered ? '#3a3a55' : '#2a2a44'}`,
         borderRadius: 4,
         padding: 4,
         cursor: 'pointer',
-        transition: 'all 150ms ease',
+        transition: 'background 100ms ease, border-color 100ms ease',
         position: 'relative',
         overflow: 'hidden',
       }}
@@ -179,11 +176,11 @@ const BingoSquare = memo(function BingoSquare({
           {playerLabel}
         </span>
       )}
-      <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 600, color: '#e0e0f0', lineHeight: 1.2 }}>
+      <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 800, color: '#e0e0f0', lineHeight: 1.2, textAlign: 'center' }}>
         {statLabel}
       </span>
       {oddsLabel && (
-        <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 8, color: '#555577', lineHeight: 1 }}>
+        <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 8, fontWeight: 600, color: tierColor ?? '#555577', lineHeight: 1 }}>
           {oddsLabel}
         </span>
       )}
@@ -192,7 +189,7 @@ const BingoSquare = memo(function BingoSquare({
       {tierColor && (
         <span
           title={tierPct != null ? `${square.tier} — ${tierPct}%` : square.tier}
-          style={{ position: 'absolute', left: 3, top: 3, width: 5, height: 5, borderRadius: '50%', background: tierColor, opacity: 0.6, flexShrink: 0 }}
+          style={{ position: 'absolute', left: 3, top: 3, width: 4, height: 4, borderRadius: '50%', background: tierColor, opacity: 0.7, flexShrink: 0 }}
         />
       )}
 
