@@ -20,12 +20,27 @@ export function useHomeData() {
     setError(null)
 
     try {
-      const [roomsResult, participantsResult] = await Promise.all([
+      // midnight Pacific = 08:00 UTC; if we're before that hour, "today" started yesterday
+      const todayStart = new Date()
+      todayStart.setUTCHours(8, 0, 0, 0)
+      if (todayStart > new Date()) {
+        todayStart.setUTCDate(todayStart.getUTCDate() - 1)
+      }
+      const todayCutoff = todayStart.toISOString()
+
+      const [liveAndLobbyResult, todayFinishedResult, participantsResult] = await Promise.all([
         supabase
           .from('rooms_with_counts')
           .select('*')
           .eq('room_type', 'public')
-          .in('status', ['lobby', 'live', 'finished'])
+          .in('status', ['lobby', 'live'])
+          .order('starts_at', { ascending: true, nullsFirst: false }),
+        supabase
+          .from('rooms_with_counts')
+          .select('*')
+          .eq('room_type', 'public')
+          .eq('status', 'finished')
+          .gte('starts_at', todayCutoff)
           .order('starts_at', { ascending: true, nullsFirst: false }),
         user
           ? supabase
@@ -35,8 +50,14 @@ export function useHomeData() {
           : Promise.resolve({ data: [] }),
       ])
 
-      if (roomsResult.error) throw roomsResult.error
-      setAllRooms(roomsResult.data ?? [])
+      if (liveAndLobbyResult.error) throw liveAndLobbyResult.error
+      if (todayFinishedResult.error) throw todayFinishedResult.error
+
+      const allRoomsData = [
+        ...(liveAndLobbyResult.data ?? []),
+        ...(todayFinishedResult.data ?? []),
+      ]
+      setAllRooms(allRoomsData)
 
       const participantData = participantsResult.data ?? []
       if (user && participantData.length > 0) {
