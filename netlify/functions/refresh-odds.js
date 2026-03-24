@@ -77,18 +77,163 @@ function getLastName(name) {
   return parts.length > 1 ? parts.slice(1).join(' ') : parts[0] || ''
 }
 
+// ESPN abbreviation → lowercase keywords that appear in TheOddsAPI full team names.
+// Covers all 30 NBA teams plus common NCAA tournament teams.
+const ABBR_TO_KEYWORDS = {
+  // NBA
+  ATL:  ['hawks', 'atlanta'],
+  BOS:  ['celtics', 'boston'],
+  BKN:  ['nets', 'brooklyn'],
+  CHA:  ['hornets', 'charlotte'],
+  CHI:  ['bulls', 'chicago'],
+  CLE:  ['cavaliers', 'cleveland'],
+  DAL:  ['mavericks', 'dallas'],
+  DEN:  ['nuggets', 'denver'],
+  DET:  ['pistons', 'detroit'],
+  GS:   ['warriors', 'golden state'],
+  GSW:  ['warriors', 'golden state'],
+  HOU:  ['rockets', 'houston'],
+  IND:  ['pacers', 'indiana'],
+  LAC:  ['clippers', 'la clippers', 'los angeles clippers'],
+  LAL:  ['lakers', 'la lakers', 'los angeles lakers'],
+  MEM:  ['grizzlies', 'memphis'],
+  MIA:  ['heat', 'miami'],
+  MIL:  ['bucks', 'milwaukee'],
+  MIN:  ['timberwolves', 'minnesota'],
+  NO:   ['pelicans', 'new orleans'],
+  NOP:  ['pelicans', 'new orleans'],
+  NY:   ['knicks', 'new york'],
+  NYK:  ['knicks', 'new york'],
+  OKC:  ['thunder', 'oklahoma city'],
+  ORL:  ['magic', 'orlando'],
+  PHI:  ['76ers', 'sixers', 'philadelphia'],
+  PHX:  ['suns', 'phoenix'],
+  POR:  ['trail blazers', 'blazers', 'portland'],
+  SAC:  ['kings', 'sacramento'],
+  SA:   ['spurs', 'san antonio'],
+  SAS:  ['spurs', 'san antonio'],
+  TOR:  ['raptors', 'toronto'],
+  UTAH: ['jazz', 'utah'],
+  UTA:  ['jazz', 'utah'],
+  WAS:  ['wizards', 'washington'],
+  WSH:  ['wizards', 'washington'],
+  // NCAA — major tournament teams
+  DUKE: ['duke', 'blue devils'],
+  UNC:  ['north carolina', 'tar heels'],
+  UK:   ['kentucky', 'wildcats'],
+  KU:   ['kansas', 'jayhawks'],
+  KAN:  ['kansas', 'jayhawks'],
+  CONN: ['connecticut', 'uconn', 'huskies'],
+  UCONN:['connecticut', 'uconn', 'huskies'],
+  GONZ: ['gonzaga', 'bulldogs', 'zags'],
+  AUB:  ['auburn', 'tigers'],
+  TENN: ['tennessee', 'volunteers', 'vols'],
+  PUR:  ['purdue', 'boilermakers'],
+  HOUS: ['houston', 'cougars'],
+  ALA:  ['alabama', 'crimson tide'],
+  BAMA: ['alabama', 'crimson tide'],
+  ISU:  ['iowa state', 'cyclones'],
+  MSU:  ['michigan state', 'spartans'],
+  MICH: ['michigan', 'wolverines'],
+  OSU:  ['ohio state', 'buckeyes'],
+  ILL:  ['illinois', 'illini'],
+  ARIZ: ['arizona', 'wildcats'],
+  ARK:  ['arkansas', 'razorbacks'],
+  BAY:  ['baylor', 'bears'],
+  MARQ: ['marquette', 'golden eagles'],
+  TXAM: ['texas a&m', 'aggies'],
+  TEX:  ['texas', 'longhorns'],
+  WIS:  ['wisconsin', 'badgers'],
+  ORE:  ['oregon', 'ducks'],
+  UCLA: ['ucla', 'bruins'],
+  USC:  ['usc', 'trojans'],
+  FSU:  ['florida state', 'seminoles'],
+  FLA:  ['florida', 'gators'],
+  UF:   ['florida', 'gators'],
+  LSU:  ['lsu', 'tigers'],
+  VIL:  ['villanova', 'wildcats'],
+  NOVA: ['villanova', 'wildcats'],
+  IOWA: ['iowa', 'hawkeyes'],
+  COLO: ['colorado', 'buffaloes'],
+  MIZZ: ['missouri', 'tigers'],
+  SYR:  ['syracuse', 'orange'],
+  LOU:  ['louisville', 'cardinals'],
+  WAKE: ['wake forest', 'demon deacons'],
+  UVA:  ['virginia', 'cavaliers'],
+  VT:   ['virginia tech', 'hokies'],
+  PITT: ['pittsburgh', 'panthers'],
+  ND:   ['notre dame', 'fighting irish'],
+  CIN:  ['cincinnati', 'bearcats'],
+  CINC: ['cincinnati', 'bearcats'],
+  TXTECH: ['texas tech', 'red raiders'],
+  TTU:  ['texas tech', 'red raiders'],
+  SDSU: ['san diego state', 'aztecs'],
+  FAU:  ['florida atlantic', 'owls'],
+  UNM:  ['new mexico', 'lobos'],
+  NMEX: ['new mexico', 'lobos'],
+  MSST: ['mississippi state', 'bulldogs'],
+  MISS: ['ole miss', 'mississippi', 'rebels'],
+  STAN: ['stanford', 'cardinal'],
+  WASH: ['washington', 'huskies'],
+  WAZU: ['washington state', 'cougars'],
+  OKLA: ['oklahoma', 'sooners'],
+  OKST: ['oklahoma state', 'cowboys'],
+  KSU:  ['kansas state', 'wildcats'],
+  NEB:  ['nebraska', 'cornhuskers'],
+  TCU:  ['tcu', 'horned frogs'],
+  WVU:  ['west virginia', 'mountaineers'],
+  SMU:  ['smu', 'mustangs'],
+  NCST: ['nc state', 'wolfpack'],
+  CLEM: ['clemson', 'tigers'],
+  GT:   ['georgia tech', 'yellow jackets'],
+  UGA:  ['georgia', 'bulldogs'],
+  SC:   ['south carolina', 'gamecocks'],
+  UCLA: ['ucla', 'bruins'],
+  VCU:  ['vcu', 'rams'],
+  DAY:  ['dayton', 'flyers'],
+  XAV:  ['xavier', 'musketeers'],
+}
+
 function normalizeTeam(name) {
   return (name || '').toLowerCase().trim().replace(/^the\s+/, '')
 }
 
+/**
+ * Check if ESPN abbreviation/name `a` matches TheOddsAPI full name `b` (or vice versa).
+ * Uses abbreviation lookup first, then falls back to substring matching.
+ */
 function teamsMatch(a, b) {
   const na = normalizeTeam(a)
   const nb = normalizeTeam(b)
+
   if (na === nb) return true
-  if (na.includes(nb) || nb.includes(na)) return true
+
+  const aUpper = (a || '').trim().toUpperCase()
+  const bUpper = (b || '').trim().toUpperCase()
+
+  const aKeywords = ABBR_TO_KEYWORDS[aUpper]
+  if (aKeywords) {
+    for (const kw of aKeywords) {
+      if (nb.includes(kw)) return true
+    }
+  }
+
+  const bKeywords = ABBR_TO_KEYWORDS[bUpper]
+  if (bKeywords) {
+    for (const kw of bKeywords) {
+      if (na.includes(kw)) return true
+    }
+  }
+
+  // Substring fallback — require length > 3 to avoid false positives from short abbreviations
+  if (na.length > 3 && nb.includes(na)) return true
+  if (nb.length > 3 && na.includes(nb)) return true
+
   const la = na.split(' ').pop()
   const lb = nb.split(' ').pop()
-  return la === lb && la.length > 3
+  if (la === lb && la.length > 3) return true
+
+  return false
 }
 
 function normalizeName(name) {
