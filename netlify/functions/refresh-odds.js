@@ -324,10 +324,20 @@ async function reconcileCards(supabase, roomId, newPool) {
 // Handler
 // ---------------------------------------------------------------------------
 
+// Process at most 3 rooms per invocation to avoid the 10s scheduled-function timeout
+const MAX_ROOMS_PER_RUN = 3
+
 export async function handler() {
   const url        = process.env.SUPABASE_URL
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
   const apiKey     = process.env.ODDS_API_KEY
+
+  console.log('refresh-odds: starting —', {
+    hasUrl: !!url,
+    hasServiceKey: !!serviceKey,
+    hasApiKey: !!apiKey,
+    apiKeyPrefix: apiKey ? apiKey.slice(0, 8) + '...' : 'none',
+  })
 
   if (!url || !serviceKey) {
     return { statusCode: 500, body: JSON.stringify({ error: 'Missing SUPABASE env vars' }) }
@@ -351,9 +361,26 @@ export async function handler() {
     return { statusCode: 500, body: JSON.stringify({ error: roomsErr.message }) }
   }
 
-  let refreshed = 0
+  console.log(`refresh-odds: found ${rooms?.length ?? 0} lobby rooms`)
 
-  for (const room of (rooms ?? [])) {
+  // Prioritize: pending rooms first, then soonest start time
+  const sortedRooms = [...(rooms ?? [])].sort((a, b) => {
+    if (a.odds_status === 'pending' && b.odds_status !== 'pending') return -1
+    if (b.odds_status === 'pending' && a.odds_status !== 'pending') return 1
+    const aStart = a.starts_at ? new Date(a.starts_at).getTime() : Infinity
+    const bStart = b.starts_at ? new Date(b.starts_at).getTime() : Infinity
+    return aStart - bStart
+  })
+
+  let refreshed = 0
+  let processed = 0
+
+  for (const room of sortedRooms) {
+    if (processed >= MAX_ROOMS_PER_RUN) {
+      log.push(`batch limit (${MAX_ROOMS_PER_RUN}) reached — remaining rooms deferred to next cycle`)
+      break
+    }
+
     const startsAt      = room.starts_at ? new Date(room.starts_at) : null
     const msUntilStart  = startsAt ? startsAt - now : Infinity
     const lastUpdate    = room.odds_updated_at ? new Date(room.odds_updated_at) : null
@@ -372,9 +399,13 @@ export async function handler() {
 
     if (!needsRefresh) continue
 
+    processed++
+    console.log(`refresh-odds: processing ${room.game_id} (${room.name}) — odds_status=${room.odds_status}`)
+
     try {
       // Fetch roster
       const roster = await fetchRoster(room.game_id, room.sport || 'nba')
+      console.log(`refresh-odds: ${room.game_id} — roster: ${roster.length} players`)
       if (roster.length === 0) {
         log.push(`${room.game_id}: no roster — skipping`)
         continue
@@ -382,6 +413,7 @@ export async function handler() {
 
       // Fetch odds
       const { props, reason } = await fetchOddsForRoom(room, apiKey)
+      console.log(`refresh-odds: ${room.game_id} — raw props: ${props.length}${reason ? ` (${reason})` : ''}`)
       if (props.length === 0) {
         await supabase
           .from('rooms')
@@ -393,6 +425,7 @@ export async function handler() {
 
       // Match to roster
       const matched = matchOddsToRoster(props, roster)
+      console.log(`refresh-odds: ${room.game_id} — matched: ${matched.length}/${MIN_PROPS} required`)
       if (matched.length < MIN_PROPS) {
         await supabase
           .from('rooms')
@@ -426,7 +459,7 @@ export async function handler() {
   console.log('refresh-odds:', log.join(' | '))
   return {
     statusCode: 200,
-    body: JSON.stringify({ refreshed, total: rooms?.length ?? 0, log }),
+    body: JSON.stringify({ refreshed, processed, total: rooms?.length ?? 0, log }),
     headers: { 'Content-Type': 'application/json' },
   }
 }
