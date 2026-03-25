@@ -96,6 +96,8 @@ body {
 
 /* Machine frame outer glow */
 .machine-glow {
+  content-visibility: auto;
+  contain-intrinsic-size: 500px;
   box-shadow:
     0 0 20px rgba(255, 107, 53, 0.08),
     0 0 60px rgba(255, 107, 53, 0.04),
@@ -326,6 +328,12 @@ html, body {
 /* ═══════════════════════════════════════════════════════════
    HOME SCREEN — animations & component classes
    ═══════════════════════════════════════════════════════════ */
+
+/* Generic opacity pulse (used by waiting-for-odds placeholder grid) */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
 
 /* LIVE dot scale pulse */
 @keyframes pulse-live {

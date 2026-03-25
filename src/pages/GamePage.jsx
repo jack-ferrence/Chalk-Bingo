@@ -212,13 +212,9 @@ function GamePage() {
 
       // ── Step 4: Generate card from server-managed odds pool ───────────────────
       if (!oddsReady) {
-        if (room.odds_status === 'insufficient') {
-          setError("Not enough player props available for this game. Try a different game.")
-        } else {
-          // odds_status is 'pending' — refresh-odds will populate within a few minutes
-          // The useEffect re-runs automatically when room.odds_status changes to 'ready'
-          setError('Odds are being loaded for this game. Check back in a minute or two.')
-        }
+        // GameRoom renders a context-aware placeholder based on room.odds_status
+        // ('pending' → animated grid, 'insufficient' → "not enough props" + CHECK AGAIN)
+        // The useEffect re-runs automatically when room.odds_status changes to 'ready'
         setLoadingCard(false)
         return
       }

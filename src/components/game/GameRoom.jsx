@@ -549,12 +549,60 @@ function GameRoom({
                 </div>
               )}
             </>
-          ) : (
+          ) : room?.odds_status === 'pending' ? (
+            // Animated grid placeholder — odds are being built server-side
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, width: '100%', maxWidth: 512 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 4, width: '100%', opacity: 0.35 }}>
+                {Array.from({ length: 25 }).map((_, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      aspectRatio: '1',
+                      background: '#1a1a2e',
+                      border: '1px solid #2a2a44',
+                      borderRadius: 4,
+                      animation: `pulse 1.8s ease-in-out ${(i % 5) * 0.12}s infinite`,
+                    }}
+                  />
+                ))}
+              </div>
+              <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, color: '#555577', letterSpacing: '0.08em' }}>
+                BUILDING YOUR CARD...
+              </span>
+            </div>
+          ) : room?.odds_status === 'insufficient' ? (
+            // Not enough props — show informative state + soft retry
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-              <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 12, color: '#555577', textAlign: 'center', maxWidth: 300 }}>
-                Failed to generate your bingo card. The game roster may not be available yet.
+              <span style={{ fontSize: 28 }}>📊</span>
+              <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, color: '#555577', letterSpacing: '0.08em' }}>
+                NOT ENOUGH PROPS YET
+              </span>
+              <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, color: '#3a3a55', textAlign: 'center', maxWidth: 260 }}>
+                Props for this game aren't available yet. Check back closer to tip-off.
               </span>
               {onRetryCard && (
+                <button
+                  type="button"
+                  onClick={onRetryCard}
+                  style={{ background: 'none', color: '#555577', border: '1px solid #2a2a44', borderRadius: 4, fontFamily: 'var(--db-font-mono)', fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', padding: '6px 16px', cursor: 'pointer' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#3a3a55'; e.currentTarget.style.color = '#8888aa' }}
+                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#2a2a44'; e.currentTarget.style.color = '#555577' }}
+                >
+                  CHECK AGAIN
+                </button>
+              )}
+            </div>
+          ) : (
+            // Generic failure — error banner above already shows the reason;
+            // only show retry button when there's no hard error to act on.
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+              {!error && <span style={{ fontSize: 28 }}>🎯</span>}
+              {!error && (
+                <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 12, color: '#555577', textAlign: 'center', maxWidth: 300 }}>
+                  Couldn&apos;t generate your card.
+                </span>
+              )}
+              {onRetryCard && !error && (
                 <button
                   type="button"
                   onClick={onRetryCard}
