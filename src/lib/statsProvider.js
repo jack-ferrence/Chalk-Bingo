@@ -132,12 +132,31 @@ async function fetchEspnStatsAndStatus(espnGameId, sport = 'nba') {
   const period = statusObj.period ?? 0
   const events = []
 
+  // Injury tracking — collected across all teams in a single pass
+  const ruledOutPlayers = []
+  const boxscorePlayerIds = new Set()
+
   if (boxScore?.players?.length) {
     for (const team of boxScore.players) {
       const statLabels = team.statistics?.[0]?.labels ?? []
       const athletes = team.statistics?.[0]?.athletes ?? []
 
       for (const athlete of athletes) {
+        // Always track every athlete ESPN lists in the boxscore
+        if (athlete.athlete?.id) {
+          boxscorePlayerIds.add(String(athlete.athlete.id))
+        }
+
+        // Collect players ESPN has officially marked as did-not-play
+        if (athlete.didNotPlay === true && athlete.athlete?.id) {
+          ruledOutPlayers.push({
+            id: String(athlete.athlete.id),
+            name: athlete.athlete.displayName ?? '',
+            reason: athlete.reason ?? 'DNP',
+          })
+        }
+
+        // Skip DNP / stat-less athletes for event generation
         if (!athlete.stats?.length || athlete.didNotPlay) continue
 
         const mapped = mapStatsByLabel(athlete, statLabels, period)
@@ -169,7 +188,7 @@ async function fetchEspnStatsAndStatus(espnGameId, sport = 'nba') {
     statusDetail: statusObj.type?.shortDetail ?? statusObj.type?.detail ?? null,
   }
 
-  return { events, gameStatus }
+  return { events, gameStatus, ruledOutPlayers, boxscorePlayerIds }
 }
 
 // ---------------------------------------------------------------------------
@@ -395,17 +414,19 @@ function generateMockEvents(gameId) {
 async function getStatsForGame(gameId, source = 'mock', sport = 'nba') {
   if (source === 'espn') {
     try {
-      const { events, gameStatus } = await fetchEspnStatsAndStatus(gameId, sport)
+      const { events, gameStatus, ruledOutPlayers, boxscorePlayerIds } = await fetchEspnStatsAndStatus(gameId, sport)
       return {
         events: events.map((ev) => ({ ...ev, game_id: gameId })),
         gameStatus,
+        ruledOutPlayers,
+        boxscorePlayerIds,
       }
     } catch (err) {
       console.warn(`statsProvider: ESPN fetch failed for ${gameId}, falling back to mock:`, err.message)
-      return { events: generateMockEvents(gameId), gameStatus: null }
+      return { events: generateMockEvents(gameId), gameStatus: null, ruledOutPlayers: [], boxscorePlayerIds: new Set() }
     }
   }
-  return { events: generateMockEvents(gameId), gameStatus: null }
+  return { events: generateMockEvents(gameId), gameStatus: null, ruledOutPlayers: [], boxscorePlayerIds: new Set() }
 }
 
 export {

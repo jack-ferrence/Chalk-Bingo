@@ -170,6 +170,8 @@ export async function handler() {
     // ── Steps 5–7: Fetch, upsert, mark ──
     let inserted = 0
     let totalCardsMarked = 0
+    // Save full results for Step 7.5 (injury detection) — avoids a second ESPN fetch
+    const gameResults = new Map()
 
     for (const gameId of gameIds) {
       Sentry.setTag('game_id', gameId)
@@ -184,6 +186,7 @@ export async function handler() {
         continue
       }
 
+      gameResults.set(gameId, result)
       const events = result.events ?? []
       const gameStatus = result.gameStatus ?? null
       log.push(`game_id=${gameId} got ${events.length} events`)
@@ -255,6 +258,161 @@ export async function handler() {
 
     log.push(`Inserted ${inserted} new events; cards updated: ${totalCardsMarked}`)
 
+    // ── Step 7.5: Handle confirmed mid-game injuries ──────────────────────────
+    // Only acts on players ESPN has definitively removed from the game.
+    // Two confirmation paths:
+    //   PATH 1 — ESPN sets didNotPlay=true on a player who previously had stats
+    //   PATH 2 — Player disappears from boxscore entirely for 3+ consecutive cycles
+    // We never guess; ambiguous cases (bench, 0 stats, 1-2 missing cycles) are left alone.
+    let injuryReplacements = 0
+
+    for (const gameId of gameIds) {
+      const result = gameResults.get(gameId)
+      if (!result) continue
+
+      const ruledOutPlayers   = result.ruledOutPlayers   ?? []
+      const boxscorePlayerIds = result.boxscorePlayerIds ?? new Set()
+
+      const { data: liveRooms } = await supabase
+        .from('rooms')
+        .select('id, game_id, odds_pool, player_count_at_lock, injury_replaced_player_ids, missing_player_counts')
+        .eq('game_id', gameId)
+        .eq('status', 'live')
+
+      if (!liveRooms?.length) continue
+
+      // Players who have ever produced a stat event in this game are "known active"
+      const { data: knownPlayerEvents } = await supabase
+        .from('stat_events')
+        .select('player_id')
+        .eq('game_id', gameId)
+      const knownPlayerIds = new Set((knownPlayerEvents ?? []).map(e => e.player_id))
+
+      for (const room of liveRooms) {
+        const alreadyReplaced = new Set(room.injury_replaced_player_ids ?? [])
+        const missingCounts   = { ...(room.missing_player_counts ?? {}) }
+
+        // PATH 1: ESPN explicitly flagged didNotPlay=true — immediate, no delay needed
+        const espnConfirmed = ruledOutPlayers
+          .map(p => p.id)
+          // Only treat as mid-game injury if we've seen stats from them before
+          .filter(id => knownPlayerIds.has(id) && !alreadyReplaced.has(id))
+
+        // PATH 2: Player with prior stats has vanished from boxscore entirely
+        const disappeared = [...knownPlayerIds].filter(id =>
+          !boxscorePlayerIds.has(id) && !alreadyReplaced.has(id)
+        )
+        for (const id of disappeared) {
+          missingCounts[id] = (missingCounts[id] ?? 0) + 1
+        }
+        // Reset counter for any players who reappeared
+        for (const id of Object.keys(missingCounts)) {
+          if (boxscorePlayerIds.has(id)) delete missingCounts[id]
+        }
+        const disappearConfirmed = Object.entries(missingCounts)
+          .filter(([, count]) => count >= 3)
+          .map(([id]) => id)
+
+        // Persist updated missing counts (even if no replacements this cycle)
+        await supabase.from('rooms').update({ missing_player_counts: missingCounts }).eq('id', room.id)
+
+        const confirmedOut = [...new Set([...espnConfirmed, ...disappearConfirmed])]
+        if (confirmedOut.length === 0) continue
+
+        log.push(`game ${gameId}: ${confirmedOut.length} player(s) confirmed out — [${confirmedOut.join(', ')}]`)
+
+        // Build current stat totals per player (for progress-matching)
+        const { data: allStatEvents } = await supabase
+          .from('stat_events')
+          .select('player_id, stat_type, value')
+          .eq('game_id', gameId)
+
+        const currentStats = new Map()
+        for (const ev of (allStatEvents ?? [])) {
+          if (!currentStats.has(ev.player_id)) currentStats.set(ev.player_id, {})
+          const ps  = currentStats.get(ev.player_id)
+          const val = Number(ev.value) || 0
+          if (!ps[ev.stat_type] || val > ps[ev.stat_type]) ps[ev.stat_type] = val
+        }
+
+        // Active = present in boxscore, not confirmed out, not previously replaced
+        const activePlayerIds = new Set(
+          [...boxscorePlayerIds].filter(id => !confirmedOut.includes(id) && !alreadyReplaced.has(id))
+        )
+
+        const { data: cards } = await supabase
+          .from('cards')
+          .select('id, squares')
+          .eq('room_id', room.id)
+
+        const oddsPool = room.odds_pool ?? []
+
+        for (const card of (cards ?? [])) {
+          const squares = card.squares ?? []
+          let changed = false
+          const newSquares = [...squares]
+          const usedKeys = new Set(
+            squares
+              .filter(s => s?.stat_type !== 'free' && s?.conflict_key)
+              .map(s => s.conflict_key)
+          )
+
+          for (let i = 0; i < 25; i++) {
+            const sq = squares[i]
+            if (!sq || i === 12 || sq.stat_type === 'free') continue
+            if (sq.marked === true) continue
+            if (!confirmedOut.includes(sq.player_id)) continue
+
+            const injuredStats  = currentStats.get(sq.player_id) ?? {}
+            const currentValue  = injuredStats[sq.stat_type] ?? 0
+            const threshold     = sq.threshold ?? 1
+            const progress      = threshold > 0 ? currentValue / threshold : 0
+
+            const replacement = findProgressMatchedReplacement(
+              oddsPool, usedKeys, activePlayerIds, confirmedOut, currentStats, progress
+            )
+
+            if (replacement) {
+              newSquares[i] = {
+                id:            sq.id,
+                player_id:     replacement.player_id,
+                player_name:   replacement.player_name,
+                stat_type:     replacement.stat_type,
+                threshold:     replacement.threshold,
+                display_text:  replacement.display_text,
+                american_odds: replacement.american_odds,
+                implied_prob:  replacement.implied_prob,
+                tier:          replacement.tier,
+                conflict_key:  replacement.conflict_key,
+                marked:        false,
+                replaced_injury: true,
+              }
+              usedKeys.add(replacement.conflict_key)
+              changed = true
+              injuryReplacements++
+            }
+          }
+
+          if (changed) {
+            await supabase.from('cards').update({ squares: newSquares }).eq('id', card.id)
+          }
+        }
+
+        // Mark these players as processed so we don't re-replace next cycle
+        const newReplacedIds = [...new Set([...alreadyReplaced, ...confirmedOut])]
+        for (const id of confirmedOut) delete missingCounts[id]
+
+        await supabase.from('rooms').update({
+          injury_replaced_player_ids: newReplacedIds,
+          missing_player_counts:      missingCounts,
+        }).eq('id', room.id)
+      }
+    }
+
+    if (injuryReplacements > 0) {
+      log.push(`injury replacements: ${injuryReplacements} square(s) replaced`)
+    }
+
     // ── Step 8: Auto-finish rooms whose ESPN game is over ──
     let autoFinished = 0
     for (const gameId of gameIds) {
@@ -312,6 +470,47 @@ export async function handler() {
     await releaseLock(supabase).catch(() => {})
     return { statusCode: 500, body: JSON.stringify({ error: err.message }) }
   }
+}
+
+/**
+ * Find the best replacement prop for an injured player's square.
+ *
+ * Prefers active props whose current completion progress (currentValue/threshold)
+ * is closest to the injured player's progress, so the replacement is fair:
+ * - Neither an almost-completed freebie nor an impossible longshot
+ *
+ * Tiers: ±15% diff first, then ±30%, then closest regardless.
+ *
+ * @param {Array}  pool           - room's odds_pool (matched props)
+ * @param {Set}    usedKeys       - conflict keys already on this card
+ * @param {Set}    activePlayerIds - ESPN player IDs currently in the game
+ * @param {Array}  confirmedOutIds - player IDs confirmed ruled out this cycle
+ * @param {Map}    currentStats   - player_id → { stat_type: currentValue }
+ * @param {number} targetProgress - 0-1 ratio (injured player's current/threshold)
+ * @returns {Object|null} best candidate prop, or null if none available
+ */
+function findProgressMatchedReplacement(pool, usedKeys, activePlayerIds, confirmedOutIds, currentStats, targetProgress) {
+  const candidates = pool.filter(p =>
+    activePlayerIds.has(p.player_id) &&
+    !confirmedOutIds.includes(p.player_id) &&
+    !usedKeys.has(p.conflict_key)
+  )
+  if (candidates.length === 0) return null
+
+  const withProgress = candidates.map(p => {
+    const ps           = currentStats.get(p.player_id) ?? {}
+    const currentValue = ps[p.stat_type] ?? 0
+    const threshold    = p.threshold ?? 1
+    const progress     = threshold > 0 ? currentValue / threshold : 0
+    return { ...p, progress, progressDiff: Math.abs(progress - targetProgress) }
+  })
+  withProgress.sort((a, b) => a.progressDiff - b.progressDiff)
+
+  const tight  = withProgress.filter(p => p.progressDiff <= 0.15)
+  if (tight.length  > 0) return tight[0]
+  const medium = withProgress.filter(p => p.progressDiff <= 0.30)
+  if (medium.length > 0) return medium[0]
+  return withProgress[0] ?? null
 }
 
 async function releaseLock(supabase) {

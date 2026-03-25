@@ -190,6 +190,16 @@ const BingoSquare = memo(function BingoSquare({
         </span>
       )}
 
+      {/* Injury replacement indicator */}
+      {square?.replaced_injury && (
+        <span
+          title="Replaced — player ruled out"
+          style={{ position: 'absolute', top: 2, left: 2, fontSize: 7, color: '#ff6b35', opacity: 0.6 }}
+        >
+          ♻
+        </span>
+      )}
+
       {/* Tier difficulty dot — shown on odds-based cards */}
       {tierColor && (
         <span
