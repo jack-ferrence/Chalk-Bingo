@@ -19,11 +19,19 @@
  */
 
 import { createClient } from '@supabase/supabase-js'
+import { generateOddsBasedCard } from '../../src/game/oddsCardGenerator.js'
 
 const ODDS_API_BASE = 'https://api.the-odds-api.com/v4'
 const SPORT_KEY_MAP = { nba: 'basketball_nba', ncaa: 'basketball_ncaab' }
 const VIG_FACTOR = 1.05
 const MIN_UNIQUE_CONFLICT_KEYS = 16  // need 16+ distinct player+stat combos for a full card
+const LOCK_WINDOW_MS = 10 * 60 * 1000  // lock cards T-10 minutes before tip-off
+
+function difficultyProfileName(playerCount) {
+  if (playerCount <= 4)  return 'easy'
+  if (playerCount <= 12) return 'standard'
+  return 'hard'
+}
 
 // All markets in one string — TheOddsAPI counts a single /events/{id}/odds call
 // regardless of how many markets are requested, so combining saves API budget.
@@ -534,7 +542,7 @@ export async function handler() {
 
   const { data: rooms, error: roomsErr } = await supabase
     .from('rooms')
-    .select('id, game_id, sport, name, starts_at, odds_pool, odds_updated_at, odds_status, oddsapi_event_id')
+    .select('id, game_id, sport, name, starts_at, odds_pool, odds_updated_at, odds_status, oddsapi_event_id, cards_locked, difficulty_profile')
     .eq('room_type', 'public')
     .eq('status', 'lobby')
 
@@ -645,7 +653,8 @@ export async function handler() {
         .eq('id', room.id)
 
       // Reconcile existing cards if this is an update (not first-time load)
-      if (hadPreviousPool) {
+      // Skip reconciliation once cards are locked — the T-10 snapshot is authoritative
+      if (hadPreviousPool && !room.cards_locked) {
         await reconcileCards(supabase, room.id, matched)
       }
 
@@ -657,10 +666,77 @@ export async function handler() {
     }
   }
 
+  // ── T-10 card lock pass ──────────────────────────────────────────────────────
+  // For every lobby room that is within 10 minutes of tip-off and not yet locked,
+  // snapshot cards with a difficulty-appropriate profile, then mark the room locked.
+  const { data: lockableRooms } = await supabase
+    .from('rooms')
+    .select('id, game_id, starts_at, odds_pool, difficulty_profile')
+    .eq('room_type', 'public')
+    .eq('status', 'lobby')
+    .eq('cards_locked', false)
+    .eq('odds_status', 'ready')
+
+  let locked = 0
+  for (const lRoom of lockableRooms ?? []) {
+    const startsAt = lRoom.starts_at ? new Date(lRoom.starts_at) : null
+    if (!startsAt) continue
+    const msUntil = startsAt - now
+    // Only lock rooms in the window: from T-10 down to T+1 min (small grace)
+    if (msUntil > LOCK_WINDOW_MS || msUntil < -60_000) continue
+
+    const oddsPool = lRoom.odds_pool ?? []
+    if (oddsPool.length < 24) continue
+
+    // Count current participants to determine difficulty
+    const { count: playerCount } = await supabase
+      .from('room_participants')
+      .select('*', { count: 'exact', head: true })
+      .eq('room_id', lRoom.id)
+
+    const profile = difficultyProfileName(playerCount ?? 0)
+
+    // Fetch all cards for this room
+    const { data: cards } = await supabase
+      .from('cards')
+      .select('id, squares')
+      .eq('room_id', lRoom.id)
+
+    let regenCount = 0
+    for (const card of cards ?? []) {
+      const newSquares = generateOddsBasedCard(oddsPool, profile)
+      if (!newSquares) continue
+      // Preserve marked state from existing squares where possible
+      const existing = Array.isArray(card.squares?.[0]) ? card.squares.flat() : (card.squares ?? [])
+      const markedIds = new Set(existing.filter(s => s?.marked && s?.stat_type !== 'free').map(s => s?.display_text))
+      const merged = newSquares.map(sq =>
+        sq.stat_type !== 'free' && markedIds.has(sq.display_text)
+          ? { ...sq, marked: true }
+          : sq
+      )
+      await supabase.from('cards').update({ squares: merged }).eq('id', card.id)
+      regenCount++
+    }
+
+    // Lock the room
+    await supabase
+      .from('rooms')
+      .update({
+        cards_locked: true,
+        difficulty_profile: profile,
+        player_count_at_lock: playerCount ?? 0,
+        locked_at: now.toISOString(),
+      })
+      .eq('id', lRoom.id)
+
+    locked++
+    log.push(`${lRoom.game_id}: locked T-${Math.round(msUntil / 60_000)}min — ${profile} (${playerCount} players, ${regenCount} cards)`)
+  }
+
   console.log('refresh-odds:', log.join(' | '))
   return {
     statusCode: 200,
-    body: JSON.stringify({ refreshed, processed, apiCallsMade: ctx.apiCallsMade, total: rooms?.length ?? 0, log }),
+    body: JSON.stringify({ refreshed, processed, locked, apiCallsMade: ctx.apiCallsMade, total: rooms?.length ?? 0, log }),
     headers: { 'Content-Type': 'application/json' },
   }
 }

@@ -37,6 +37,7 @@ exports.handler = async function () {
       .from('rooms')
       .update({ status: 'finished' })
       .in('status', ['lobby', 'live'])
+      .lt('starts_at', new Date().toISOString())
       .select('id')
 
     if (forceErr) {

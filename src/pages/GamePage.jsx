@@ -209,7 +209,7 @@ function GamePage() {
       }
 
       try {
-        const oddsCard = generateOddsBasedCard(roomOddsPool)
+        const oddsCard = generateOddsBasedCard(roomOddsPool, room.difficulty_profile ?? 'standard')
         if (oddsCard) {
           const { data: savedCard, error: saveError } = await supabase
             .from('cards')

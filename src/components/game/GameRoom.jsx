@@ -162,7 +162,7 @@ function GameRoom({
 
   const handleSwapRequest = useCallback((square, squareIndex) => {
     if (!square || swapCount >= 2) return
-    const candidates = findSwapCandidates(square, oddsPool, flatSquares, 5)
+    const candidates = findSwapCandidates(square, oddsPool, flatSquares, 5, room?.difficulty_profile ?? 'standard')
     setSwapTarget({ square, index: squareIndex, candidates })
     setSwapModalOpen(true)
     setSwapError('')
@@ -301,6 +301,53 @@ function GameRoom({
           <Badge variant={statusVariant} pulse={room?.status === 'live'}>
             {statusLabel}
           </Badge>
+          {room?.difficulty_profile && room.difficulty_profile !== 'standard' && (
+            <span
+              style={{
+                fontFamily: 'var(--db-font-mono)',
+                fontSize: 9,
+                fontWeight: 700,
+                letterSpacing: '0.08em',
+                padding: '2px 6px',
+                borderRadius: 3,
+                background: room.difficulty_profile === 'easy'
+                  ? 'rgba(34,197,94,0.15)'
+                  : 'rgba(239,68,68,0.15)',
+                color: room.difficulty_profile === 'easy' ? '#22c55e' : '#ef4444',
+                border: `1px solid ${room.difficulty_profile === 'easy' ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                textTransform: 'uppercase',
+              }}
+            >
+              {room.difficulty_profile}
+            </span>
+          )}
+          {room?.cards_locked && room?.status === 'lobby' && (
+            <span
+              style={{
+                fontFamily: 'var(--db-font-mono)',
+                fontSize: 9,
+                color: '#ff6b35',
+                letterSpacing: '0.06em',
+              }}
+            >
+              {room.player_count_at_lock != null
+                ? `Locked · ${room.player_count_at_lock} players`
+                : 'Locked'}
+            </span>
+          )}
+          {!room?.cards_locked && room?.status === 'lobby' && room?.player_count_at_lock == null && (
+            <span
+              className="hidden sm:inline"
+              style={{
+                fontFamily: 'var(--db-font-mono)',
+                fontSize: 9,
+                color: '#3a3a55',
+                letterSpacing: '0.06em',
+              }}
+            >
+              {/* participant count shown here if we had it — omitted until lock */}
+            </span>
+          )}
           {room?.status === 'lobby' && room?.starts_at && (
             <span className="hidden text-[10px] text-text-muted sm:inline">
               {countdown.isExpired
