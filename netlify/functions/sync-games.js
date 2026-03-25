@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { fetchRoster, fetchOddsForRoom, matchOddsToRoster, MIN_UNIQUE_CONFLICT_KEYS } from './lib/odds-utils.js'
 
 const ESPN_SCOREBOARD_NBA = 'https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard'
 const ESPN_SCOREBOARD_NCAA = 'https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?groups=100&limit=100'
@@ -21,8 +22,9 @@ const ESPN_SCOREBOARD_NCAA = 'https://site.api.espn.com/apis/site/v2/sports/bask
  *   SUPABASE_SERVICE_ROLE_KEY — service role key (bypasses RLS)
  */
 export async function handler() {
-  const url = process.env.SUPABASE_URL
+  const url        = process.env.SUPABASE_URL
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const apiKey     = process.env.ODDS_API_KEY || ''
 
   const missing = []
   if (!url) missing.push('SUPABASE_URL')
@@ -34,6 +36,8 @@ export async function handler() {
   }
 
   const supabase = createClient(url, serviceKey)
+  // Invocation-scoped context shared across odds fetches (event list cache)
+  const ctx = { eventListCache: new Map(), apiCallsMade: 0 }
   const log = []
 
   // ── Step 1: Build today + tomorrow date strings ──
@@ -167,6 +171,58 @@ export async function handler() {
       created++
       log.push(`created room for ${game.id} (${game.roomName}) [${game.sport}]`)
       console.log(`sync-games: created public room for game ${game.id} — ${game.roomName} [${game.sport}]`)
+
+      // Immediately fetch odds so the room is card-ready from the start
+      if (apiKey) {
+        try {
+          const roster = await fetchRoster(game.id, game.sport)
+          if (roster.length > 0) {
+            const { props, eventId } = await fetchOddsForRoom(
+              { name: game.roomName, sport: game.sport, oddsapi_event_id: null },
+              apiKey,
+              ctx,
+              supabase,
+            )
+
+            if (props.length > 0) {
+              const matched = matchOddsToRoster(props, roster)
+              const uniqueKeys = new Set(matched.map(p => p.conflict_key))
+
+              const updatePayload = { odds_updated_at: new Date().toISOString() }
+              if (eventId) updatePayload.oddsapi_event_id = eventId
+
+              if (uniqueKeys.size >= MIN_UNIQUE_CONFLICT_KEYS) {
+                updatePayload.odds_pool   = matched
+                updatePayload.odds_status = 'ready'
+                log.push(`${game.id}: odds ready (${matched.length} lines, ${uniqueKeys.size} combos)`)
+              } else {
+                updatePayload.odds_status = 'insufficient'
+                log.push(`${game.id}: insufficient odds (${uniqueKeys.size} combos)`)
+              }
+
+              // Re-query the room we just created to get its ID
+              const { data: newRoom } = await supabase
+                .from('rooms')
+                .select('id')
+                .eq('game_id', game.id)
+                .eq('sport', game.sport)
+                .eq('room_type', 'public')
+                .eq('status', 'lobby')
+                .maybeSingle()
+
+              if (newRoom) {
+                await supabase.from('rooms').update(updatePayload).eq('id', newRoom.id)
+              }
+            } else {
+              log.push(`${game.id}: no odds available yet`)
+            }
+          }
+        } catch (oddsErr) {
+          // Non-fatal — room exists, refresh-odds will retry at T-4h window
+          log.push(`${game.id}: odds fetch failed (${oddsErr.message}) — will retry`)
+          console.warn(`sync-games: odds fetch failed for ${game.id}:`, oddsErr.message)
+        }
+      }
     }
   }
 
