@@ -20,27 +20,13 @@ export function useHomeData() {
     setError(null)
 
     try {
-      // midnight Pacific = 08:00 UTC; if we're before that hour, "today" started yesterday
-      const todayStart = new Date()
-      todayStart.setUTCHours(8, 0, 0, 0)
-      if (todayStart > new Date()) {
-        todayStart.setUTCDate(todayStart.getUTCDate() - 1)
-      }
-      const todayCutoff = todayStart.toISOString()
-
-      const [liveAndLobbyResult, todayFinishedResult, participantsResult] = await Promise.all([
+      // Step 1: Fetch lobby/live rooms + user's participations in parallel
+      const [liveAndLobbyResult, participantsResult] = await Promise.all([
         supabase
           .from('rooms_with_counts')
           .select('*')
           .eq('room_type', 'public')
           .in('status', ['lobby', 'live'])
-          .order('starts_at', { ascending: true, nullsFirst: false }),
-        supabase
-          .from('rooms_with_counts')
-          .select('*')
-          .eq('room_type', 'public')
-          .eq('status', 'finished')
-          .gte('starts_at', todayCutoff)
           .order('starts_at', { ascending: true, nullsFirst: false }),
         user
           ? supabase
@@ -51,39 +37,60 @@ export function useHomeData() {
       ])
 
       if (liveAndLobbyResult.error) throw liveAndLobbyResult.error
-      if (todayFinishedResult.error) throw todayFinishedResult.error
 
+      const participantData = participantsResult.data ?? []
+      const joinedIds = participantData.map((p) => p.room_id)
+
+      // Step 2: Fetch only the user's finished rooms from the last 2 days
+      let myFinishedRooms = []
+      if (user && joinedIds.length > 0) {
+        const twoDaysAgo = new Date()
+        twoDaysAgo.setUTCDate(twoDaysAgo.getUTCDate() - 2)
+
+        const { data: finishedData, error: finishedErr } = await supabase
+          .from('rooms_with_counts')
+          .select('*')
+          .eq('room_type', 'public')
+          .eq('status', 'finished')
+          .in('id', joinedIds)
+          .gte('starts_at', twoDaysAgo.toISOString())
+          .order('starts_at', { ascending: false })
+          .limit(20)
+
+        if (finishedErr) {
+          console.warn('useHomeData: finished rooms query failed', finishedErr)
+        } else {
+          myFinishedRooms = finishedData ?? []
+        }
+      }
+
+      // Combine: joinable rooms + user's finished rooms
       const allRoomsData = [
         ...(liveAndLobbyResult.data ?? []),
-        ...(todayFinishedResult.data ?? []),
+        ...myFinishedRooms,
       ]
       setAllRooms(allRoomsData)
 
-      const participantData = participantsResult.data ?? []
-      if (user && participantData.length > 0) {
-        const joinedIds = participantData.map((p) => p.room_id)
+      // Build myRooms for sidebar (active + user's finished)
+      if (user && joinedIds.length > 0) {
+        const activeJoinedRooms = (liveAndLobbyResult.data ?? []).filter((r) =>
+          joinedIds.includes(r.id)
+        )
+        const allJoined = [...activeJoinedRooms, ...myFinishedRooms]
 
-        const [myRoomsResult, cardsResult] = await Promise.all([
-          supabase
-            .from('rooms_with_counts')
-            .select('*')
-            .in('id', joinedIds)
-            .in('status', ['lobby', 'live', 'finished'])
-            .order('starts_at', { ascending: false }),
-          supabase
-            .from('cards')
-            .select('room_id, lines_completed, squares_marked')
-            .eq('user_id', user.id)
-            .in('room_id', joinedIds),
-        ])
+        const { data: cardsData } = await supabase
+          .from('cards')
+          .select('room_id, lines_completed, squares_marked')
+          .eq('user_id', user.id)
+          .in('room_id', joinedIds)
 
         const cardsByRoom = {}
-        for (const card of cardsResult.data ?? []) {
+        for (const card of cardsData ?? []) {
           cardsByRoom[card.room_id] = card
         }
 
         setMyRooms(
-          (myRoomsResult.data ?? []).map((room) => ({
+          allJoined.map((room) => ({
             ...room,
             lines_completed: cardsByRoom[room.id]?.lines_completed ?? 0,
             squares_marked: cardsByRoom[room.id]?.squares_marked ?? 0,

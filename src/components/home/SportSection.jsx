@@ -104,38 +104,30 @@ function GameCardItems({ games, joinedRoomIds, joiningRoomId, onJoin, onContinue
 }
 
 function SliderWithDays({ games, joinedRoomIds, joiningRoomId, onJoin, onContinue }) {
-  const byStartTime = (a, b) => new Date(a.starts_at) - new Date(b.starts_at)
-  const todayGames    = games.filter((g) => getDayLabel(g.starts_at) === 'today').sort(byStartTime)
-  const tomorrowGames = games.filter((g) => getDayLabel(g.starts_at) === 'tomorrow').sort(byStartTime)
-  const futureGames   = games.filter((g) => getDayLabel(g.starts_at) === 'future').sort(byStartTime)
+  const byStartTime     = (a, b) => new Date(a.starts_at) - new Date(b.starts_at)
+  const byStartTimeDesc = (a, b) => new Date(b.starts_at) - new Date(a.starts_at)
+
+  const joinable = games.filter((g) => g.status === 'live' || g.status === 'lobby')
+  const finished = games.filter((g) => g.status === 'finished')
+
+  const liveGames     = joinable.filter((g) => g.status === 'live').sort(byStartTime)
+  const todayLobby    = joinable.filter((g) => g.status === 'lobby' && getDayLabel(g.starts_at) === 'today').sort(byStartTime)
+  const tomorrowLobby = joinable.filter((g) => g.status === 'lobby' && getDayLabel(g.starts_at) === 'tomorrow').sort(byStartTime)
+  const futureLobby   = joinable.filter((g) => g.status === 'lobby' && getDayLabel(g.starts_at) === 'future').sort(byStartTime)
+  const recentFinished = finished.sort(byStartTimeDesc)
 
   const todayDateStr    = fmtDate(todayPacific())
   const tomorrowDateStr = fmtDate(tomorrowPacific())
 
-  const showLabels = tomorrowGames.length > 0 || futureGames.length > 0
-
-  if (!showLabels) {
-    // All games are today — no separators needed
-    return (
-      <HorizontalSlider>
-        <GameCardItems
-          games={games}
-          joinedRoomIds={joinedRoomIds}
-          joiningRoomId={joiningRoomId}
-          onJoin={onJoin}
-          onContinue={onContinue}
-        />
-      </HorizontalSlider>
-    )
-  }
+  const hasMultipleDays = tomorrowLobby.length > 0 || futureLobby.length > 0
+  const hasFinished     = recentFinished.length > 0
 
   return (
     <HorizontalSlider>
-      {/* TODAY section */}
-      <DaySeparator label="TODAY" sub={todayGames.length === 0 ? 'NO GAMES' : todayDateStr} />
-      {todayGames.length > 0 && (
+      {/* LIVE — always first */}
+      {liveGames.length > 0 && (
         <GameCardItems
-          games={todayGames}
+          games={liveGames}
           joinedRoomIds={joinedRoomIds}
           joiningRoomId={joiningRoomId}
           onJoin={onJoin}
@@ -143,12 +135,14 @@ function SliderWithDays({ games, joinedRoomIds, joiningRoomId, onJoin, onContinu
         />
       )}
 
-      {/* TOMORROW section */}
-      {tomorrowGames.length > 0 && (
+      {/* TODAY's lobby */}
+      {todayLobby.length > 0 && (
         <>
-          <DaySeparator label="TOMORROW" sub={tomorrowDateStr} />
+          {(liveGames.length > 0 || hasMultipleDays) && (
+            <DaySeparator label="TODAY" sub={todayDateStr} />
+          )}
           <GameCardItems
-            games={tomorrowGames}
+            games={todayLobby}
             joinedRoomIds={joinedRoomIds}
             joiningRoomId={joiningRoomId}
             onJoin={onJoin}
@@ -157,21 +151,57 @@ function SliderWithDays({ games, joinedRoomIds, joiningRoomId, onJoin, onContinu
         </>
       )}
 
-      {/* UPCOMING section */}
-      {futureGames.length > 0 && (
+      {/* TOMORROW's lobby */}
+      {tomorrowLobby.length > 0 && (
         <>
-          <DaySeparator
-            label="UPCOMING"
-            sub={futureGames[0]?.starts_at ? fmtDate(pacificDateStr(new Date(futureGames[0].starts_at))) : ''}
-          />
+          <DaySeparator label="TOMORROW" sub={tomorrowDateStr} />
           <GameCardItems
-            games={futureGames}
+            games={tomorrowLobby}
             joinedRoomIds={joinedRoomIds}
             joiningRoomId={joiningRoomId}
             onJoin={onJoin}
             onContinue={onContinue}
           />
         </>
+      )}
+
+      {/* FUTURE lobby */}
+      {futureLobby.length > 0 && (
+        <>
+          <DaySeparator
+            label="UPCOMING"
+            sub={fmtDate(pacificDateStr(new Date(futureLobby[0].starts_at)))}
+          />
+          <GameCardItems
+            games={futureLobby}
+            joinedRoomIds={joinedRoomIds}
+            joiningRoomId={joiningRoomId}
+            onJoin={onJoin}
+            onContinue={onContinue}
+          />
+        </>
+      )}
+
+      {/* MY RESULTS — user's finished games only */}
+      {hasFinished && (
+        <>
+          <DaySeparator
+            label="MY RESULTS"
+            sub={`${recentFinished.length} game${recentFinished.length === 1 ? '' : 's'}`}
+          />
+          <GameCardItems
+            games={recentFinished}
+            joinedRoomIds={joinedRoomIds}
+            joiningRoomId={joiningRoomId}
+            onJoin={onJoin}
+            onContinue={onContinue}
+          />
+        </>
+      )}
+
+      {/* Empty state */}
+      {joinable.length === 0 && !hasFinished && (
+        <DaySeparator label="NO GAMES" sub="Check back later" />
       )}
     </HorizontalSlider>
   )
@@ -304,13 +334,13 @@ export default function SportSection({
           className="rounded-xl px-6 py-8 text-center"
           style={{ border: '1px dashed #2a2a44', background: 'rgba(0,0,0,0.015)' }}
         >
-          <p className="text-sm" style={{ color: '#555577' }}>No upcoming games. Check back tomorrow!</p>
+          <p className="text-sm" style={{ color: '#555577' }}>No games available. Check back later!</p>
         </div>
-      ) : !hasUpcoming ? (
+      ) : !hasUpcoming && games.length > 0 ? (
         <>
           <div className="mb-3 px-1">
             <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, color: '#555577' }}>
-              No upcoming games right now — showing today's results below.
+              No upcoming games right now — showing your recent results.
             </p>
           </div>
           <SliderWithDays
