@@ -48,6 +48,21 @@ function GamePage() {
     setCard((prev) => (prev ? { ...prev, ...cardPatch } : prev))
   }, [cardPatch])
 
+  // Reset all game-specific state when switching rooms so the old card
+  // never shows while the new room/card is loading
+  useEffect(() => {
+    setRoom(null)
+    setCard(null)
+    setRosterPlayers(null)
+    setOddsPool([])
+    setError('')
+    setRetryCount(0)
+    setLoadingRoom(true)
+    setLoadingCard(true)
+    setGameStartedNotification(false)
+    prevStatusRef.current = null
+  }, [roomId])
+
   // Load room
   useEffect(() => {
     if (!roomId) return
