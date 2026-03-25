@@ -389,13 +389,13 @@ BEGIN
 
   CASE v_item.category
     WHEN 'name_color' THEN
-      UPDATE profiles SET name_color = COALESCE(v_item.metadata->>'hex', v_item.value) WHERE id = v_uid;
+      UPDATE profiles SET name_color = COALESCE(v_item.metadata->>'hex', v_item.value, p_item_id) WHERE id = v_uid;
     WHEN 'name_font' THEN
-      UPDATE profiles SET name_font = COALESCE(v_item.metadata->>'font', v_item.value) WHERE id = v_uid;
+      UPDATE profiles SET name_font = COALESCE(v_item.metadata->>'font', v_item.value, p_item_id) WHERE id = v_uid;
     WHEN 'badge' THEN
       UPDATE profiles SET equipped_badge = p_item_id WHERE id = v_uid;
     WHEN 'board_skin' THEN
-      UPDATE profiles SET board_skin = COALESCE(v_item.metadata->>'class', v_item.value) WHERE id = v_uid;
+      UPDATE profiles SET board_skin = COALESCE(v_item.metadata->>'class', v_item.value, p_item_id) WHERE id = v_uid;
     ELSE
       RETURN jsonb_build_object('success', false, 'reason', 'not_equippable');
   END CASE;
