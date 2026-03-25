@@ -812,7 +812,7 @@ function PreferencesTab() {
         {[
           { label: 'Version',           right: <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 12, color: '#e0e0f0', fontWeight: 700 }}>0.1.0-beta</span> },
           { label: 'How to Play',       right: <Link to="/"    style={{ fontFamily: 'var(--db-font-mono)', fontSize: 12, color: '#ff6b35', textDecoration: 'none' }}>View →</Link> },
-          { label: 'Contact Support',   right: <a href="mailto:support@dabber.gg" style={{ fontFamily: 'var(--db-font-mono)', fontSize: 12, color: '#ff6b35', textDecoration: 'none' }}>support@dabber.gg</a> },
+          { label: 'Contact Support',   right: <a href="mailto:ferrencesup@gmail.com" style={{ fontFamily: 'var(--db-font-mono)', fontSize: 12, color: '#ff6b35', textDecoration: 'none' }}>ferrencesup@gmail.com</a> },
           { label: 'Terms of Service',  right: <Link to="/"    style={{ fontFamily: 'var(--db-font-mono)', fontSize: 12, color: '#ff6b35', textDecoration: 'none' }}>View →</Link> },
           { label: 'Privacy Policy',    right: <Link to="/"    style={{ fontFamily: 'var(--db-font-mono)', fontSize: 12, color: '#ff6b35', textDecoration: 'none' }}>View →</Link> },
         ].map(({ label, right }) => (
