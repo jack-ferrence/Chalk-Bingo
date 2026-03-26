@@ -101,8 +101,8 @@ export async function handler() {
     let refreshReason = ''
 
     if (room.odds_status === 'pending' || room.odds_status === 'insufficient') {
-      // Never got odds — retry within 4h of tipoff (odds may not exist further out)
-      if (msUntilStart <= 4 * 60 * 60 * 1000) {
+      // Always try to fetch odds for rooms without them, up to 24h before tipoff
+      if (msUntilStart <= 24 * 60 * 60 * 1000) {
         needsRefresh = true
         refreshReason = 'retry_missing'
       }

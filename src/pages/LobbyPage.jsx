@@ -7,6 +7,44 @@ import SportSection from '../components/home/SportSection.jsx'
 import JoinConfirmModal from '../components/home/JoinConfirmModal.jsx'
 import JoinAllConfirmModal from '../components/home/JoinAllConfirmModal.jsx'
 import TopPlayers from '../components/home/TopPlayers.jsx'
+import { generateOddsBasedCard } from '../game/oddsCardGenerator.js'
+
+/**
+ * Pre-generate a card for a room the player just joined.
+ * Fetches odds_pool directly so it works regardless of what useHomeData includes.
+ * Non-blocking — if it fails, GamePage will generate on first visit.
+ */
+async function preGenerateCard(roomId, userId) {
+  try {
+    const { data: room } = await supabase
+      .from('rooms')
+      .select('odds_status, odds_pool, participant_count')
+      .eq('id', roomId)
+      .maybeSingle()
+
+    if (!room || room.odds_status !== 'ready' || !room.odds_pool?.length) return
+    if (room.odds_pool.length < 24) return
+
+    const { data: existing } = await supabase
+      .from('cards')
+      .select('id')
+      .eq('room_id', roomId)
+      .eq('user_id', userId)
+      .maybeSingle()
+
+    if (existing) return
+
+    const playerCount = room.participant_count ?? 1
+    const card = generateOddsBasedCard(room.odds_pool, playerCount)
+    if (!card) return
+
+    await supabase
+      .from('cards')
+      .insert({ room_id: roomId, user_id: userId, squares: card })
+  } catch (err) {
+    console.warn('[LobbyPage] preGenerateCard failed:', err.message)
+  }
+}
 
 const SPORT_SECTIONS = [
   { sport: 'nba',  label: '🏀 NBA' },
@@ -97,6 +135,10 @@ export default function LobbyPage() {
     setJoiningRoomId(null)
 
     if (err) { setJoinError(err.message); return }
+
+    // Pre-generate card before navigating so late-entry check can't block the player
+    await preGenerateCard(roomId, user.id)
+
     navigate(`/room/${roomId}`)
   }
 
@@ -170,6 +212,9 @@ export default function LobbyPage() {
 
       if (joinErr) {
         failedCount++
+      } else {
+        // Pre-generate card immediately after joining so late-entry check can't block the player
+        await preGenerateCard(room.id, user.id)
       }
     }
 
