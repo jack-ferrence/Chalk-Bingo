@@ -329,6 +329,10 @@ html, body {
    HOME SCREEN — animations & component classes
    ═══════════════════════════════════════════════════════════ */
 
+/* Mobile leaderboard horizontal scroll — hide scrollbar */
+.leaderboard-scroll::-webkit-scrollbar { display: none; }
+.leaderboard-scroll { scrollbar-width: none; }
+
 /* Generic opacity pulse (used by waiting-for-odds placeholder grid) */
 @keyframes pulse {
   0%, 100% { opacity: 1; }

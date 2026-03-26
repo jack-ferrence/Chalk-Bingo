@@ -243,7 +243,7 @@ export default function LobbyPage() {
               className="lobby-title"
               style={{
                 fontFamily: 'var(--db-font-mono)',
-                fontSize: 'clamp(20px, 3vw, 28px)',
+                fontSize: 'clamp(18px, 3vw, 28px)',
                 fontWeight: 800,
                 letterSpacing: '0.10em',
                 lineHeight: 1,
@@ -253,7 +253,7 @@ export default function LobbyPage() {
             >
               Games
             </h1>
-            <p className="mt-1" style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, color: '#3a3a55', letterSpacing: '0.06em' }}>
+            <p className="hidden md:block mt-1" style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, color: '#3a3a55', letterSpacing: '0.06em' }}>
               Live bingo powered by real stats
             </p>
           </div>

@@ -1,5 +1,6 @@
 import GameCard from './GameCard.jsx'
 import HorizontalSlider from '../ui/HorizontalSlider.jsx'
+import MobileGameRow from './MobileGameRow.jsx'
 
 const SKELETON_COUNT = 3
 
@@ -103,6 +104,60 @@ function GameCardItems({ games, joinedRoomIds, joiningRoomId, onJoin, onContinue
     </div>
   ))
 }
+
+// ---------------------------------------------------------------------------
+// Mobile: vertical list with day dividers (mobile-only, hidden md:block)
+// ---------------------------------------------------------------------------
+
+function MobileGameList({ games, joinedRoomIds, joiningRoomId, onJoin, onContinue }) {
+  const byStartTime     = (a, b) => new Date(a.starts_at) - new Date(b.starts_at)
+  const byStartTimeDesc = (a, b) => new Date(b.starts_at) - new Date(a.starts_at)
+
+  const live         = games.filter((g) => g.status === 'live').sort(byStartTime)
+  const todayLobby   = games.filter((g) => g.status === 'lobby' && getDayLabel(g.starts_at) === 'today').sort(byStartTime)
+  const tomorrowLobby = games.filter((g) => g.status === 'lobby' && getDayLabel(g.starts_at) === 'tomorrow').sort(byStartTime)
+  const futureLobby  = games.filter((g) => g.status === 'lobby' && getDayLabel(g.starts_at) === 'future').sort(byStartTime)
+  const finished     = games.filter((g) => g.status === 'finished').sort(byStartTimeDesc)
+
+  const Divider = ({ label }) => (
+    <div style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, fontWeight: 700, color: '#3a3a55', letterSpacing: '0.12em', textTransform: 'uppercase', padding: '6px 0 2px' }}>
+      {label}
+    </div>
+  )
+
+  const Rows = ({ list }) => list.map((room) => (
+    <MobileGameRow
+      key={room.id}
+      room={room}
+      isJoined={joinedRoomIds.has(room.id)}
+      joining={joiningRoomId === room.id}
+      onJoin={onJoin}
+      onContinue={onContinue}
+    />
+  ))
+
+  if (games.length === 0) {
+    return (
+      <div style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, color: '#555577', padding: '12px 0' }}>
+        No games available. Check back later!
+      </div>
+    )
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      {live.length > 0 && <><Divider label="LIVE" /><Rows list={live} /></>}
+      {todayLobby.length > 0 && <><Divider label="TODAY" /><Rows list={todayLobby} /></>}
+      {tomorrowLobby.length > 0 && <><Divider label="TOMORROW" /><Rows list={tomorrowLobby} /></>}
+      {futureLobby.length > 0 && <><Divider label="UPCOMING" /><Rows list={futureLobby} /></>}
+      {finished.length > 0 && <><Divider label="RESULTS" /><Rows list={finished} /></>}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Desktop: horizontal scroll of GameCards
+// ---------------------------------------------------------------------------
 
 function SliderWithDays({ games, joinedRoomIds, joiningRoomId, onJoin, onContinue }) {
   const byStartTime     = (a, b) => new Date(a.starts_at) - new Date(b.starts_at)
@@ -324,27 +379,37 @@ export default function SportSection({
         )}
       </div>
 
-      {/* Content */}
-      {loading ? (
-        <div className="flex gap-4 overflow-x-scroll no-scrollbar pb-3" style={{ scrollSnapType: 'x mandatory' }}>
-          {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
-            <div key={i} className="skeleton-card" style={{ scrollSnapAlign: 'start' }} />
-          ))}
-        </div>
-      ) : games.length === 0 ? (
-        <div
-          className="rounded-xl px-6 py-8 text-center"
-          style={{ border: '1px dashed #2a2a44', background: 'rgba(0,0,0,0.015)' }}
-        >
-          <p className="text-sm" style={{ color: '#555577' }}>No games available. Check back later!</p>
-        </div>
-      ) : !hasUpcoming && games.length > 0 ? (
-        <>
-          <div className="mb-3 px-1">
-            <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, color: '#555577' }}>
-              No upcoming games right now — showing your recent results.
-            </p>
+      {/* ── Desktop content (horizontal scroll cards) ── */}
+      <div className="hidden md:block">
+        {loading ? (
+          <div className="flex gap-4 overflow-x-scroll no-scrollbar pb-3" style={{ scrollSnapType: 'x mandatory' }}>
+            {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
+              <div key={i} className="skeleton-card" style={{ scrollSnapAlign: 'start' }} />
+            ))}
           </div>
+        ) : games.length === 0 ? (
+          <div
+            className="rounded-xl px-6 py-8 text-center"
+            style={{ border: '1px dashed #2a2a44', background: 'rgba(0,0,0,0.015)' }}
+          >
+            <p className="text-sm" style={{ color: '#555577' }}>No games available. Check back later!</p>
+          </div>
+        ) : !hasUpcoming && games.length > 0 ? (
+          <>
+            <div className="mb-3 px-1">
+              <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, color: '#555577' }}>
+                No upcoming games right now — showing your recent results.
+              </p>
+            </div>
+            <SliderWithDays
+              games={games}
+              joinedRoomIds={joinedRoomIds}
+              joiningRoomId={joiningRoomId}
+              onJoin={onJoin}
+              onContinue={onContinue}
+            />
+          </>
+        ) : (
           <SliderWithDays
             games={games}
             joinedRoomIds={joinedRoomIds}
@@ -352,16 +417,27 @@ export default function SportSection({
             onJoin={onJoin}
             onContinue={onContinue}
           />
-        </>
-      ) : (
-        <SliderWithDays
-          games={games}
-          joinedRoomIds={joinedRoomIds}
-          joiningRoomId={joiningRoomId}
-          onJoin={onJoin}
-          onContinue={onContinue}
-        />
-      )}
+        )}
+      </div>
+
+      {/* ── Mobile content (vertical game rows) ── */}
+      <div className="block md:hidden">
+        {loading ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
+              <div key={i} style={{ height: 52, borderRadius: 6, background: '#12121e' }} />
+            ))}
+          </div>
+        ) : (
+          <MobileGameList
+            games={games}
+            joinedRoomIds={joinedRoomIds}
+            joiningRoomId={joiningRoomId}
+            onJoin={onJoin}
+            onContinue={onContinue}
+          />
+        )}
+      </div>
     </section>
   )
 }
