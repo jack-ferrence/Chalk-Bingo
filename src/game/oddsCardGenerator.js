@@ -261,25 +261,32 @@ export function generateOddsBasedCard(matchedProps, playerCount = 5) {
 
   const band = getBand(playerCount)
 
-  // Filter pool to props within the band
-  const inBandPool = matchedProps.filter(p =>
-    p.american_odds != null && isInBand(p.american_odds, band)
-  )
+  // Progressive widening: try the exact band first, then widen in steps,
+  // then fall back to the entire pool. This handles NCAA games with
+  // small prop pools that don't have 24 props in a tight band.
+  const widths = [0, 50, 100, 200, Infinity]
 
-  const uniqueKeys = new Set(inBandPool.map(p => p.conflict_key))
-  if (uniqueKeys.size >= 16) {
-    return buildCard(inBandPool, band.midpoint)
+  for (const extra of widths) {
+    let pool
+    if (extra === Infinity) {
+      // Final fallback: use entire pool, no band filter
+      pool = matchedProps.filter(p => p.american_odds != null)
+    } else {
+      const wideBand = { ...band, low: band.low - extra, high: band.high + extra }
+      pool = matchedProps.filter(p =>
+        p.american_odds != null && isInBand(p.american_odds, wideBand)
+      )
+    }
+
+    const uniqueKeys = new Set(pool.map(p => p.conflict_key))
+    if (uniqueKeys.size < 24) continue
+
+    const card = buildCard(pool, band.midpoint)
+    if (card) return card
   }
 
-  // Not enough props in the tight band — widen by 50 on each side
-  const wideBand = { ...band, low: band.low - 50, high: band.high + 50 }
-  const widePool = matchedProps.filter(p =>
-    p.american_odds != null && isInBand(p.american_odds, wideBand)
-  )
-  const wideKeys = new Set(widePool.map(p => p.conflict_key))
-  if (wideKeys.size < 16) return null
-
-  return buildCard(widePool, band.midpoint)
+  // Truly insufficient — can't build a card at all
+  return null
 }
 
 /**
@@ -315,19 +322,23 @@ export function findSwapCandidates(originalSquare, fullPropPool, currentCardSqua
     if (sq?.display_text) usedDisplayTexts.add(sq.display_text)
   }
 
-  // Candidates must be:
-  // 1. Within the band (same difficulty zone)
-  // 2. Within ±30 of the original square's odds (similar likelihood)
-  // 3. Not already on the card
-  const candidates = fullPropPool.filter(p =>
-    p.american_odds != null &&
-    isInBand(p.american_odds, band) &&
-    Math.abs(p.american_odds - origOdds) <= 30 &&
-    !usedConflictKeys.has(p.conflict_key) &&
-    !usedDisplayTexts.has(p.display_text) &&
-    p.display_text !== originalSquare.display_text
-  )
+  // Progressive odds range: try ±30 first, then widen to ±60, ±100, then any in pool
+  const ranges = [30, 60, 100, Infinity]
 
-  if (candidates.length === 0) return []
-  return shuffle(candidates).slice(0, count)
+  for (const range of ranges) {
+    const candidates = fullPropPool.filter(p => {
+      if (p.american_odds == null) return false
+      if (usedConflictKeys.has(p.conflict_key)) return false
+      if (usedDisplayTexts.has(p.display_text)) return false
+      if (p.display_text === originalSquare.display_text) return false
+      if (range !== Infinity && Math.abs(p.american_odds - origOdds) > range) return false
+      return true
+    })
+
+    if (candidates.length > 0) {
+      return shuffle(candidates).slice(0, count)
+    }
+  }
+
+  return []
 }
