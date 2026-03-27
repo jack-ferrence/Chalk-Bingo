@@ -36,6 +36,60 @@ export const NBA_TEAM_COLORS = {
   DEFAULT: '#475569',
 }
 
+export const MLB_TEAM_COLORS = {
+  ARI: '#A71930', // Diamondbacks
+  ATL: '#CE1141', // Braves
+  BAL: '#DF4601', // Orioles
+  BOS: '#BD3039', // Red Sox
+  CHC: '#0E3386', // Cubs
+  CWS: '#C4CED4', // White Sox silver
+  CIN: '#C6011F', // Reds
+  CLE: '#00385D', // Guardians
+  COL: '#333366', // Rockies
+  DET: '#0C2340', // Tigers
+  HOU: '#002D62', // Astros
+  KC:  '#004687', // Royals
+  LAA: '#BA0021', // Angels
+  LAD: '#005A9C', // Dodgers
+  MIA: '#00A3E0', // Marlins
+  MIL: '#FFC52F', // Brewers
+  MIN: '#002B5C', // Twins
+  NYM: '#002D72', // Mets
+  NYY: '#003087', // Yankees
+  OAK: '#003831', // Athletics
+  PHI: '#E81828', // Phillies
+  PIT: '#FDB827', // Pirates
+  SD:  '#2F241D', // Padres
+  SF:  '#FD5A1E', // Giants
+  SEA: '#0C2C56', // Mariners
+  STL: '#C41E3A', // Cardinals
+  TB:  '#092C5C', // Rays
+  TEX: '#003278', // Rangers
+  TOR: '#134A8E', // Blue Jays
+  WSH: '#AB0003', // Nationals
+  DEFAULT: '#475569',
+}
+
+export const NCAA_TEAM_COLORS = {
+  TEX:  '#BF5700', // Texas
+  PUR:  '#CEB888', // Purdue
+  IOWA: '#FFCD00', // Iowa
+  NEB:  '#E41C38', // Nebraska
+  ARK:  '#9D2235', // Arkansas
+  ARIZ: '#CC0033', // Arizona
+  ILL:  '#E84A27', // Illinois
+  HOU:  '#C8102E', // Houston
+  DUKE: '#003087', // Duke
+  SJU:  '#BA0C2F', // St John's
+  ALA:  '#9E1B32', // Alabama
+  MICH: '#00274C', // Michigan
+  MSU:  '#18453B', // Michigan State
+  CONN: '#000E2F', // UConn
+  TENN: '#FF8200', // Tennessee
+  ISU:  '#C8102E', // Iowa State
+  DEFAULT: '#475569',
+}
+
 /**
  * Convert a hex color to rgba string.
  * Used to build semi-transparent glow values.

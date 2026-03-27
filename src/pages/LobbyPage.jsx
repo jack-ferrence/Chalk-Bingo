@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { useHomeData } from '../hooks/useHomeData.js'
@@ -50,6 +50,8 @@ export default function LobbyPage() {
   const navigate = useNavigate()
   const { allRooms, loading, error } = useHomeData()
 
+  const [activeSport, setActiveSport] = useState('all')
+
   const handleOpenGame = (roomId) => {
     if (!user) { navigate('/login'); return }
     navigate(`/room/${roomId}`)
@@ -91,10 +93,10 @@ export default function LobbyPage() {
     return groups
   }, [allRooms])
 
-  const handleTabClick = (sportKey) => {
-    const el = document.getElementById(`sport-section-${sportKey}`)
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }
+  const filteredMobileGames = useMemo(() => {
+    if (activeSport === 'all') return mobileSortedGames
+    return mobileSortedGames.filter((r) => (r.sport ?? 'nba') === activeSport)
+  }, [mobileSortedGames, activeSport])
 
   const liveCount = allRooms.filter((r) => r.status === 'live').length
 
@@ -143,6 +145,48 @@ export default function LobbyPage() {
         </div>
       </div>
 
+      {/* Sport tabs */}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 16, overflowX: 'auto', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch', paddingBottom: 2 }}>
+        {[
+          { key: 'all',  label: 'ALL',  icon: null },
+          { key: 'nba',  label: 'NBA',  icon: '🏀' },
+          { key: 'ncaa', label: 'NCAA', icon: '🏆' },
+          { key: 'mlb',  label: 'MLB',  icon: '⚾' },
+        ].map((tab) => {
+          const isActive = activeSport === tab.key
+          const count = tab.key === 'all'
+            ? allRooms.filter((r) => r.status === 'live' || r.status === 'lobby').length
+            : allRooms.filter((r) => (r.sport ?? 'nba') === tab.key && (r.status === 'live' || r.status === 'lobby')).length
+          return (
+            <button
+              key={tab.key}
+              onClick={() => setActiveSport(tab.key)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                padding: '8px 16px', borderRadius: 20, border: 'none',
+                background: isActive ? '#ff6b35' : '#1a1a2e',
+                color: isActive ? '#0c0c14' : '#8888aa',
+                fontFamily: 'var(--db-font-mono)', fontSize: 11, fontWeight: 700,
+                letterSpacing: '0.06em', cursor: 'pointer', flexShrink: 0,
+                transition: 'background 0.15s ease, color 0.15s ease',
+              }}
+            >
+              {tab.icon && <span style={{ fontSize: 13 }}>{tab.icon}</span>}
+              {tab.label}
+              {count > 0 && (
+                <span style={{
+                  fontSize: 9, fontWeight: 800, padding: '1px 5px', borderRadius: 8,
+                  background: isActive ? 'rgba(0,0,0,0.2)' : '#2a2a44',
+                  color: isActive ? '#0c0c14' : '#555577',
+                }}>
+                  {count}
+                </span>
+              )}
+            </button>
+          )
+        })}
+      </div>
+
       {/* Error */}
       {error && (
         <div
@@ -160,18 +204,20 @@ export default function LobbyPage() {
 
       {/* ── Desktop: sport-grouped sections ── */}
       <div className="hidden md:block space-y-10">
-        {SPORT_SECTIONS.map((section, i) => (
-          <div key={section.sport} id={`sport-section-${section.sport}`}>
-            <SportSection
-              sport={section.sport}
-              label={section.label}
-              games={roomsBySport[section.sport] ?? []}
-              loading={loading}
-              onOpenGame={handleOpenGame}
-              style={{ animationDelay: `${i * 100}ms` }}
-            />
-          </div>
-        ))}
+        {SPORT_SECTIONS
+          .filter((s) => activeSport === 'all' || s.sport === activeSport)
+          .map((section, i) => (
+            <div key={section.sport} id={`sport-section-${section.sport}`}>
+              <SportSection
+                sport={section.sport}
+                label={section.label}
+                games={roomsBySport[section.sport] ?? []}
+                loading={loading}
+                onOpenGame={handleOpenGame}
+                style={{ animationDelay: `${i * 100}ms` }}
+              />
+            </div>
+          ))}
       </div>
 
       {/* ── Mobile: flat priority-sorted list ── */}
@@ -183,7 +229,7 @@ export default function LobbyPage() {
             </span>
           )}
           <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, color: '#3a3a55' }}>
-            {loading ? '…' : `${mobileSortedGames.length} game${mobileSortedGames.length === 1 ? '' : 's'}`}
+            {loading ? '…' : `${filteredMobileGames.length} game${filteredMobileGames.length === 1 ? '' : 's'}`}
           </span>
         </div>
 
@@ -197,11 +243,11 @@ export default function LobbyPage() {
 
         {!loading && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {mobileSortedGames.length === 0 ? (
+            {filteredMobileGames.length === 0 ? (
               <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, color: '#555577', padding: '12px 0' }}>
                 No games available. Check back later!
               </p>
-            ) : mobileSortedGames.map((room) => {
+            ) : filteredMobileGames.map((room) => {
               const nameParts = (room.name || '').split(' vs ')
               const away = nameParts[0]?.trim() || '?'
               const home = nameParts[1]?.trim() || '?'

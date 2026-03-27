@@ -1,9 +1,19 @@
+import { NBA_TEAM_COLORS, MLB_TEAM_COLORS, NCAA_TEAM_COLORS, hexToRgba } from '../../constants/teamColors.js'
+
+function getTeamColor(abbr, sport) {
+  if (sport === 'mlb') return MLB_TEAM_COLORS[abbr] ?? MLB_TEAM_COLORS.DEFAULT
+  if (sport === 'ncaa') return NCAA_TEAM_COLORS[abbr] ?? NCAA_TEAM_COLORS.DEFAULT
+  return NBA_TEAM_COLORS[abbr] ?? NBA_TEAM_COLORS.DEFAULT
+}
+
 export default function MobileGameRow({ room, onOpenGame }) {
   const nameParts = (room.name ?? '').split(' vs ')
   const away = nameParts[0]?.trim() || '---'
   const home = nameParts[1]?.trim() || '---'
   const isLive = room.status === 'live'
   const isFinished = room.status === 'finished'
+  const homeColor = getTeamColor(home, room.sport)
+  const awayColor = getTeamColor(away, room.sport)
 
   return (
     <div
@@ -13,22 +23,22 @@ export default function MobileGameRow({ room, onOpenGame }) {
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: '10px 12px',
-        background: '#12121e',
         borderRadius: 6,
-        borderLeft: isLive ? '3px solid #ff2d2d' : isFinished ? '3px solid #555577' : '3px solid transparent',
+        background: `linear-gradient(to right, ${hexToRgba(awayColor, 0.06)}, #12121e 30%, #12121e 70%, ${hexToRgba(homeColor, 0.06)})`,
+        borderLeft: isLive ? '3px solid #ff2d2d' : isFinished ? '3px solid #555577' : `3px solid ${homeColor}`,
         cursor: 'pointer',
       }}
     >
       {/* Left: teams + status info */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flex: 1 }}>
         <div style={{ flexShrink: 0 }}>
-          <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 16, fontWeight: 800, color: '#8888aa', letterSpacing: '0.03em' }}>
+          <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 16, fontWeight: 800, color: awayColor, opacity: 0.8, letterSpacing: '0.03em' }}>
             {away}
           </span>
           <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, color: '#2a2a44', margin: '0 5px' }}>
             vs
           </span>
-          <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 16, fontWeight: 800, color: '#e0e0f0', letterSpacing: '0.03em' }}>
+          <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 16, fontWeight: 800, color: homeColor, letterSpacing: '0.03em' }}>
             {home}
           </span>
         </div>

@@ -1,4 +1,4 @@
-import { NBA_TEAM_COLORS, hexToRgba } from '../../constants/teamColors.js'
+import { NBA_TEAM_COLORS, MLB_TEAM_COLORS, NCAA_TEAM_COLORS, hexToRgba } from '../../constants/teamColors.js'
 
 function parseTeams(name) {
   const parts = (name ?? '').split(' vs ')
@@ -35,10 +35,16 @@ function formatDateLabel(dateStr) {
   }
 }
 
+function getTeamColor(abbr, sport) {
+  if (sport === 'mlb') return MLB_TEAM_COLORS[abbr] ?? MLB_TEAM_COLORS.DEFAULT
+  if (sport === 'ncaa') return NCAA_TEAM_COLORS[abbr] ?? NCAA_TEAM_COLORS.DEFAULT
+  return NBA_TEAM_COLORS[abbr] ?? NBA_TEAM_COLORS.DEFAULT
+}
+
 export default function GameCard({ game, onOpenGame }) {
   const { away, home } = parseTeams(game.name)
-  const homeColor = NBA_TEAM_COLORS[home] ?? NBA_TEAM_COLORS.DEFAULT
-  const awayColor = NBA_TEAM_COLORS[away] ?? NBA_TEAM_COLORS.DEFAULT
+  const homeColor = getTeamColor(home, game.sport)
+  const awayColor = getTeamColor(away, game.sport)
   const isLive = game.status === 'live'
   const isFinished = game.status === 'finished'
 
@@ -48,7 +54,7 @@ export default function GameCard({ game, onOpenGame }) {
       onClick={() => onOpenGame(game.id)}
       style={{
         '--home-color': homeColor,
-        '--team-glow': hexToRgba(homeColor, 0.30),
+        '--team-glow': hexToRgba(homeColor, 0.25),
         cursor: 'pointer',
       }}
     >
@@ -57,10 +63,25 @@ export default function GameCard({ game, onOpenGame }) {
         style={{
           position: 'absolute',
           inset: 0,
-          background: `linear-gradient(135deg, ${hexToRgba(awayColor, 0.08)} 0%, transparent 42%, ${hexToRgba(homeColor, 0.08)} 100%)`,
+          background: `linear-gradient(135deg, ${hexToRgba(awayColor, 0.22)} 0%, transparent 45%, ${hexToRgba(homeColor, 0.22)} 100%)`,
           pointerEvents: 'none',
         }}
       />
+
+      {/* Team color top strip */}
+      <div style={{
+        position: 'absolute', top: 0, left: 0, right: 0, height: 2,
+        background: `linear-gradient(to right, ${awayColor}, ${homeColor})`,
+        pointerEvents: 'none',
+      }} />
+
+      {/* Team color bottom strip */}
+      <div style={{
+        position: 'absolute', bottom: 0, left: 0, right: 0, height: 3,
+        background: `linear-gradient(to right, ${awayColor} 0%, ${awayColor} 50%, ${homeColor} 50%, ${homeColor} 100%)`,
+        opacity: 0.6,
+        pointerEvents: 'none',
+      }} />
 
       {/* Status badge */}
       <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 1 }}>
@@ -82,7 +103,7 @@ export default function GameCard({ game, onOpenGame }) {
         style={{ padding: '18px 20px 12px' }}
       >
         <div className="flex flex-col items-center gap-1">
-          <span className="team-abbr" style={{ color: awayColor }}>{away}</span>
+          <span className="team-abbr" style={{ color: awayColor, opacity: 0.75 }}>{away}</span>
           <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.10em', color: '#555577', textTransform: 'uppercase' }}>Away</span>
         </div>
         <span className="vs-text" style={{ marginBottom: 16 }}>VS</span>
