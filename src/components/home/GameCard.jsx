@@ -41,7 +41,7 @@ function getTeamColor(abbr, sport) {
   return NBA_TEAM_COLORS[abbr] ?? NBA_TEAM_COLORS.DEFAULT
 }
 
-export default function GameCard({ game, onOpenGame, rank = 0 }) {
+export default function GameCard({ game, onOpenGame, rank = 0, isPlaying = false }) {
   const { away, home } = parseTeams(game.name)
   const homeColor = getTeamColor(home, game.sport)
   const awayColor = getTeamColor(away, game.sport)
@@ -99,12 +99,17 @@ export default function GameCard({ game, onOpenGame, rank = 0 }) {
       )}
 
       {/* Status badge */}
-      <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 1 }}>
+      <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 1, display: 'flex', alignItems: 'center', gap: 4 }}>
         {isLive ? (
-          <span className="live-badge">
-            <span className="live-dot" />
-            LIVE
-          </span>
+          <>
+            <span className="live-badge">
+              <span className="live-dot" />
+              LIVE
+            </span>
+            {!isPlaying && (
+              <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 8, fontWeight: 800, color: '#0c0c14', background: '#ff6b35', padding: '2px 6px', borderRadius: 3 }}>NEW</span>
+            )}
+          </>
         ) : isFinished ? (
           <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, fontWeight: 700, letterSpacing: '0.10em', color: '#555577', background: '#1a1a2e', border: '1px solid #2a2a44', borderRadius: 3, padding: '2px 6px' }}>
             FINAL
@@ -170,11 +175,14 @@ export default function GameCard({ game, onOpenGame, rank = 0 }) {
         </div>
 
         {/* Tap prompt */}
-        <div style={{ textAlign: 'right' }}>
+        <div style={{ textAlign: 'right', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+          {isLive && isPlaying && (
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e', display: 'inline-block', boxShadow: '0 0 4px rgba(34,197,94,0.5)', marginRight: 4 }} />
+          )}
           {isFinished ? (
             <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 700, color: '#555577', letterSpacing: '0.06em' }}>VIEW →</span>
           ) : (
-            <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 700, color: '#ff6b35', letterSpacing: '0.06em' }}>PLAY →</span>
+            <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 700, color: '#ff6b35', letterSpacing: '0.06em' }}>{isLive && isPlaying ? 'CONTINUE →' : 'PLAY →'}</span>
           )}
         </div>
       </div>
