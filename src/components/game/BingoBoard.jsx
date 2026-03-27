@@ -67,7 +67,7 @@ function BingoBoard({
   const skinClass = boardSkin && boardSkin !== 'default' ? `board-skin-${boardSkin}` : ''
 
   return (
-    <div className="relative w-full max-w-lg">
+    <div className="relative w-full" style={{ maxWidth: 'min(440px, 100%)' }}>
       {/* Board frame */}
       <div
         className={`machine-glow ${skinClass}`}
@@ -80,7 +80,7 @@ function BingoBoard({
         }}
       >
         {/* B·I·N·G·O column headers */}
-        <div className="grid grid-cols-5 mb-1.5" style={{ gap: 6 }}>
+        <div className="grid grid-cols-5 mb-2" style={{ gap: 7 }}>
           {HEADER_LETTERS.map((letter) => (
             <div
               key={letter}
@@ -91,7 +91,7 @@ function BingoBoard({
                 letterSpacing: '0.12em',
                 color: 'rgba(255,107,53,0.55)',
                 lineHeight: 1,
-                paddingBottom: 2,
+                paddingBottom: 3,
               }}
             >
               {letter}
@@ -100,7 +100,7 @@ function BingoBoard({
         </div>
 
         {/* 5×5 Grid */}
-        <div className="grid grid-cols-5 gap-1.5 bingo-grid">
+        <div className="grid grid-cols-5 bingo-grid" style={{ gap: 7 }}>
           {flat.slice(0, 25).map((square, index) => (
             <BingoSquare
               key={square?.id ?? index}

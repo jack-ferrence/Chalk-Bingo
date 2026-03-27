@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth.jsx'
 
@@ -43,9 +44,15 @@ const TABS = [
 export default function MobileTabBar() {
   const location = useLocation()
   const { user } = useAuth()
+  const [bouncingTab, setBouncingTab] = useState(null)
 
   if (!user) return null
   if (location.pathname.startsWith('/room/')) return null
+
+  function handleTap(path) {
+    setBouncingTab(path)
+    setTimeout(() => setBouncingTab(null), 300)
+  }
 
   return (
     <nav
@@ -56,10 +63,10 @@ export default function MobileTabBar() {
         left: 0,
         right: 0,
         zIndex: 50,
-        background: 'rgba(10,10,18,0.97)',
+        background: 'rgba(10,10,18,0.92)',
         borderTop: '1px solid rgba(255,255,255,0.06)',
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
         display: 'flex',
         justifyContent: 'space-around',
@@ -69,10 +76,13 @@ export default function MobileTabBar() {
     >
       {TABS.map((tab) => {
         const isActive = location.pathname === tab.path
+        const isBouncing = bouncingTab === tab.path
         return (
           <Link
             key={tab.path}
             to={tab.path}
+            onMouseDown={() => handleTap(tab.path)}
+            onTouchStart={() => handleTap(tab.path)}
             style={{
               display: 'flex',
               flexDirection: 'column',
@@ -84,10 +94,9 @@ export default function MobileTabBar() {
               minWidth: 60,
               justifyContent: 'center',
               position: 'relative',
-              transition: 'opacity 120ms ease',
             }}
           >
-            {/* Active indicator */}
+            {/* Active indicator bar */}
             {isActive && (
               <span style={{
                 position: 'absolute',
@@ -101,7 +110,14 @@ export default function MobileTabBar() {
                 boxShadow: '0 0 8px rgba(255,107,53,0.6)',
               }} />
             )}
-            {tab.icon(isActive)}
+            {/* Icon with bounce — key forces animation restart */}
+            <span
+              key={isBouncing ? `${tab.path}-b` : tab.path}
+              className={isBouncing ? 'tab-icon-bounce' : ''}
+              style={{ display: 'inline-flex' }}
+            >
+              {tab.icon(isActive)}
+            </span>
             <span style={{
               fontFamily: 'var(--db-font-ui)',
               fontSize: 9.5,

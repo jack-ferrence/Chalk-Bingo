@@ -117,7 +117,7 @@ export default function VerifyIdentityModal({ onClose, onVerified }) {
 
   if (loading) {
     return (
-      <div style={{ position: 'fixed', inset: 0, zIndex: 999, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+      <div className="modal-overlay" style={{ position: 'fixed', inset: 0, zIndex: 999, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
         <div style={{ background: 'linear-gradient(160deg, #141420 0%, #0e0e1a 100%)', borderRadius: 12, padding: 32, textAlign: 'center', border: '1px solid rgba(255,255,255,0.08)' }}>
           <span style={{ fontFamily: 'var(--db-font-ui)', fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>Checking verification...</span>
         </div>
@@ -127,10 +127,12 @@ export default function VerifyIdentityModal({ onClose, onVerified }) {
 
   return (
     <div
+      className="modal-overlay"
       style={{ position: 'fixed', inset: 0, zIndex: 999, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
       onClick={onClose}
     >
       <div
+        className="modal-panel-in"
         onClick={(e) => e.stopPropagation()}
         style={{
           background: 'linear-gradient(160deg, #141420 0%, #0e0e1a 100%)',

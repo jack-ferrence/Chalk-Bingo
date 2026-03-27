@@ -21,7 +21,7 @@ export default function LiveRoomsStrip({ liveRooms, myRoomIds, joiningRoomId, on
         </span>
       </div>
 
-      <div className="flex gap-3 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+      <div className="card-stagger-wrap flex gap-3 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
         {liveRooms.map((room) => (
           <div key={room.id} className="w-64 flex-shrink-0">
             <RoomCard

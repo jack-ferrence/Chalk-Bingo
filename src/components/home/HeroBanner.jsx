@@ -11,10 +11,17 @@ export default function HeroBanner() {
         border: '1px solid rgba(255,107,53,0.2)',
       }}
     >
-      {/* Glow accent */}
+      {/* Glow accent — warm orange radial, top-right */}
       <div style={{
-        position: 'absolute', top: -60, right: -60, width: 300, height: 300,
-        background: 'radial-gradient(circle, rgba(255,107,53,0.12) 0%, transparent 70%)',
+        position: 'absolute', top: -100, right: -100, width: 450, height: 450,
+        background: 'radial-gradient(circle, rgba(255,107,53,0.28) 0%, rgba(255,107,53,0.08) 45%, transparent 70%)',
+        pointerEvents: 'none',
+        filter: 'blur(2px)',
+      }} />
+      {/* Secondary soft glow */}
+      <div style={{
+        position: 'absolute', top: 40, right: 60, width: 200, height: 200,
+        background: 'radial-gradient(circle, rgba(255,140,80,0.12) 0%, transparent 65%)',
         pointerEvents: 'none',
       }} />
 

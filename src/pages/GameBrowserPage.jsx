@@ -161,7 +161,7 @@ function GameBrowserPage() {
       )}
 
       {loading ? (
-        <div className="flex min-h-[200px] items-center justify-center text-sm" style={{ fontFamily: 'var(--db-font-ui)', color: 'rgba(255,255,255,0.3)' }}>
+        <div className="loading-pulse flex min-h-[200px] items-center justify-center text-sm" style={{ fontFamily: 'var(--db-font-ui)', color: 'rgba(255,255,255,0.3)' }}>
           Loading games from ESPN…
         </div>
       ) : games.length === 0 ? (
@@ -170,7 +170,7 @@ function GameBrowserPage() {
           <p className="text-xs" style={{ fontFamily: 'var(--db-font-ui)', color: 'rgba(255,255,255,0.25)' }}>Check back on a game day.</p>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 card-stagger-wrap">
           {games.map((game) => (
             <div
               key={game.id}
@@ -233,9 +233,9 @@ function GameBrowserPage() {
       )}
 
       {creatingGameId && (
-        <div className="fixed inset-0 z-30 flex items-center justify-center px-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
+        <div className="modal-overlay fixed inset-0 z-30 flex items-center justify-center px-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
           <div
-            className="w-full max-w-md p-6"
+            className="modal-panel-in w-full max-w-md p-6"
             style={{ background: 'linear-gradient(160deg, #141420 0%, #0e0e1a 100%)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 14, boxShadow: '0 24px 60px rgba(0,0,0,0.6)' }}
           >
             <h2 className="text-lg font-semibold tracking-tight" style={{ color: '#e0e0f0' }}>

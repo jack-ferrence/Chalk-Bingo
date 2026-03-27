@@ -191,8 +191,10 @@ function SidebarContent({ onClose }) {
 
 export default function Sidebar({ open, onClose }) {
   const sidebarStyle = {
-    background: 'rgba(10,10,18,0.98)',
+    background: 'rgba(10,10,18,0.92)',
     borderRight: '1px solid rgba(255,255,255,0.06)',
+    backdropFilter: 'blur(16px)',
+    WebkitBackdropFilter: 'blur(16px)',
   }
 
   return (

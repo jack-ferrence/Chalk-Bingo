@@ -111,6 +111,7 @@ function SwapModal({
       role="dialog"
       aria-modal="true"
       aria-label="Swap Square"
+      className="modal-overlay"
       style={{
         position: 'fixed',
         inset: 0,
@@ -125,6 +126,7 @@ function SwapModal({
       onClick={(e) => { if (e.target === e.currentTarget) handleClose() }}
     >
       <div
+        className="modal-panel-in"
         style={{
           background: 'linear-gradient(160deg, #141420 0%, #0e0e1a 100%)',
           border: '1px solid rgba(255,255,255,0.08)',
