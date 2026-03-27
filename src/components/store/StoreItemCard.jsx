@@ -9,7 +9,7 @@ function ColorPreview({ hex }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 72, gap: 6 }}>
       <span style={{ width: 34, height: 34, borderRadius: '50%', background: hex, display: 'block', boxShadow: `0 0 14px ${hex}66`, flexShrink: 0 }} />
-      <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, fontWeight: 700, color: hex }}>YourName</span>
+      <span style={{ fontFamily: 'var(--db-font-ui)', fontSize: 11, fontWeight: 600, color: hex }}>YourName</span>
     </div>
   )
 }
@@ -28,7 +28,7 @@ function BadgePreview({ emoji, label }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 72, gap: 4 }}>
       <span style={{ fontSize: 32, lineHeight: 1 }}>{emoji}</span>
-      <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, fontWeight: 700, color: '#555577', letterSpacing: '0.12em' }}>{label}</span>
+      <span style={{ fontFamily: 'var(--db-font-ui)', fontSize: 9, fontWeight: 500, color: 'rgba(255,255,255,0.25)', letterSpacing: '0.06em' }}>{label}</span>
     </div>
   )
 }
@@ -75,8 +75,8 @@ function SkinPreview({ skinClass }) {
           : { background: '#b0a080', border: '1px solid #a09070', borderRadius: 3 }
       default:
         return isMarked
-          ? { background: '#2a1a10', border: '1px solid #ff6b35' }
-          : { background: '#1a1a2e', border: '1px solid #2a2a44' }
+          ? { background: 'rgba(255,107,53,0.12)', border: '1px solid rgba(255,107,53,0.4)' }
+          : { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)' }
     }
   }
 
@@ -100,9 +100,9 @@ function DaubPreview({ daubStyle }) {
     }}>
       {cells.map((marked, i) => (
         <div key={i} style={{
-          width: 28, height: 28, borderRadius: 3,
-          background: marked ? '#2a1a10' : '#1a1a2e',
-          border: `1px solid ${marked ? '#ff6b35' : '#2a2a44'}`,
+          width: 28, height: 28, borderRadius: 4,
+          background: marked ? 'linear-gradient(160deg, #2d1a0a 0%, #1e1008 100%)' : 'rgba(255,255,255,0.04)',
+          border: `1px solid ${marked ? 'rgba(255,107,53,0.5)' : 'rgba(255,255,255,0.08)'}`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           position: 'relative', overflow: 'hidden',
         }}>
@@ -123,7 +123,7 @@ function EmotePreview({ itemId }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 72, gap: 4 }}>
       <span style={{ fontSize: 32, lineHeight: 1 }}>{emote?.emoji ?? '😊'}</span>
-      <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, color: '#555577', letterSpacing: '0.08em' }}>{emote?.code ?? ''}</span>
+      <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, color: 'rgba(255,255,255,0.25)' }}>{emote?.code ?? ''}</span>
     </div>
   )
 }
@@ -213,27 +213,30 @@ export default function StoreItemCard({ item, owned, equipped, dobsBalance, isEm
   return (
     <div
       style={{
-        background: '#12121e',
-        border: `1px solid ${equipped ? '#ff6b35' : '#2a2a44'}`,
-        borderRadius: 6,
+        background: equipped
+          ? 'linear-gradient(160deg, #1c1408 0%, #130e04 100%)'
+          : 'linear-gradient(160deg, #141420 0%, #0f0f1a 100%)',
+        border: `1px solid ${equipped ? 'rgba(255,107,53,0.4)' : 'rgba(255,255,255,0.07)'}`,
+        borderRadius: 10,
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
         transition: 'border-color 150ms ease',
+        boxShadow: equipped ? '0 0 0 1px rgba(255,107,53,0.1) inset' : 'none',
       }}
     >
       {/* Preview */}
-      <div style={{ borderBottom: '1px solid #1a1a2e', padding: '4px 0' }}>
+      <div style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', padding: '4px 0' }}>
         <ItemPreview item={item} />
       </div>
 
       {/* Info */}
       <div style={{ padding: '10px 12px', flex: 1 }}>
-        <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 12, fontWeight: 700, color: '#e0e0f0', margin: '0 0 3px' }}>
+        <p style={{ fontFamily: 'var(--db-font-ui)', fontSize: 13, fontWeight: 600, color: '#e8e8f4', margin: '0 0 3px' }}>
           {item.name}
         </p>
         {item.description && (
-          <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, color: '#555577', letterSpacing: '0.04em', margin: 0 }}>
+          <p style={{ fontFamily: 'var(--db-font-ui)', fontSize: 11, fontWeight: 400, color: 'rgba(255,255,255,0.3)', margin: 0, lineHeight: 1.4 }}>
             {item.description}
           </p>
         )}
@@ -241,7 +244,7 @@ export default function StoreItemCard({ item, owned, equipped, dobsBalance, isEm
 
       {/* Error */}
       {err && (
-        <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, color: '#ff2d2d', padding: '0 12px 6px', margin: 0 }}>
+        <p style={{ fontFamily: 'var(--db-font-ui)', fontSize: 11, color: '#ff5555', padding: '0 12px 6px', margin: 0 }}>
           {err}
         </p>
       )}
@@ -249,28 +252,28 @@ export default function StoreItemCard({ item, owned, equipped, dobsBalance, isEm
       {/* Actions */}
       <div style={{ padding: '8px 12px 12px', display: 'flex', flexDirection: 'column', gap: 5 }}>
         {toast ? (
-          <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, fontWeight: 700, color: '#22c55e' }}>
+          <span style={{ fontFamily: 'var(--db-font-ui)', fontSize: 12, fontWeight: 600, color: '#22c55e' }}>
             ✓ {toast}
           </span>
         ) : confirming ? (
           <div>
-            <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, color: '#8888aa', margin: '0 0 5px' }}>
-              Buy <strong style={{ color: '#e0e0f0' }}>{item.name}</strong> for <strong style={{ color: '#ff6b35' }}>{price} ◈</strong>?
+            <p style={{ fontFamily: 'var(--db-font-ui)', fontSize: 11, fontWeight: 400, color: 'rgba(255,255,255,0.4)', margin: '0 0 8px' }}>
+              Buy <strong style={{ color: '#e8e8f4', fontWeight: 600 }}>{item.name}</strong> for <strong style={{ color: '#ff6b35' }}>{price} ◈</strong>?
             </p>
             <div style={{ display: 'flex', gap: 6 }}>
               <button
                 type="button"
                 onClick={handleConfirmPurchase}
-                style={{ flex: 1, background: '#ff6b35', color: '#0c0c14', border: 'none', borderRadius: 3, fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 800, letterSpacing: '0.06em', padding: '5px 0', cursor: 'pointer' }}
+                style={{ flex: 1, background: 'linear-gradient(135deg, #ff7a45 0%, #e05520 100%)', color: '#fff', border: 'none', borderRadius: 6, fontFamily: 'var(--db-font-ui)', fontSize: 12, fontWeight: 600, padding: '6px 0', cursor: 'pointer' }}
               >
-                CONFIRM
+                Confirm
               </button>
               <button
                 type="button"
                 onClick={() => setConfirming(false)}
-                style={{ flex: 1, background: 'none', color: '#555577', border: '1px solid #2a2a44', borderRadius: 3, fontFamily: 'var(--db-font-mono)', fontSize: 10, padding: '5px 0', cursor: 'pointer' }}
+                style={{ flex: 1, background: 'none', color: 'rgba(255,255,255,0.35)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, fontFamily: 'var(--db-font-ui)', fontSize: 12, fontWeight: 500, padding: '6px 0', cursor: 'pointer' }}
               >
-                CANCEL
+                Cancel
               </button>
             </div>
           </div>
@@ -284,46 +287,54 @@ export default function StoreItemCard({ item, owned, equipped, dobsBalance, isEm
                 disabled={canBuy && (purchasing || !canAfford)}
                 style={{
                   width: '100%',
-                  background: !canBuy ? '#1a1a2e' : canAfford ? '#ff6b35' : '#1a1a2e',
-                  color: !canBuy ? '#3a3a55' : canAfford ? '#0c0c14' : '#3a3a55',
-                  border: 'none', borderRadius: 3,
-                  fontFamily: 'var(--db-font-mono)', fontSize: 11, fontWeight: 700,
-                  letterSpacing: '0.06em', padding: '6px 0',
+                  background: !canBuy
+                    ? 'rgba(255,255,255,0.04)'
+                    : canAfford
+                      ? 'linear-gradient(135deg, #ff7a45 0%, #e05520 100%)'
+                      : 'rgba(255,255,255,0.04)',
+                  color: !canBuy
+                    ? 'rgba(255,255,255,0.2)'
+                    : canAfford ? '#fff' : 'rgba(255,255,255,0.2)',
+                  border: (!canBuy || !canAfford) ? '1px solid rgba(255,255,255,0.07)' : 'none',
+                  borderRadius: 6,
+                  fontFamily: 'var(--db-font-ui)', fontSize: 12, fontWeight: 600,
+                  padding: '7px 0',
                   cursor: (!canBuy || !canAfford || purchasing) ? 'not-allowed' : 'pointer',
-                  transition: 'background 100ms ease',
+                  transition: 'opacity 100ms ease',
+                  boxShadow: (canBuy && canAfford && !purchasing) ? '0 2px 10px rgba(255,107,53,0.3)' : 'none',
                 }}
-                onMouseEnter={(e) => { if (canBuy && canAfford && !purchasing) e.currentTarget.style.background = '#ff8855' }}
-                onMouseLeave={(e) => { if (canBuy && canAfford && !purchasing) e.currentTarget.style.background = '#ff6b35' }}
+                onMouseEnter={(e) => { if (canBuy && canAfford && !purchasing) e.currentTarget.style.opacity = '0.9' }}
+                onMouseLeave={(e) => { if (canBuy && canAfford && !purchasing) e.currentTarget.style.opacity = '1' }}
                 title={!canBuy ? 'Verify your email to unlock purchases' : !canAfford ? `Need ${price} Dobs (have ${dobsBalance ?? 0})` : undefined}
               >
-                {purchasing ? '...' : !canBuy ? '🔒 VERIFY TO BUY' : `◈ ${price}`}
+                {purchasing ? '…' : !canBuy ? '🔒 Verify to buy' : `◈ ${price}`}
               </button>
             )}
 
             {(owned || isFree) && item.category === 'chat_emote' ? (
-              <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 700, color: '#22c55e', letterSpacing: '0.06em' }}>
-                ✓ USE IN CHAT
+              <span style={{ fontFamily: 'var(--db-font-ui)', fontSize: 11, fontWeight: 600, color: '#22c55e' }}>
+                ✓ Use in chat
               </span>
             ) : (owned || isFree) ? (
               <>
-                <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 700, color: isFree ? '#555577' : '#8888aa', letterSpacing: '0.06em' }}>
-                  {isFree ? 'FREE' : 'OWNED ✓'}
+                <span style={{ fontFamily: 'var(--db-font-ui)', fontSize: 11, fontWeight: 500, color: isFree ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.35)' }}>
+                  {isFree ? 'Free' : 'Owned ✓'}
                 </span>
 
                 {/* Equip row */}
                 {equipped ? (
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4 }}>
-                    <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 700, color: '#ff6b35', letterSpacing: '0.06em' }}>
-                      EQUIPPED ✓
+                    <span style={{ fontFamily: 'var(--db-font-ui)', fontSize: 11, fontWeight: 600, color: '#ff6b35' }}>
+                      Equipped ✓
                     </span>
                     {item.category === 'badge' && (
                       <button
                         type="button"
                         onClick={handleUnequip}
                         disabled={equipping}
-                        style={{ background: 'none', color: '#555577', border: '1px solid #2a2a44', borderRadius: 3, fontFamily: 'var(--db-font-mono)', fontSize: 9, fontWeight: 600, padding: '2px 7px', cursor: 'pointer', letterSpacing: '0.05em' }}
+                        style={{ background: 'none', color: 'rgba(255,255,255,0.3)', border: '1px solid rgba(255,255,255,0.09)', borderRadius: 6, fontFamily: 'var(--db-font-ui)', fontSize: 10, fontWeight: 500, padding: '3px 9px', cursor: 'pointer' }}
                       >
-                        UNEQUIP
+                        Remove
                       </button>
                     )}
                   </div>
@@ -332,11 +343,11 @@ export default function StoreItemCard({ item, owned, equipped, dobsBalance, isEm
                     type="button"
                     onClick={doEquip}
                     disabled={equipping}
-                    style={{ width: '100%', background: 'none', color: '#8888aa', border: '1px solid #2a2a44', borderRadius: 3, fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', padding: '5px 0', cursor: equipping ? 'wait' : 'pointer', transition: 'all 100ms ease' }}
-                    onMouseEnter={(e) => { if (!equipping) { e.currentTarget.style.borderColor = '#ff6b35'; e.currentTarget.style.color = '#ff6b35' } }}
-                    onMouseLeave={(e) => { if (!equipping) { e.currentTarget.style.borderColor = '#2a2a44'; e.currentTarget.style.color = '#8888aa' } }}
+                    style={{ width: '100%', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.4)', border: '1px solid rgba(255,255,255,0.09)', borderRadius: 6, fontFamily: 'var(--db-font-ui)', fontSize: 12, fontWeight: 600, padding: '6px 0', cursor: equipping ? 'wait' : 'pointer', transition: 'all 100ms ease' }}
+                    onMouseEnter={(e) => { if (!equipping) { e.currentTarget.style.borderColor = 'rgba(255,107,53,0.4)'; e.currentTarget.style.color = '#ff6b35'; e.currentTarget.style.background = 'rgba(255,107,53,0.08)' } }}
+                    onMouseLeave={(e) => { if (!equipping) { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'; e.currentTarget.style.color = 'rgba(255,255,255,0.4)'; e.currentTarget.style.background = 'rgba(255,255,255,0.04)' } }}
                   >
-                    {equipping ? '...' : 'EQUIP'}
+                    {equipping ? '…' : 'Equip'}
                   </button>
                 )}
               </>

@@ -39,26 +39,26 @@ export default function VerifyEmailModal({ email, onClose }) {
       }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div style={{ background: '#12121e', border: '1px solid #2a2a44', borderRadius: 8, maxWidth: 400, width: '100%', padding: 28, position: 'relative' }}>
+      <div style={{ background: 'linear-gradient(160deg, #141420 0%, #0e0e1a 100%)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 14, maxWidth: 400, width: '100%', padding: 28, position: 'relative', boxShadow: '0 24px 60px rgba(0,0,0,0.6)' }}>
         {/* Close */}
         <button type="button" onClick={onClose}
-          style={{ position: 'absolute', top: 12, right: 14, background: 'none', border: 'none', color: '#555577', cursor: 'pointer', fontFamily: 'var(--db-font-mono)', fontSize: 16, lineHeight: 1, padding: 4 }}
-          onMouseEnter={(e) => { e.currentTarget.style.color = '#e0e0f0' }}
-          onMouseLeave={(e) => { e.currentTarget.style.color = '#555577' }}
+          style={{ position: 'absolute', top: 12, right: 14, background: 'none', border: 'none', color: 'rgba(255,255,255,0.2)', cursor: 'pointer', fontSize: 16, lineHeight: 1, padding: '2px 6px', borderRadius: 4, transition: 'color 120ms ease' }}
+          onMouseEnter={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.6)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.2)' }}
         >✕</button>
 
         {/* Lock icon */}
         <div style={{ fontSize: 28, marginBottom: 12, color: '#ff6b35' }}>🔒</div>
 
-        <h2 style={{ fontFamily: 'var(--db-font-mono)', fontSize: 16, fontWeight: 800, color: '#e0e0f0', margin: '0 0 10px', letterSpacing: '0.06em' }}>
+        <h2 style={{ fontFamily: 'var(--db-font-display)', fontSize: 18, letterSpacing: '0.06em', color: '#e8e8f4', margin: '0 0 10px' }}>
           VERIFY YOUR EMAIL
         </h2>
-        <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 12, color: '#8888aa', margin: '0 0 14px', lineHeight: 1.6 }}>
+        <p style={{ fontFamily: 'var(--db-font-ui)', fontSize: 13, fontWeight: 400, color: 'rgba(255,255,255,0.45)', margin: '0 0 14px', lineHeight: 1.6 }}>
           Verify your email to unlock purchases in the Dobs Store. You can still browse and play games without verifying.
         </p>
 
         {email && (
-          <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 12, color: '#e0e0f0', margin: '0 0 20px', background: '#1a1a2e', border: '1px solid #2a2a44', borderRadius: 4, padding: '8px 12px' }}>
+          <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 12, color: '#e8e8f4', margin: '0 0 20px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 6, padding: '8px 12px' }}>
             {email}
           </p>
         )}
@@ -66,16 +66,16 @@ export default function VerifyEmailModal({ email, onClose }) {
         {/* Primary button */}
         {status === 'sent' ? (
           <div style={{ marginBottom: 10 }}>
-            <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 12, fontWeight: 700, color: '#22c55e', margin: '0 0 10px' }}>
-              ✓ CHECK YOUR INBOX
+            <p style={{ fontFamily: 'var(--db-font-ui)', fontSize: 12, fontWeight: 600, color: '#22c55e', margin: '0 0 10px' }}>
+              ✓ Check your inbox
             </p>
             <button
               type="button"
               onClick={handleSend}
               disabled={cooldown > 0}
-              style={{ width: '100%', background: 'none', border: '1px solid #2a2a44', borderRadius: 4, fontFamily: 'var(--db-font-mono)', fontSize: 11, fontWeight: 700, color: cooldown > 0 ? '#3a3a55' : '#8888aa', padding: '8px 0', cursor: cooldown > 0 ? 'not-allowed' : 'pointer', letterSpacing: '0.06em' }}
+              style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)', borderRadius: 8, fontFamily: 'var(--db-font-ui)', fontSize: 12, fontWeight: 500, color: cooldown > 0 ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.45)', padding: '9px 0', cursor: cooldown > 0 ? 'not-allowed' : 'pointer' }}
             >
-              {cooldown > 0 ? `RESEND IN ${cooldown}s` : 'RESEND'}
+              {cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend'}
             </button>
           </div>
         ) : (
@@ -83,9 +83,9 @@ export default function VerifyEmailModal({ email, onClose }) {
             type="button"
             onClick={handleSend}
             disabled={status === 'sending'}
-            style={{ width: '100%', background: '#ff6b35', color: '#0c0c14', border: 'none', borderRadius: 4, fontFamily: 'var(--db-font-mono)', fontSize: 12, fontWeight: 800, letterSpacing: '0.08em', padding: '10px 0', cursor: status === 'sending' ? 'wait' : 'pointer', marginBottom: 10, transition: 'background 100ms ease' }}
-            onMouseEnter={(e) => { if (status !== 'sending') e.currentTarget.style.background = '#ff8855' }}
-            onMouseLeave={(e) => { if (status !== 'sending') e.currentTarget.style.background = '#ff6b35' }}
+            style={{ width: '100%', background: status === 'sending' ? 'rgba(255,255,255,0.06)' : 'linear-gradient(135deg, #ff7a45 0%, #e05520 100%)', color: status === 'sending' ? 'rgba(255,255,255,0.25)' : '#fff', border: 'none', borderRadius: 8, fontFamily: 'var(--db-font-display)', fontSize: 13, letterSpacing: '0.06em', padding: '10px 0', cursor: status === 'sending' ? 'wait' : 'pointer', marginBottom: 10, boxShadow: status === 'sending' ? 'none' : '0 4px 14px rgba(255,107,53,0.35)', transition: 'opacity 100ms ease' }}
+            onMouseEnter={(e) => { if (status !== 'sending') e.currentTarget.style.opacity = '0.9' }}
+            onMouseLeave={(e) => { e.currentTarget.style.opacity = '1' }}
           >
             {status === 'sending' ? 'SENDING...' : status === 'error' ? 'TRY AGAIN' : 'SEND VERIFICATION EMAIL'}
           </button>
@@ -95,11 +95,11 @@ export default function VerifyEmailModal({ email, onClose }) {
         <button
           type="button"
           onClick={onClose}
-          style={{ width: '100%', background: 'none', border: '1px solid #2a2a44', borderRadius: 4, fontFamily: 'var(--db-font-mono)', fontSize: 11, color: '#555577', padding: '8px 0', cursor: 'pointer', letterSpacing: '0.06em' }}
-          onMouseEnter={(e) => { e.currentTarget.style.color = '#8888aa'; e.currentTarget.style.borderColor = '#3a3a55' }}
-          onMouseLeave={(e) => { e.currentTarget.style.color = '#555577'; e.currentTarget.style.borderColor = '#2a2a44' }}
+          style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)', borderRadius: 8, fontFamily: 'var(--db-font-ui)', fontSize: 12, fontWeight: 500, color: 'rgba(255,255,255,0.35)', padding: '8px 0', cursor: 'pointer', transition: 'background 100ms ease, color 100ms ease' }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = 'rgba(255,255,255,0.65)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = 'rgba(255,255,255,0.35)' }}
         >
-          MAYBE LATER
+          Maybe later
         </button>
       </div>
     </div>

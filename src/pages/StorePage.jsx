@@ -102,11 +102,11 @@ export default function StorePage() {
             DOBS STORE
           </h1>
           {dobsBalance !== null && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#1a1a2e', border: '1px solid #2a2a44', borderRadius: 4, padding: '6px 14px' }}>
-              <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 20, fontWeight: 900, color: '#ff6b35' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,107,53,0.08)', border: '1px solid rgba(255,107,53,0.15)', borderRadius: 20, padding: '7px 16px' }}>
+              <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 20, fontWeight: 700, color: '#ff6b35', fontVariantNumeric: 'tabular-nums' }}>
                 {dobsBalance.toLocaleString()}
               </span>
-              <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, color: '#555577', letterSpacing: '0.12em' }}>◈ DOBS</span>
+              <span style={{ fontFamily: 'var(--db-font-ui)', fontSize: 11, fontWeight: 600, color: 'rgba(255,107,53,0.6)', letterSpacing: '0.05em' }}>◈ Dobs</span>
             </div>
           )}
         </div>
@@ -131,7 +131,7 @@ export default function StorePage() {
               <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, fontWeight: 800, color: '#ff6b35', letterSpacing: '0.08em', margin: '0 0 3px' }}>
                 VERIFY YOUR EMAIL TO UNLOCK PURCHASES
               </p>
-              <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, color: '#8888aa', margin: 0 }}>
+              <p style={{ fontFamily: 'var(--db-font-ui)', fontSize: 11, fontWeight: 400, color: 'rgba(255,255,255,0.4)', margin: 0 }}>
                 Check your inbox or click to resend the confirmation email.
               </p>
             </div>
@@ -163,9 +163,9 @@ export default function StorePage() {
         <CategoryTabs tabs={TABS} activeTab={tab} onTabChange={setTab} />
 
         {loading ? (
-          <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 12, color: '#555577' }}>Loading store...</p>
+          <p style={{ fontFamily: 'var(--db-font-ui)', fontSize: 12, color: 'rgba(255,255,255,0.25)' }}>Loading store...</p>
         ) : filtered.length === 0 ? (
-          <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 12, color: '#555577' }}>No items available.</p>
+          <p style={{ fontFamily: 'var(--db-font-ui)', fontSize: 12, color: 'rgba(255,255,255,0.25)' }}>No items available.</p>
         ) : (
           <div
             style={{

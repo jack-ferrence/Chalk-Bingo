@@ -59,10 +59,11 @@
   --db-win-glow:         rgba(255, 107, 53, 0.30);
 
   /* ── Typography ── */
-  --db-font-display:     'JetBrains Mono', 'Fira Code', 'SF Mono', 'Cascadia Code', monospace;
-  --db-font-heading:     'JetBrains Mono', 'Fira Code', 'SF Mono', 'Cascadia Code', monospace;
-  --db-font-body:        'JetBrains Mono', 'Fira Code', 'SF Mono', 'Cascadia Code', monospace;
-  --db-font-mono:        'JetBrains Mono', 'Fira Code', 'SF Mono', 'Cascadia Code', monospace;
+  --db-font-display:     'Bebas Neue', 'Impact', sans-serif;
+  --db-font-heading:     'Bebas Neue', 'Impact', sans-serif;
+  --db-font-body:        'Inter', 'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif;
+  --db-font-ui:          'Inter', 'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif;
+  --db-font-mono:        'JetBrains Mono', 'Fira Code', 'SF Mono', monospace;
 
   /* ── Font Sizes ── */
   --db-text-xs:    10px;
@@ -92,11 +93,14 @@
   --db-shadow-inset:   inset 0 2px 8px rgba(0, 0, 0, 0.3);
 
   /* ── Gradients ── */
-  --db-gradient-primary:    linear-gradient(135deg, #ff6b35 0%, #e05520 100%);
-  --db-gradient-dark:       linear-gradient(180deg, #12121e 0%, #0c0c14 100%);
-  --db-gradient-hero:       linear-gradient(180deg, #0c0c14 0%, #12121e 50%, #0c0c14 100%);
-  --db-gradient-glow:       radial-gradient(ellipse at center, rgba(255,107,53,0.04) 0%, transparent 70%);
-  --db-gradient-scoreboard: linear-gradient(180deg, #1a1a2e 0%, #12121e 100%);
+  --db-gradient-primary:    linear-gradient(135deg, #ff7a45 0%, #e05520 100%);
+  --db-gradient-dark:       linear-gradient(180deg, #14141f 0%, #0c0c14 100%);
+  --db-gradient-hero:       linear-gradient(180deg, #0c0c14 0%, #131320 50%, #0c0c14 100%);
+  --db-gradient-glow:       radial-gradient(ellipse at 50% 0%, rgba(255,107,53,0.07) 0%, transparent 65%);
+  --db-gradient-scoreboard: linear-gradient(180deg, #1c1c2e 0%, #12121e 100%);
+  --db-gradient-tile:       linear-gradient(160deg, #1e1e30 0%, #161624 100%);
+  --db-gradient-tile-hover: linear-gradient(160deg, #22223a 0%, #1c1c2e 100%);
+  --db-gradient-tile-marked: linear-gradient(160deg, #2d1a0a 0%, #1e1008 100%);
 
   /* ── Z-Index Scale ── */
   --db-z-base:     0;
@@ -121,7 +125,13 @@
 
 *, *::before, *::after {
   font-family: var(--db-font-body);
+  -webkit-font-smoothing: antialiased;
 }
+
+/* Display font utility */
+.font-display { font-family: var(--db-font-display) !important; }
+.font-ui      { font-family: var(--db-font-ui) !important; }
+.font-mono    { font-family: var(--db-font-mono) !important; }
 
 ::selection {
   background: rgba(255, 107, 53, 0.30);
@@ -172,23 +182,23 @@
 .db-border-primary { border-color: var(--db-primary); }
 .db-border-subtle  { border-color: var(--db-border-subtle); }
 
-/* Arcade heading style — use on any label/title */
+/* Display heading — Bebas Neue, for page/section titles */
 .db-heading {
   font-family: var(--db-font-display);
-  font-weight: 800;
-  letter-spacing: 0.12em;
+  font-weight: 400;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--db-primary);
+  color: var(--db-text-bright);
 }
 
-/* Section label — smaller, for panel titles like LEADERBOARD, CHAT */
+/* Section label — Inter, for panel titles like LEADERBOARD, CHAT */
 .db-label {
-  font-family: var(--db-font-mono);
-  font-size: var(--db-text-xs);
+  font-family: var(--db-font-ui);
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--db-primary);
+  color: rgba(255,255,255,0.3);
 }
 
 /* Monospace number display — for scores, Dobs count, etc. */
@@ -197,95 +207,100 @@
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   color: var(--db-text-bright);
+  letter-spacing: -0.01em;
 }
 
 /* Primary CTA button */
 .db-btn-primary {
-  background: var(--db-primary);
-  color: var(--db-text-on-primary);
+  background: linear-gradient(135deg, #ff7a45 0%, #e05520 100%);
+  color: #fff;
   border: none;
-  border-radius: var(--db-radius-md);
-  font-family: var(--db-font-mono);
-  font-weight: 700;
-  font-size: var(--db-text-sm);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 8px 16px;
+  border-radius: 8px;
+  font-family: var(--db-font-display);
+  font-weight: 400;
+  font-size: 16px;
+  letter-spacing: 0.1em;
+  padding: 10px 20px;
   cursor: pointer;
-  transition: background var(--db-duration-fast) var(--db-ease-smooth),
-              transform var(--db-duration-fast) var(--db-ease-bounce);
+  box-shadow: 0 4px 16px rgba(255,107,53,0.3);
+  transition: opacity var(--db-duration-fast) var(--db-ease-smooth),
+              transform var(--db-duration-fast) var(--db-ease-bounce),
+              box-shadow var(--db-duration-fast) var(--db-ease-smooth);
 }
 .db-btn-primary:hover {
-  background: var(--db-primary-light);
+  opacity: 0.9;
+  box-shadow: 0 6px 20px rgba(255,107,53,0.4);
 }
 .db-btn-primary:active {
   transform: scale(0.97);
-  background: var(--db-primary-dark);
+  opacity: 0.85;
 }
 
 /* Ghost/secondary button */
 .db-btn-ghost {
   background: transparent;
-  color: var(--db-text-secondary);
-  border: 1px solid var(--db-border-default);
-  border-radius: var(--db-radius-md);
-  font-family: var(--db-font-mono);
+  color: rgba(255,255,255,0.45);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  font-family: var(--db-font-ui);
   font-weight: 600;
-  font-size: var(--db-text-sm);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  padding: 6px 12px;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  padding: 8px 14px;
   cursor: pointer;
   transition: all var(--db-duration-fast) var(--db-ease-smooth);
 }
 .db-btn-ghost:hover {
-  background: var(--db-bg-hover);
-  border-color: var(--db-border-active);
-  color: var(--db-text-primary);
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.18);
+  color: rgba(255,255,255,0.8);
 }
 
 /* Surface card — use for any panel/card container */
 .db-card {
-  background: var(--db-bg-surface);
-  border: 1px solid var(--db-border-subtle);
-  border-radius: var(--db-radius-lg);
+  background: linear-gradient(160deg, #161622 0%, #111119 100%);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 10px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.3);
 }
 
 /* Input field */
 .db-input {
   width: 100%;
-  background: var(--db-bg-input);
-  border: 1px solid var(--db-border-default);
-  border-radius: var(--db-radius-md);
-  padding: 8px 12px;
-  font-family: var(--db-font-mono);
-  font-size: var(--db-text-base);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-family: var(--db-font-ui);
+  font-size: 14px;
   color: var(--db-text-primary);
-  transition: border-color var(--db-duration-fast) var(--db-ease-smooth);
+  transition: border-color var(--db-duration-fast) var(--db-ease-smooth),
+              background var(--db-duration-fast) var(--db-ease-smooth);
 }
 .db-input:hover {
-  border-color: var(--db-border-active);
+  border-color: rgba(255,255,255,0.14);
 }
 .db-input:focus {
-  border-color: var(--db-primary);
+  border-color: rgba(255,107,53,0.5);
+  background: rgba(255,255,255,0.06);
   outline: none;
-  box-shadow: 0 0 0 2px rgba(255, 107, 53, 0.15);
 }
 
 /* Live badge */
 .db-live-badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  background: var(--db-live);
-  color: #fff;
-  font-family: var(--db-font-mono);
+  gap: 5px;
+  background: rgba(255,45,45,0.1);
+  border: 1px solid rgba(255,45,45,0.2);
+  color: #ff4444;
+  font-family: var(--db-font-ui);
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  padding: 2px 8px;
-  border-radius: var(--db-radius-xs);
+  padding: 3px 8px;
+  border-radius: 20px;
 }
 .db-live-badge::before {
   content: '';
@@ -293,7 +308,7 @@
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: #fff;
+  background: #ff4444;
   animation: db-pulse 1.5s ease-in-out infinite;
 }
 
@@ -301,15 +316,16 @@
 .db-lobby-badge {
   display: inline-flex;
   align-items: center;
-  background: var(--db-bg-active);
-  color: var(--db-text-secondary);
-  font-family: var(--db-font-mono);
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.4);
+  border: 1px solid rgba(255,255,255,0.08);
+  font-family: var(--db-font-ui);
   font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
+  font-weight: 600;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  padding: 2px 8px;
-  border-radius: var(--db-radius-xs);
+  padding: 3px 8px;
+  border-radius: 20px;
 }
 
 

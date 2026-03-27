@@ -95,7 +95,7 @@ export default function GameCard({ game, onOpenGame, rank = 0, isPlaying = false
         <div style={{ position: 'absolute', top: 10, left: 14, zIndex: 1, display: 'flex', alignItems: 'center', gap: 3 }}>
           <span style={{
             fontFamily: 'var(--db-font-display)', fontSize: 18, fontWeight: 800, lineHeight: 1,
-            color: rank === 1 ? '#FFD700' : rank === 2 ? '#C0C0C0' : rank === 3 ? '#CD7F32' : '#555577',
+            color: rank === 1 ? '#FFD700' : rank === 2 ? '#C0C0C0' : rank === 3 ? '#CD7F32' : 'rgba(255,255,255,0.2)',
           }}>{ordinal(rank)}</span>
           {rank <= 3 && (
             <span style={{ fontSize: 14 }}>
@@ -114,11 +114,11 @@ export default function GameCard({ game, onOpenGame, rank = 0, isPlaying = false
               LIVE
             </span>
             {!isPlaying && (
-              <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 8, fontWeight: 800, color: '#0c0c14', background: '#ff6b35', padding: '2px 6px', borderRadius: 3 }}>NEW</span>
+              <span style={{ fontFamily: 'var(--db-font-ui)', fontSize: 9, fontWeight: 700, color: '#fff', background: 'linear-gradient(135deg, #ff7a45, #e05520)', padding: '2px 7px', borderRadius: 4 }}>NEW</span>
             )}
           </>
         ) : isFinished ? (
-          <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, fontWeight: 700, letterSpacing: '0.10em', color: '#555577', background: '#1a1a2e', border: '1px solid #2a2a44', borderRadius: 3, padding: '2px 6px' }}>
+          <span style={{ fontFamily: 'var(--db-font-display)', fontSize: 10, letterSpacing: '0.1em', color: 'rgba(255,255,255,0.25)', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 4, padding: '2px 7px' }}>
             FINAL
           </span>
         ) : null}
@@ -130,13 +130,13 @@ export default function GameCard({ game, onOpenGame, rank = 0, isPlaying = false
         style={{ padding: '18px 20px 12px' }}
       >
         <div className="flex flex-col items-center gap-1">
-          <span className="team-abbr" style={{ color: awayColor, opacity: 0.75 }}>{away}</span>
-          <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.10em', color: '#555577', textTransform: 'uppercase' }}>Away</span>
+          <span className="team-abbr" style={{ color: awayColor, opacity: 0.8 }}>{away}</span>
+          <span style={{ fontFamily: 'var(--db-font-ui)', fontSize: 9, fontWeight: 500, letterSpacing: '0.06em', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase' }}>Away</span>
         </div>
         <span className="vs-text" style={{ marginBottom: 16 }}>VS</span>
         <div className="flex flex-col items-center gap-1">
           <span className="team-abbr" style={{ color: homeColor }}>{home}</span>
-          <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.10em', color: '#555577', textTransform: 'uppercase' }}>Home</span>
+          <span style={{ fontFamily: 'var(--db-font-ui)', fontSize: 9, fontWeight: 500, letterSpacing: '0.06em', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase' }}>Home</span>
         </div>
       </div>
 
@@ -148,33 +148,33 @@ export default function GameCard({ game, onOpenGame, rank = 0, isPlaying = false
         <div>
           {isLive ? (
             <>
-              <span style={{ color: '#ff2d2d', fontSize: 11, fontWeight: 700, letterSpacing: '0.05em' }}>
-                ● IN PROGRESS
+              <span style={{ fontFamily: 'var(--db-font-ui)', fontSize: 11, fontWeight: 600, color: '#ff4444' }}>
+                ● In progress
               </span>
-              <div style={{ color: '#555577', fontSize: 11, marginTop: 2 }}>
+              <div style={{ fontFamily: 'var(--db-font-ui)', fontSize: 11, fontWeight: 400, color: 'rgba(255,255,255,0.25)', marginTop: 2 }}>
                 {game.participant_count ?? 0} playing
               </div>
             </>
           ) : isFinished ? (
             <>
-              <span style={{ color: '#555577', fontSize: 11, fontWeight: 700 }}>FINAL</span>
+              <span style={{ fontFamily: 'var(--db-font-display)', fontSize: 11, letterSpacing: '0.06em', color: 'rgba(255,255,255,0.2)' }}>FINAL</span>
               {game.away_score != null && game.home_score != null && (
-                <div style={{ fontFamily: 'var(--db-font-mono)', fontSize: 13, fontWeight: 800, color: '#8888aa', marginTop: 2 }}>
-                  {game.away_score} - {game.home_score}
+                <div style={{ fontFamily: 'var(--db-font-mono)', fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.3)', marginTop: 2, fontVariantNumeric: 'tabular-nums' }}>
+                  {game.away_score} – {game.home_score}
                 </div>
               )}
             </>
           ) : (
             <>
               {formatDateLabel(game.starts_at) && (
-                <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, fontWeight: 700, letterSpacing: '0.08em', color: '#8888aa', textTransform: 'uppercase', display: 'block' }}>
+                <span style={{ fontFamily: 'var(--db-font-ui)', fontSize: 10, fontWeight: 500, letterSpacing: '0.04em', color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', display: 'block' }}>
                   {formatDateLabel(game.starts_at)}
                 </span>
               )}
-              <span style={{ color: '#555577', fontSize: 11, fontWeight: 600 }}>
+              <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.5)' }}>
                 {formatTipoff(game.starts_at)}
               </span>
-              <div style={{ color: '#555577', fontSize: 11, marginTop: 2 }}>
+              <div style={{ fontFamily: 'var(--db-font-ui)', fontSize: 11, fontWeight: 400, color: 'rgba(255,255,255,0.25)', marginTop: 2 }}>
                 {game.participant_count ?? 0} joined
               </div>
             </>
@@ -187,9 +187,9 @@ export default function GameCard({ game, onOpenGame, rank = 0, isPlaying = false
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e', display: 'inline-block', boxShadow: '0 0 4px rgba(34,197,94,0.5)', marginRight: 4 }} />
           )}
           {isFinished ? (
-            <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 700, color: '#555577', letterSpacing: '0.06em' }}>VIEW →</span>
+            <span style={{ fontFamily: 'var(--db-font-ui)', fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.25)' }}>View →</span>
           ) : (
-            <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 700, color: '#ff6b35', letterSpacing: '0.06em' }}>{isLive && isPlaying ? 'CONTINUE →' : 'PLAY →'}</span>
+            <span style={{ fontFamily: 'var(--db-font-ui)', fontSize: 11, fontWeight: 700, color: '#ff6b35' }}>{isLive && isPlaying ? 'Continue →' : 'Play →'}</span>
           )}
         </div>
       </div>

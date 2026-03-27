@@ -183,6 +183,31 @@ function GamePage() {
         return
       }
 
+      // ── Step 2b: Featured game entry check ───────────────────────────────────
+      if (!cardAlreadyExists) {
+        const { data: linkedFeatured } = await supabase
+          .from('featured_games')
+          .select('id, entry_fee, free_entry, status')
+          .eq('room_id', roomId)
+          .in('status', ['active', 'live'])
+          .maybeSingle()
+
+        if (linkedFeatured) {
+          const { data: existingEntry } = await supabase
+            .from('featured_entries')
+            .select('id')
+            .eq('featured_game_id', linkedFeatured.id)
+            .eq('user_id', user.id)
+            .maybeSingle()
+
+          if (!existingEntry) {
+            setError('This is a Featured Game — enter from the lobby banner first.')
+            setLoadingCard(false)
+            return
+          }
+        }
+      }
+
       // ── Step 3: Generate card from server-managed odds pool ───────────────────
       // Live rooms: the pool was locked in when the game went live — skip odds_status check
       // Lobby rooms: wait for odds_status === 'ready' before generating
@@ -281,7 +306,7 @@ function GamePage() {
   if (loadingRoom || authLoading) {
     return (
       <div className="flex h-[calc(100vh-4rem)] items-center justify-center" style={{ background: '#0c0c14' }}>
-        <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 13, color: '#8888aa' }}>Loading room...</span>
+        <span style={{ fontFamily: 'var(--db-font-ui)', fontSize: 13, color: 'rgba(255,255,255,0.3)' }}>Loading room...</span>
       </div>
     )
   }

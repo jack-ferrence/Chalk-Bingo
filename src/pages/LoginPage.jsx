@@ -3,32 +3,8 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import DobberLogo from '../components/ui/DobberLogo.jsx'
 
-const inputStyle = {
-  width: '100%',
-  background: '#0c0c14',
-  border: '1px solid #2a2a44',
-  borderRadius: 4,
-  padding: '8px 12px',
-  fontFamily: 'var(--db-font-mono)',
-  fontSize: 13,
-  color: '#e0e0f0',
-  outline: 'none',
-  boxSizing: 'border-box',
-}
-
-const labelStyle = {
-  display: 'block',
-  marginBottom: 6,
-  fontFamily: 'var(--db-font-mono)',
-  fontSize: 10,
-  fontWeight: 700,
-  letterSpacing: '0.12em',
-  textTransform: 'uppercase',
-  color: '#555577',
-}
-
 function LoginPage() {
-  const [email, setEmail] = useState('')
+  const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -42,10 +18,22 @@ function LoginPage() {
     setError('')
     setLoading(true)
 
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
+    const trimmed = identifier.trim()
+    let email = trimmed
+
+    if (!trimmed.includes('@')) {
+      const { data: lookedUp, error: rpcError } = await supabase.rpc('get_email_by_username', {
+        p_username: trimmed,
+      })
+      if (rpcError || !lookedUp) {
+        setError('No account found for that username.')
+        setLoading(false)
+        return
+      }
+      email = lookedUp
+    }
+
+    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
 
     if (signInError) {
       setError(signInError.message)
@@ -57,45 +45,138 @@ function LoginPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0c0c14', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px' }}>
-      <div style={{ width: '100%', maxWidth: 380 }}>
+    <div style={{ minHeight: '100vh', background: '#09090f', display: 'flex', position: 'relative', overflow: 'hidden' }}>
 
-        {/* Logo lockup */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, marginBottom: 32 }}>
-          <DobberLogo size={64} />
-          <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 28, fontWeight: 900, letterSpacing: '6px', color: '#e0e0f0' }}>
-            DOBBER
-          </span>
+      {/* Background radial glow */}
+      <div style={{
+        position: 'absolute', top: '-10%', right: '-5%',
+        width: 600, height: 600,
+        background: 'radial-gradient(circle, rgba(255,107,53,0.06) 0%, transparent 65%)',
+        pointerEvents: 'none',
+      }} />
+      <div style={{
+        position: 'absolute', bottom: '-15%', left: '-10%',
+        width: 500, height: 500,
+        background: 'radial-gradient(circle, rgba(100,80,255,0.04) 0%, transparent 65%)',
+        pointerEvents: 'none',
+      }} />
+
+      {/* Left brand panel — hidden on mobile */}
+      <div className="hidden lg:flex" style={{
+        width: 420, flexShrink: 0,
+        flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-start',
+        padding: '0 56px',
+        borderRight: '1px solid rgba(255,255,255,0.05)',
+        position: 'relative',
+      }}>
+        <div style={{ marginBottom: 48 }}>
+          <DobberLogo size={52} />
         </div>
+        <div style={{
+          fontFamily: 'var(--db-font-display)',
+          fontSize: 72,
+          letterSpacing: '0.04em',
+          color: '#e8e8f4',
+          lineHeight: 0.92,
+          marginBottom: 20,
+        }}>
+          LIVE<br />
+          <span style={{ color: '#ff6b35' }}>SPORTS</span><br />
+          BINGO
+        </div>
+        <p style={{
+          fontFamily: 'var(--db-font-ui)', fontSize: 14, fontWeight: 400,
+          color: 'rgba(255,255,255,0.35)', lineHeight: 1.6, maxWidth: 280,
+        }}>
+          Real NBA & MLB props. Live stats. Free to play. One card per game.
+        </p>
 
-        {/* Card */}
-        <div style={{ background: '#12121e', border: '1px solid #1a1a2e', borderRadius: 8, padding: 32 }}>
-          <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 18, fontWeight: 700, color: '#e0e0f0', marginBottom: 4, letterSpacing: '0.04em' }}>
-            WELCOME BACK
-          </p>
-          <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 12, color: '#555577', marginBottom: 28 }}>
-            Log in to join a room and start playing.
-          </p>
+        {/* Feature pills */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 40 }}>
+          {['Free to play every day', 'Live real-time scoring', 'Win Dobs, win prizes'].map((f) => (
+            <div key={f} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#ff6b35', flexShrink: 0 }} />
+              <span style={{ fontFamily: 'var(--db-font-ui)', fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.45)' }}>
+                {f}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
 
-          <form onSubmit={handleSubmit}>
-            <div style={{ marginBottom: 16 }}>
-              <label htmlFor="email" style={labelStyle}>Email</label>
+      {/* Right: form */}
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '32px 24px' }}>
+        <div style={{ width: '100%', maxWidth: 380 }}>
+
+          {/* Mobile logo */}
+          <div className="flex lg:hidden" style={{ flexDirection: 'column', alignItems: 'center', marginBottom: 36 }}>
+            <DobberLogo size={44} />
+            <span style={{
+              fontFamily: 'var(--db-font-display)',
+              fontSize: 32,
+              letterSpacing: '6px',
+              color: '#e8e8f4',
+              marginTop: 10,
+              lineHeight: 1,
+            }}>
+              DOBBER
+            </span>
+          </div>
+
+          {/* Heading */}
+          <div style={{ marginBottom: 28 }}>
+            <h1 style={{
+              fontFamily: 'var(--db-font-display)',
+              fontSize: 32,
+              letterSpacing: '0.06em',
+              color: '#e8e8f4',
+              lineHeight: 1,
+              margin: '0 0 8px',
+            }}>
+              WELCOME BACK
+            </h1>
+            <p style={{ fontFamily: 'var(--db-font-ui)', fontSize: 13, fontWeight: 400, color: 'rgba(255,255,255,0.35)', margin: 0 }}>
+              Log in to your Dobber account
+            </p>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div>
+              <label
+                htmlFor="identifier"
+                style={{ display: 'block', marginBottom: 6, fontFamily: 'var(--db-font-ui)', fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)' }}
+              >
+                Username or Email
+              </label>
               <input
-                id="email"
-                type="email"
-                autoComplete="email"
+                id="identifier"
+                type="text"
+                autoComplete="username"
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                style={inputStyle}
-                onFocus={(e) => { e.currentTarget.style.border = '1px solid #ff6b35'; e.currentTarget.style.boxShadow = '0 0 0 2px rgba(255,107,53,0.12)' }}
-                onBlur={(e) => { e.currentTarget.style.border = '1px solid #2a2a44'; e.currentTarget.style.boxShadow = 'none' }}
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
+                placeholder="username or you@example.com"
+                style={{
+                  width: '100%', padding: '11px 14px', borderRadius: 8,
+                  background: 'rgba(255,255,255,0.04)',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  fontFamily: 'var(--db-font-ui)', fontSize: 14, fontWeight: 400,
+                  color: '#e8e8f4', outline: 'none', boxSizing: 'border-box',
+                  transition: 'border-color 140ms ease, background 140ms ease',
+                }}
+                onFocus={(e) => { e.currentTarget.style.border = '1px solid rgba(255,107,53,0.5)'; e.currentTarget.style.background = 'rgba(255,255,255,0.06)' }}
+                onBlur={(e) => { e.currentTarget.style.border = '1px solid rgba(255,255,255,0.08)'; e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
               />
             </div>
 
-            <div style={{ marginBottom: 20 }}>
-              <label htmlFor="password" style={labelStyle}>Password</label>
+            <div>
+              <label
+                htmlFor="password"
+                style={{ display: 'block', marginBottom: 6, fontFamily: 'var(--db-font-ui)', fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)' }}
+              >
+                Password
+              </label>
               <input
                 id="password"
                 type="password"
@@ -104,14 +185,21 @@ function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                style={inputStyle}
-                onFocus={(e) => { e.currentTarget.style.border = '1px solid #ff6b35'; e.currentTarget.style.boxShadow = '0 0 0 2px rgba(255,107,53,0.12)' }}
-                onBlur={(e) => { e.currentTarget.style.border = '1px solid #2a2a44'; e.currentTarget.style.boxShadow = 'none' }}
+                style={{
+                  width: '100%', padding: '11px 14px', borderRadius: 8,
+                  background: 'rgba(255,255,255,0.04)',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  fontFamily: 'var(--db-font-ui)', fontSize: 14, fontWeight: 400,
+                  color: '#e8e8f4', outline: 'none', boxSizing: 'border-box',
+                  transition: 'border-color 140ms ease, background 140ms ease',
+                }}
+                onFocus={(e) => { e.currentTarget.style.border = '1px solid rgba(255,107,53,0.5)'; e.currentTarget.style.background = 'rgba(255,255,255,0.06)' }}
+                onBlur={(e) => { e.currentTarget.style.border = '1px solid rgba(255,255,255,0.08)'; e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
               />
             </div>
 
             {error && (
-              <p role="alert" style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, color: '#ff2d2d', marginBottom: 16 }}>
+              <p role="alert" style={{ fontFamily: 'var(--db-font-ui)', fontSize: 12, fontWeight: 500, color: '#ff5555', margin: 0, padding: '8px 12px', background: 'rgba(255,45,45,0.08)', borderRadius: 6, border: '1px solid rgba(255,45,45,0.15)' }}>
                 {error}
               </p>
             )}
@@ -120,36 +208,31 @@ function LoginPage() {
               type="submit"
               disabled={loading}
               style={{
-                width: '100%',
-                background: loading ? '#2a2a44' : '#ff6b35',
-                color: loading ? '#555577' : '#0c0c14',
-                border: 'none',
-                borderRadius: 4,
-                padding: '10px 0',
-                fontFamily: 'var(--db-font-mono)',
-                fontSize: 12,
-                fontWeight: 800,
-                letterSpacing: '0.1em',
-                textTransform: 'uppercase',
+                width: '100%', padding: '12px 0', borderRadius: 8, border: 'none',
+                background: loading ? 'rgba(255,255,255,0.06)' : 'linear-gradient(135deg, #ff7a45 0%, #e05520 100%)',
+                color: loading ? 'rgba(255,255,255,0.25)' : '#fff',
+                fontFamily: 'var(--db-font-display)', fontSize: 18, letterSpacing: '0.1em',
                 cursor: loading ? 'not-allowed' : 'pointer',
-                transition: 'background 100ms ease',
+                boxShadow: loading ? 'none' : '0 4px 16px rgba(255,107,53,0.35)',
+                transition: 'opacity 120ms ease, box-shadow 120ms ease',
+                marginTop: 4,
               }}
-              onMouseEnter={(e) => { if (!loading) e.currentTarget.style.background = '#ff8855' }}
-              onMouseLeave={(e) => { if (!loading) e.currentTarget.style.background = '#ff6b35' }}
+              onMouseEnter={(e) => { if (!loading) e.currentTarget.style.opacity = '0.9' }}
+              onMouseLeave={(e) => { if (!loading) e.currentTarget.style.opacity = '1' }}
             >
-              {loading ? 'LOGGING IN...' : 'LOG IN'}
+              {loading ? 'LOGGING IN…' : 'LOG IN'}
             </button>
           </form>
 
-          <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, color: '#555577', marginTop: 20 }}>
+          <p style={{ fontFamily: 'var(--db-font-ui)', fontSize: 13, fontWeight: 400, color: 'rgba(255,255,255,0.3)', marginTop: 24, textAlign: 'center' }}>
             No account?{' '}
             <Link
               to="/register"
-              style={{ color: '#ff6b35', textDecoration: 'none' }}
+              style={{ color: '#ff6b35', textDecoration: 'none', fontWeight: 600, transition: 'color 120ms' }}
               onMouseEnter={(e) => { e.currentTarget.style.color = '#ff8855' }}
               onMouseLeave={(e) => { e.currentTarget.style.color = '#ff6b35' }}
             >
-              Sign up →
+              Create one free →
             </Link>
           </p>
         </div>

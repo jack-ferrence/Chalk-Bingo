@@ -3,28 +3,20 @@ import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import DobberLogo from '../components/ui/DobberLogo.jsx'
 
-const inputStyle = {
-  width: '100%',
-  background: '#0c0c14',
-  border: '1px solid #2a2a44',
-  borderRadius: 4,
-  padding: '8px 12px',
-  fontFamily: 'var(--db-font-mono)',
-  fontSize: 13,
-  color: '#e0e0f0',
-  outline: 'none',
-  boxSizing: 'border-box',
+const fieldStyle = {
+  width: '100%', padding: '11px 14px', borderRadius: 8,
+  background: 'rgba(255,255,255,0.04)',
+  border: '1px solid rgba(255,255,255,0.08)',
+  fontFamily: 'var(--db-font-ui)', fontSize: 14, fontWeight: 400,
+  color: '#e8e8f4', outline: 'none', boxSizing: 'border-box',
+  transition: 'border-color 140ms ease, background 140ms ease',
 }
 
 const labelStyle = {
-  display: 'block',
-  marginBottom: 6,
-  fontFamily: 'var(--db-font-mono)',
-  fontSize: 10,
-  fontWeight: 700,
-  letterSpacing: '0.12em',
-  textTransform: 'uppercase',
-  color: '#555577',
+  display: 'block', marginBottom: 6,
+  fontFamily: 'var(--db-font-ui)', fontSize: 11, fontWeight: 600,
+  letterSpacing: '0.06em', textTransform: 'uppercase',
+  color: 'rgba(255,255,255,0.35)',
 }
 
 function RegisterPage() {
@@ -60,7 +52,6 @@ function RegisterPage() {
 
     setLoading(true)
 
-    // Check if username is already taken
     const { data: existing } = await supabase
       .from('profiles')
       .select('id')
@@ -76,9 +67,7 @@ function RegisterPage() {
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        data: { username: username.trim() },
-      },
+      options: { data: { username: username.trim() } },
     })
 
     if (signUpError) {
@@ -96,159 +85,191 @@ function RegisterPage() {
     navigate('/', { replace: true })
   }
 
+  const onFocus = (e) => { e.currentTarget.style.borderColor = 'rgba(255,107,53,0.5)'; e.currentTarget.style.background = 'rgba(255,255,255,0.06)' }
+  const onBlur = (e, err) => { e.currentTarget.style.borderColor = err ? 'rgba(255,45,45,0.4)' : 'rgba(255,255,255,0.08)'; e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }
+
   return (
-    <div style={{ minHeight: '100vh', background: '#0c0c14', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px' }}>
-      <div style={{ width: '100%', maxWidth: 380 }}>
+    <div style={{ minHeight: '100vh', background: '#09090f', display: 'flex', position: 'relative', overflow: 'hidden' }}>
 
-        {/* Logo lockup */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, marginBottom: 32 }}>
-          <DobberLogo size={64} />
-          <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 28, fontWeight: 900, letterSpacing: '6px', color: '#e0e0f0' }}>
-            DOBBER
-          </span>
+      {/* Background glow */}
+      <div style={{ position: 'absolute', top: '-5%', left: '-10%', width: 500, height: 500, background: 'radial-gradient(circle, rgba(255,107,53,0.06) 0%, transparent 65%)', pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', bottom: '-10%', right: '-5%', width: 400, height: 400, background: 'radial-gradient(circle, rgba(80,100,255,0.04) 0%, transparent 65%)', pointerEvents: 'none' }} />
+
+      {/* Left brand panel */}
+      <div className="hidden lg:flex" style={{
+        width: 420, flexShrink: 0, flexDirection: 'column', justifyContent: 'center',
+        alignItems: 'flex-start', padding: '0 56px',
+        borderRight: '1px solid rgba(255,255,255,0.05)',
+      }}>
+        <DobberLogo size={52} style={{ marginBottom: 48 }} />
+        <div style={{ fontFamily: 'var(--db-font-display)', fontSize: 64, letterSpacing: '0.04em', color: '#e8e8f4', lineHeight: 0.92, marginBottom: 20 }}>
+          START<br />
+          <span style={{ color: '#ff6b35' }}>PLAYING</span><br />
+          TODAY
         </div>
+        <p style={{ fontFamily: 'var(--db-font-ui)', fontSize: 14, fontWeight: 400, color: 'rgba(255,255,255,0.35)', lineHeight: 1.6, maxWidth: 280 }}>
+          Free account. One bingo card per live game. Compete for prizes every night.
+        </p>
+        <p style={{ marginTop: 32, fontFamily: 'var(--db-font-ui)', fontSize: 12, color: 'rgba(255,255,255,0.2)' }}>
+          Already have an account?{' '}
+          <Link to="/login" style={{ color: '#ff6b35', textDecoration: 'none', fontWeight: 600 }}>
+            Log in →
+          </Link>
+        </p>
+      </div>
 
-        {/* Email verification notice */}
-        {emailSent ? (
-          <div style={{ background: '#12121e', border: '1px solid #1a1a2e', borderRadius: 8, padding: 32, textAlign: 'center' }}>
-            <div style={{ fontSize: 40, marginBottom: 16 }}>📧</div>
-            <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 18, fontWeight: 700, color: '#e0e0f0', marginBottom: 8, letterSpacing: '0.04em' }}>
-              CHECK YOUR EMAIL
-            </p>
-            <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 12, color: '#8888aa', marginBottom: 24, lineHeight: 1.7 }}>
-              We sent a verification link to{' '}
-              <span style={{ color: '#ff6b35' }}>{email}</span>.
-              Click the link to verify your account, then log in.
-            </p>
-            <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, color: '#555577' }}>
-              Didn&apos;t receive it? Check your spam folder.
-            </p>
-            <div style={{ marginTop: 24 }}>
+      {/* Right: form */}
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '32px 24px' }}>
+        <div style={{ width: '100%', maxWidth: 380 }}>
+
+          {/* Mobile logo */}
+          <div className="flex lg:hidden" style={{ flexDirection: 'column', alignItems: 'center', marginBottom: 36 }}>
+            <DobberLogo size={44} />
+            <span style={{ fontFamily: 'var(--db-font-display)', fontSize: 32, letterSpacing: '6px', color: '#e8e8f4', marginTop: 10, lineHeight: 1 }}>
+              DOBBER
+            </span>
+          </div>
+
+          {emailSent ? (
+            /* Email verification notice */
+            <div style={{ textAlign: 'center', padding: '40px 24px' }}>
+              <div style={{ fontSize: 52, marginBottom: 20, lineHeight: 1 }}>📬</div>
+              <h2 style={{ fontFamily: 'var(--db-font-display)', fontSize: 28, letterSpacing: '0.06em', color: '#e8e8f4', margin: '0 0 12px' }}>
+                CHECK YOUR EMAIL
+              </h2>
+              <p style={{ fontFamily: 'var(--db-font-ui)', fontSize: 13, fontWeight: 400, color: 'rgba(255,255,255,0.4)', lineHeight: 1.7, margin: '0 0 8px' }}>
+                We sent a verification link to
+              </p>
+              <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 13, color: '#ff6b35', margin: '0 0 28px', fontWeight: 600 }}>
+                {email}
+              </p>
+              <p style={{ fontFamily: 'var(--db-font-ui)', fontSize: 12, color: 'rgba(255,255,255,0.2)', margin: '0 0 28px' }}>
+                Click the link to verify, then log in. Check spam if you don't see it.
+              </p>
               <Link
                 to="/login"
-                style={{ fontFamily: 'var(--db-font-mono)', fontSize: 12, fontWeight: 700, color: '#ff6b35', textDecoration: 'none', letterSpacing: '0.06em' }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = '#ff8855' }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = '#ff6b35' }}
+                style={{
+                  fontFamily: 'var(--db-font-display)', fontSize: 16, letterSpacing: '0.1em',
+                  color: '#fff', background: 'linear-gradient(135deg, #ff7a45 0%, #e05520 100%)',
+                  borderRadius: 6, padding: '10px 28px', textDecoration: 'none', display: 'inline-block',
+                  boxShadow: '0 4px 16px rgba(255,107,53,0.35)',
+                }}
               >
-                GO TO LOGIN →
+                GO TO LOGIN
               </Link>
             </div>
-          </div>
-        ) : (
-          /* Card */
-          <div style={{ background: '#12121e', border: '1px solid #1a1a2e', borderRadius: 8, padding: 32 }}>
-            <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 18, fontWeight: 700, color: '#e0e0f0', marginBottom: 4, letterSpacing: '0.04em' }}>
-              CREATE ACCOUNT
-            </p>
-            <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 12, color: '#555577', marginBottom: 28 }}>
-              Sign up to save cards and join live rooms.
-            </p>
+          ) : (
+            <>
+              <div style={{ marginBottom: 28 }}>
+                <h1 style={{ fontFamily: 'var(--db-font-display)', fontSize: 32, letterSpacing: '0.06em', color: '#e8e8f4', lineHeight: 1, margin: '0 0 8px' }}>
+                  CREATE ACCOUNT
+                </h1>
+                <p style={{ fontFamily: 'var(--db-font-ui)', fontSize: 13, fontWeight: 400, color: 'rgba(255,255,255,0.35)', margin: 0 }}>
+                  It's free. No credit card needed.
+                </p>
+              </div>
 
-            <form onSubmit={handleSubmit}>
-              <div style={{ marginBottom: 16 }}>
-                <label htmlFor="username" style={labelStyle}>Username</label>
-                <input
-                  id="username"
-                  type="text"
-                  required
-                  minLength={3}
-                  maxLength={20}
-                  value={username}
-                  onChange={handleUsernameChange}
-                  placeholder="pick a name..."
-                  style={{ ...inputStyle, borderColor: usernameError ? '#ff2d2d' : '#2a2a44' }}
-                  onFocus={(e) => { e.currentTarget.style.border = `1px solid ${usernameError ? '#ff2d2d' : '#ff6b35'}`; e.currentTarget.style.boxShadow = '0 0 0 2px rgba(255,107,53,0.12)' }}
-                  onBlur={(e) => { e.currentTarget.style.border = `1px solid ${usernameError ? '#ff2d2d' : '#2a2a44'}`; e.currentTarget.style.boxShadow = 'none' }}
-                />
-                {usernameError && (
-                  <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, color: '#ff2d2d', marginTop: 4 }}>
-                    {usernameError}
+              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <div>
+                  <label htmlFor="username" style={labelStyle}>Username</label>
+                  <input
+                    id="username"
+                    type="text"
+                    required
+                    minLength={3}
+                    maxLength={20}
+                    value={username}
+                    onChange={handleUsernameChange}
+                    placeholder="pick a handle"
+                    style={{ ...fieldStyle, borderColor: usernameError ? 'rgba(255,45,45,0.4)' : 'rgba(255,255,255,0.08)' }}
+                    onFocus={onFocus}
+                    onBlur={(e) => onBlur(e, usernameError)}
+                  />
+                  {usernameError && (
+                    <p style={{ fontFamily: 'var(--db-font-ui)', fontSize: 11, color: '#ff5555', marginTop: 5, fontWeight: 500 }}>
+                      {usernameError}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label htmlFor="email" style={labelStyle}>Email</label>
+                  <input
+                    id="email"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    style={fieldStyle}
+                    onFocus={onFocus}
+                    onBlur={(e) => onBlur(e, false)}
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="password" style={labelStyle}>Password</label>
+                  <input
+                    id="password"
+                    type="password"
+                    autoComplete="new-password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="min 6 characters"
+                    style={fieldStyle}
+                    onFocus={onFocus}
+                    onBlur={(e) => onBlur(e, false)}
+                  />
+                </div>
+
+                <div style={{ background: 'rgba(255,107,53,0.05)', border: '1px solid rgba(255,107,53,0.12)', borderRadius: 6, padding: '10px 14px' }}>
+                  <p style={{ fontFamily: 'var(--db-font-ui)', fontSize: 12, fontWeight: 400, color: 'rgba(255,255,255,0.35)', margin: 0, lineHeight: 1.6 }}>
+                    A verification email will be sent after sign up.
+                  </p>
+                </div>
+
+                {error && (
+                  <p role="alert" style={{ fontFamily: 'var(--db-font-ui)', fontSize: 12, fontWeight: 500, color: '#ff5555', margin: 0, padding: '8px 12px', background: 'rgba(255,45,45,0.08)', borderRadius: 6, border: '1px solid rgba(255,45,45,0.15)' }}>
+                    {error}
                   </p>
                 )}
-              </div>
 
-              <div style={{ marginBottom: 16 }}>
-                <label htmlFor="email" style={labelStyle}>Email</label>
-                <input
-                  id="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  style={inputStyle}
-                  onFocus={(e) => { e.currentTarget.style.border = '1px solid #ff6b35'; e.currentTarget.style.boxShadow = '0 0 0 2px rgba(255,107,53,0.12)' }}
-                  onBlur={(e) => { e.currentTarget.style.border = '1px solid #2a2a44'; e.currentTarget.style.boxShadow = 'none' }}
-                />
-              </div>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  style={{
+                    width: '100%', padding: '12px 0', borderRadius: 8, border: 'none',
+                    background: loading ? 'rgba(255,255,255,0.06)' : 'linear-gradient(135deg, #ff7a45 0%, #e05520 100%)',
+                    color: loading ? 'rgba(255,255,255,0.25)' : '#fff',
+                    fontFamily: 'var(--db-font-display)', fontSize: 18, letterSpacing: '0.1em',
+                    cursor: loading ? 'not-allowed' : 'pointer',
+                    boxShadow: loading ? 'none' : '0 4px 16px rgba(255,107,53,0.35)',
+                    transition: 'opacity 120ms ease, box-shadow 120ms ease',
+                    marginTop: 4,
+                  }}
+                  onMouseEnter={(e) => { if (!loading) e.currentTarget.style.opacity = '0.9' }}
+                  onMouseLeave={(e) => { if (!loading) e.currentTarget.style.opacity = '1' }}
+                >
+                  {loading ? 'CREATING ACCOUNT…' : 'CREATE ACCOUNT'}
+                </button>
+              </form>
 
-              <div style={{ marginBottom: 20 }}>
-                <label htmlFor="password" style={labelStyle}>Password</label>
-                <input
-                  id="password"
-                  type="password"
-                  autoComplete="new-password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  style={inputStyle}
-                  onFocus={(e) => { e.currentTarget.style.border = '1px solid #ff6b35'; e.currentTarget.style.boxShadow = '0 0 0 2px rgba(255,107,53,0.12)' }}
-                  onBlur={(e) => { e.currentTarget.style.border = '1px solid #2a2a44'; e.currentTarget.style.boxShadow = 'none' }}
-                />
-              </div>
-
-              <div style={{ marginBottom: 20, background: 'rgba(255,107,53,0.06)', border: '1px solid rgba(255,107,53,0.18)', borderRadius: 4, padding: '8px 12px' }}>
-                <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, color: '#8888aa', margin: 0 }}>
-                  📧 A verification email will be sent after sign up. You must verify your account before logging in.
-                </p>
-              </div>
-
-              {error && (
-                <p role="alert" style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, color: '#ff2d2d', marginBottom: 16 }}>
-                  {error}
-                </p>
-              )}
-
-              <button
-                type="submit"
-                disabled={loading}
-                style={{
-                  width: '100%',
-                  background: loading ? '#2a2a44' : '#ff6b35',
-                  color: loading ? '#555577' : '#0c0c14',
-                  border: 'none',
-                  borderRadius: 4,
-                  padding: '10px 0',
-                  fontFamily: 'var(--db-font-mono)',
-                  fontSize: 12,
-                  fontWeight: 800,
-                  letterSpacing: '0.1em',
-                  textTransform: 'uppercase',
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                  transition: 'background 100ms ease',
-                }}
-                onMouseEnter={(e) => { if (!loading) e.currentTarget.style.background = '#ff8855' }}
-                onMouseLeave={(e) => { if (!loading) e.currentTarget.style.background = '#ff6b35' }}
-              >
-                {loading ? 'CREATING ACCOUNT...' : 'SIGN UP'}
-              </button>
-            </form>
-
-            <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, color: '#555577', marginTop: 20 }}>
-              Have an account?{' '}
-              <Link
-                to="/login"
-                style={{ color: '#ff6b35', textDecoration: 'none' }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = '#ff8855' }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = '#ff6b35' }}
-              >
-                Log in →
-              </Link>
-            </p>
-          </div>
-        )}
+              <p style={{ fontFamily: 'var(--db-font-ui)', fontSize: 13, fontWeight: 400, color: 'rgba(255,255,255,0.3)', marginTop: 24, textAlign: 'center' }}>
+                Already have an account?{' '}
+                <Link
+                  to="/login"
+                  style={{ color: '#ff6b35', textDecoration: 'none', fontWeight: 600, transition: 'color 120ms' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = '#ff8855' }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = '#ff6b35' }}
+                >
+                  Log in →
+                </Link>
+              </p>
+            </>
+          )}
+        </div>
       </div>
     </div>
   )

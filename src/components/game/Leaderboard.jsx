@@ -70,7 +70,7 @@ const LeaderboardRow = memo(function LeaderboardRow({
           color: nameColor && nameColor !== 'rainbow' ? nameColor : undefined,
           fontFamily: getFontFamily(nameFont),
         }}
-        onMouseEnter={(e) => { if (!isMe) e.currentTarget.style.textDecoration = 'underline'; e.currentTarget.style.textDecorationColor = '#555577' }}
+        onMouseEnter={(e) => { if (!isMe) e.currentTarget.style.textDecoration = 'underline'; e.currentTarget.style.textDecorationColor = 'rgba(255,255,255,0.25)' }}
         onMouseLeave={(e) => { e.currentTarget.style.textDecoration = 'none' }}
       >
         {badge && <span style={{ marginRight: 3, fontSize: 11 }}>{badge.emoji}</span>}

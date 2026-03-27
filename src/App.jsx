@@ -9,6 +9,7 @@ import StorePage from './pages/StorePage.jsx'
 import SettingsPage from './pages/SettingsPage.jsx'
 import ProtectedRoute from './pages/ProtectedRoute.jsx'
 import AppShell from './components/layout/AppShell.jsx'
+import AdminFeaturedPage from './pages/AdminFeaturedPage.jsx'
 
 function App() {
   const { user, loading } = useAuth()
@@ -20,7 +21,7 @@ function App() {
     if (loading) {
       return (
         <div style={{ minHeight: '100vh', background: '#0c0c14', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: '#555577' }}>Loading...</span>
+          <span style={{ fontFamily: 'var(--db-font-ui)', fontSize: 12, color: 'rgba(255,255,255,0.25)' }}>Loading...</span>
         </div>
       )
     }
@@ -30,7 +31,7 @@ function App() {
       <div className="h-screen flex flex-col" style={{ background: '#0c0c14' }}>
         <header
           className="flex h-12 shrink-0 items-center justify-between px-3"
-          style={{ background: '#0c0c14', borderBottom: '1px solid #2a2a44' }}
+          style={{ background: 'rgba(10,10,18,0.97)', borderBottom: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(12px)' }}
         >
           <Link
             to="/"
@@ -46,7 +47,7 @@ function App() {
             DOBBER
           </Link>
           {user && (
-            <span style={{ color: '#555577', fontSize: 12, fontFamily: 'var(--db-font-mono)' }}>
+            <span style={{ fontFamily: 'var(--db-font-ui)', fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>
               {profileUsername ?? user.email}
             </span>
           )}
@@ -70,11 +71,12 @@ function App() {
           <Route path="/" element={<LobbyPage />} />
           <Route path="/store" element={<StorePage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/admin/featured" element={<AdminFeaturedPage />} />
         </Route>
         <Route
           path="*"
           element={
-            <div className="p-8 text-center" style={{ color: '#555577' }}>
+            <div className="p-8 text-center" style={{ fontFamily: 'var(--db-font-ui)', color: 'rgba(255,255,255,0.25)' }}>
               Page not found
             </div>
           }

@@ -7,23 +7,28 @@ export default function HeroBanner() {
     <div
       className="relative overflow-hidden rounded-xl p-8 md:p-10"
       style={{
-        background: '#1a1a2e',
-        borderLeft: '2px solid #ff6b35',
+        background: 'linear-gradient(135deg, rgba(255,107,53,0.08) 0%, rgba(255,255,255,0.02) 50%, rgba(8,8,16,1) 100%)',
+        border: '1px solid rgba(255,107,53,0.2)',
       }}
     >
+      {/* Glow accent */}
+      <div style={{
+        position: 'absolute', top: -60, right: -60, width: 300, height: 300,
+        background: 'radial-gradient(circle, rgba(255,107,53,0.12) 0%, transparent 70%)',
+        pointerEvents: 'none',
+      }} />
 
       <div className="relative z-10 max-w-lg">
         <p
-          className="mb-3 text-xs font-bold uppercase"
-          style={{ color: '#ff6b35', letterSpacing: '0.2em' }}
+          style={{ fontFamily: 'var(--db-font-display)', fontSize: 11, letterSpacing: '0.18em', color: '#ff6b35', marginBottom: 12 }}
         >
-          NBA Bingo — Free to Play
+          NBA BINGO — FREE TO PLAY
         </p>
         <h1
           style={{
             fontFamily: 'var(--db-font-display)',
             fontSize: 'clamp(38px, 5.5vw, 60px)',
-            color: '#e0e0f0',
+            color: '#e8e8f4',
             lineHeight: 1.05,
             letterSpacing: '0.02em',
           }}
@@ -32,23 +37,34 @@ export default function HeroBanner() {
         </h1>
         <p
           className="mt-4 leading-relaxed"
-          style={{ color: '#8888aa', fontSize: 'clamp(14px, 2vw, 18px)', maxWidth: 460 }}
+          style={{ fontFamily: 'var(--db-font-ui)', fontWeight: 400, color: 'rgba(255,255,255,0.45)', fontSize: 'clamp(14px, 2vw, 17px)', maxWidth: 460 }}
         >
           Live bingo cards powered by real NBA stats. Free to play. Every game.
         </p>
         <button
           type="button"
           onClick={() => navigate('/games')}
-          className="mt-6 inline-flex items-center gap-2 rounded-lg px-6 py-3 text-sm font-bold transition-all duration-200 hover:bg-[#ff8855]"
           style={{
-            background: '#ff6b35',
-            color: '#0c0c14',
-            boxShadow: '0 0 0 0 rgba(255,107,53,0)',
+            marginTop: 24,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            borderRadius: 8,
+            padding: '11px 24px',
+            background: 'linear-gradient(135deg, #ff7a45 0%, #e05520 100%)',
+            color: '#fff',
+            border: 'none',
+            fontFamily: 'var(--db-font-display)',
+            fontSize: 14,
+            letterSpacing: '0.06em',
+            cursor: 'pointer',
+            boxShadow: '0 4px 16px rgba(255,107,53,0.4)',
+            transition: 'opacity 150ms ease',
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '0 0 20px rgba(255,107,53,0.3)' }}
-          onMouseLeave={(e) => { e.currentTarget.style.boxShadow = '0 0 0 0 rgba(255,107,53,0)' }}
+          onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.9' }}
+          onMouseLeave={(e) => { e.currentTarget.style.opacity = '1' }}
         >
-          Browse Tonight&apos;s Games →
+          BROWSE TONIGHT&apos;S GAMES →
         </button>
       </div>
     </div>

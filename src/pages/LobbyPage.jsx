@@ -7,6 +7,7 @@ import { supabase } from '../lib/supabase'
 import { NBA_TEAM_COLORS, MLB_TEAM_COLORS, NCAA_TEAM_COLORS, hexToRgba } from '../constants/teamColors.js'
 import SportSection from '../components/home/SportSection.jsx'
 import TopPlayers from '../components/home/TopPlayers.jsx'
+import FeaturedBanner from '../components/home/FeaturedBanner.jsx'
 
 function ordinal(n) {
   if (n <= 0) return ''
@@ -35,8 +36,8 @@ function GameCountdown({ date }) {
   if (!date || isExpired) {
     return (
       <div style={{ textAlign: 'right' }}>
-        <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 700, color: '#ff6b35' }}>STARTING SOON</span>
-        <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, color: '#ff6b35', marginTop: 2 }}>TAP TO PLAY →</p>
+        <span style={{ fontFamily: 'var(--db-font-display)', fontSize: 11, letterSpacing: '0.06em', color: '#ff6b35' }}>STARTING SOON</span>
+        <p style={{ fontFamily: 'var(--db-font-ui)', fontSize: 10, color: 'rgba(255,107,53,0.6)', marginTop: 2 }}>Tap to play →</p>
       </div>
     )
   }
@@ -44,20 +45,20 @@ function GameCountdown({ date }) {
   if (total < 60 * 60 * 1000) {
     return (
       <div style={{ textAlign: 'right' }}>
-        <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 14, fontWeight: 800, color: '#e0e0f0', letterSpacing: '0.04em' }}>
+        <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 14, fontWeight: 700, color: '#e8e8f4', letterSpacing: '0.04em' }}>
           {minutes}:{String(seconds).padStart(2, '0')}
         </span>
-        <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, color: '#3a3a55', marginTop: 2 }}>TAP TO PLAY →</p>
+        <p style={{ fontFamily: 'var(--db-font-ui)', fontSize: 10, color: 'rgba(255,255,255,0.2)', marginTop: 2 }}>Tap to play →</p>
       </div>
     )
   }
 
   return (
     <div style={{ textAlign: 'right' }}>
-      <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 12, fontWeight: 700, color: '#8888aa' }}>
+      <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.45)' }}>
         {new Date(date).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
       </span>
-      <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, color: '#3a3a55', marginTop: 2 }}>TAP TO PLAY →</p>
+      <p style={{ fontFamily: 'var(--db-font-ui)', fontSize: 10, color: 'rgba(255,255,255,0.2)', marginTop: 2 }}>Tap to play →</p>
     </div>
   )
 }
@@ -175,18 +176,16 @@ export default function LobbyPage() {
             <h1
               className="lobby-title"
               style={{
-                fontFamily: 'var(--db-font-mono)',
-                fontSize: 'clamp(18px, 3vw, 28px)',
-                fontWeight: 800,
-                letterSpacing: '0.10em',
+                fontFamily: 'var(--db-font-display)',
+                fontSize: 'clamp(24px, 3vw, 36px)',
+                letterSpacing: '0.06em',
                 lineHeight: 1,
-                color: '#e0e0f0',
-                textTransform: 'uppercase',
+                color: '#e8e8f4',
               }}
             >
-              Games
+              GAMES
             </h1>
-            <p className="hidden md:block mt-1" style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, color: '#3a3a55', letterSpacing: '0.06em' }}>
+            <p className="hidden md:block mt-1" style={{ fontFamily: 'var(--db-font-ui)', fontSize: 12, fontWeight: 400, color: 'rgba(255,255,255,0.2)' }}>
               Live bingo powered by real stats
             </p>
           </div>
@@ -194,14 +193,14 @@ export default function LobbyPage() {
             <span
               className="inline-flex items-center gap-1.5"
               style={{
-                fontSize: 11,
-                fontWeight: 700,
+                fontFamily: 'var(--db-font-display)',
+                fontSize: 12,
                 letterSpacing: '0.08em',
-                color: '#ff2d2d',
-                background: 'rgba(255,45,45,0.10)',
-                border: '1px solid rgba(255,45,45,0.22)',
-                padding: '3px 9px',
-                borderRadius: 6,
+                color: '#ff4444',
+                background: 'rgba(255,45,45,0.08)',
+                border: '1px solid rgba(255,45,45,0.18)',
+                padding: '4px 10px',
+                borderRadius: 20,
               }}
             >
               <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#ff2d2d', display: 'inline-block', animation: 'pulse-live 1.4s ease-in-out infinite' }} />
@@ -210,6 +209,8 @@ export default function LobbyPage() {
           )}
         </div>
       </div>
+
+      <FeaturedBanner />
 
       {/* Sport tabs */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 16, overflowX: 'auto', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch', paddingBottom: 2 }}>
@@ -229,21 +230,22 @@ export default function LobbyPage() {
               onClick={() => setActiveSport(tab.key)}
               style={{
                 display: 'flex', alignItems: 'center', gap: 6,
-                padding: '8px 16px', borderRadius: 20, border: 'none',
-                background: isActive ? '#ff6b35' : '#1a1a2e',
-                color: isActive ? '#0c0c14' : '#8888aa',
-                fontFamily: 'var(--db-font-mono)', fontSize: 11, fontWeight: 700,
-                letterSpacing: '0.06em', cursor: 'pointer', flexShrink: 0,
+                padding: '8px 18px', borderRadius: 20, border: isActive ? 'none' : '1px solid rgba(255,255,255,0.08)',
+                background: isActive ? 'linear-gradient(135deg, #ff7a45 0%, #e05520 100%)' : 'rgba(255,255,255,0.04)',
+                color: isActive ? '#fff' : 'rgba(255,255,255,0.4)',
+                fontFamily: 'var(--db-font-ui)', fontSize: 12, fontWeight: 600,
+                letterSpacing: '0.03em', cursor: 'pointer', flexShrink: 0,
                 transition: 'background 0.15s ease, color 0.15s ease',
+                boxShadow: isActive ? '0 2px 10px rgba(255,107,53,0.3)' : 'none',
               }}
             >
               {tab.icon && <span style={{ fontSize: 13 }}>{tab.icon}</span>}
               {tab.label}
               {count > 0 && (
                 <span style={{
-                  fontSize: 9, fontWeight: 800, padding: '1px 5px', borderRadius: 8,
-                  background: isActive ? 'rgba(0,0,0,0.2)' : '#2a2a44',
-                  color: isActive ? '#0c0c14' : '#555577',
+                  fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 10,
+                  background: isActive ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.08)',
+                  color: isActive ? '#fff' : 'rgba(255,255,255,0.4)',
                 }}>
                   {count}
                 </span>
@@ -296,7 +298,7 @@ export default function LobbyPage() {
               {liveCount} LIVE
             </span>
           )}
-          <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, color: '#3a3a55' }}>
+          <span style={{ fontFamily: 'var(--db-font-ui)', fontSize: 9, color: 'rgba(255,255,255,0.2)' }}>
             {loading ? '…' : `${filteredMobileGames.length} game${filteredMobileGames.length === 1 ? '' : 's'}`}
           </span>
         </div>
@@ -304,7 +306,7 @@ export default function LobbyPage() {
         {loading && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} style={{ height: 58, borderRadius: 6, background: '#12121e' }} />
+              <div key={i} style={{ height: 58, borderRadius: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }} />
             ))}
           </div>
         )}
@@ -312,7 +314,7 @@ export default function LobbyPage() {
         {!loading && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {filteredMobileGames.length === 0 ? (
-              <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, color: '#555577', padding: '12px 0' }}>
+              <p style={{ fontFamily: 'var(--db-font-ui)', fontSize: 11, fontWeight: 400, color: 'rgba(255,255,255,0.25)', padding: '12px 0' }}>
                 No games available. Check back later!
               </p>
             ) : filteredMobileGames.reduce((acc, room, i) => {
@@ -335,16 +337,18 @@ export default function LobbyPage() {
                 return pl ? 'live' : pf ? 'finished' : pt ? 'tomorrow' : 'today'
               })() : null
 
-              const LABEL = { live: '● LIVE NOW', finished: 'RECENTLY FINISHED', today: 'COMING UP', tomorrow: 'TOMORROW' }
-              const LABEL_COLOR = { live: '#ff2d2d', finished: '#3a3a55', today: '#8888aa', tomorrow: '#3a3a55' }
+              const LABEL = { live: 'LIVE NOW', finished: 'RECENTLY FINISHED', today: 'COMING UP', tomorrow: 'TOMORROW' }
+              const LABEL_COLOR = { live: '#ff4444', finished: 'rgba(255,255,255,0.18)', today: 'rgba(255,255,255,0.25)', tomorrow: 'rgba(255,255,255,0.18)' }
 
               if (group !== prevGroup) {
                 acc.push(
                   <div key={`label-${room.id}`} style={{
-                    fontFamily: 'var(--db-font-mono)', fontSize: 9, fontWeight: 700,
-                    color: LABEL_COLOR[group], letterSpacing: '0.12em',
+                    fontFamily: 'var(--db-font-display)', fontSize: 10,
+                    color: LABEL_COLOR[group], letterSpacing: '0.1em',
                     padding: i === 0 ? '0 0 4px' : '10px 0 4px',
+                    display: 'flex', alignItems: 'center', gap: 6,
                   }}>
+                    {group === 'live' && <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#ff2d2d', display: 'inline-block', animation: 'pulse-live 1.4s ease-in-out infinite', flexShrink: 0 }} />}
                     {LABEL[group]}
                   </div>
                 )
@@ -359,18 +363,18 @@ export default function LobbyPage() {
                     padding: '14px 16px',
                     position: 'relative', overflow: 'hidden',
                     background: isFinished || tomorrow
-                      ? '#0e0e18'
+                      ? 'rgba(255,255,255,0.02)'
                       : isLive
-                        ? '#12121e'
+                        ? 'rgba(255,255,255,0.04)'
                         : isPlaying
-                          ? `linear-gradient(135deg, ${hexToRgba(awayColor, 0.18)} 0%, transparent 40%, ${hexToRgba(homeColor, 0.18)} 100%)`
-                          : '#12121e',
-                    borderRadius: 8,
-                    border: isLive ? (isPlaying ? '1px solid rgba(255,45,45,0.3)' : '1px solid rgba(255,107,53,0.4)') : isFinished ? '1px solid #1a1a2e' : tomorrow ? '1px solid #1a1a2e' : isPlaying ? `1px solid ${hexToRgba(homeColor, 0.25)}` : '1px solid #2a2a44',
-                    borderLeft: isLive ? (isPlaying ? '3px solid #ff2d2d' : '3px solid #ff6b35') : isFinished ? '3px solid #2a2a44' : tomorrow ? '3px solid #1a1a2e' : isPlaying ? `3px solid ${homeColor}` : '3px solid #2a2a44',
+                          ? `linear-gradient(135deg, ${hexToRgba(awayColor, 0.14)} 0%, transparent 40%, ${hexToRgba(homeColor, 0.14)} 100%)`
+                          : 'rgba(255,255,255,0.03)',
+                    borderRadius: 10,
+                    border: isLive ? (isPlaying ? '1px solid rgba(255,45,45,0.25)' : '1px solid rgba(255,107,53,0.3)') : isFinished ? '1px solid rgba(255,255,255,0.05)' : tomorrow ? '1px solid rgba(255,255,255,0.04)' : isPlaying ? `1px solid ${hexToRgba(homeColor, 0.22)}` : '1px solid rgba(255,255,255,0.07)',
+                    borderLeft: isLive ? (isPlaying ? '3px solid #ff2d2d' : '3px solid #ff6b35') : isFinished ? '3px solid rgba(255,255,255,0.08)' : tomorrow ? '3px solid rgba(255,255,255,0.04)' : isPlaying ? `3px solid ${homeColor}` : '3px solid rgba(255,255,255,0.08)',
                     animation: isLive && !isPlaying ? 'glow-pulse 2s ease-in-out infinite' : 'none',
                     cursor: tomorrow ? 'default' : 'pointer',
-                    opacity: tomorrow ? 0.5 : 1,
+                    opacity: tomorrow ? 0.45 : 1,
                   }}
                 >
                   {/* Team color top strip for joined lobby rows */}
@@ -387,7 +391,7 @@ export default function LobbyPage() {
                         <span style={{
                           fontFamily: 'var(--db-font-display)',
                           fontSize: rank <= 3 ? 20 : 15, fontWeight: 800, lineHeight: 1,
-                          color: rank === 1 ? '#FFD700' : rank === 2 ? '#C0C0C0' : rank === 3 ? '#CD7F32' : '#555577',
+                          color: rank === 1 ? '#FFD700' : rank === 2 ? '#C0C0C0' : rank === 3 ? '#CD7F32' : 'rgba(255,255,255,0.2)',
                         }}>{ordinal(rank)}</span>
                         {rank <= 3 && (
                           <span style={{ fontSize: 10, marginTop: 2 }}>
@@ -399,22 +403,20 @@ export default function LobbyPage() {
                     <div>
                       <div style={{ display: 'flex', alignItems: 'baseline', gap: 5 }}>
                         <span style={{
-                          fontFamily: 'var(--db-font-mono)', fontSize: 18, fontWeight: 800,
-                          color: isFinished ? '#555577' : tomorrow ? '#3a3a55' : awayColor,
-                          opacity: isFinished || tomorrow ? 1 : 0.8, letterSpacing: '0.04em',
+                          fontFamily: 'var(--db-font-display)', fontSize: 20, letterSpacing: '0.04em',
+                          color: isFinished ? 'rgba(255,255,255,0.2)' : tomorrow ? 'rgba(255,255,255,0.15)' : awayColor,
                         }}>{away}</span>
-                        <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, color: '#3a3a55' }}>vs</span>
+                        <span style={{ fontFamily: 'var(--db-font-ui)', fontSize: 10, fontWeight: 500, color: 'rgba(255,255,255,0.2)' }}>vs</span>
                         <span style={{
-                          fontFamily: 'var(--db-font-mono)', fontSize: 18, fontWeight: 800,
-                          color: isFinished ? '#555577' : tomorrow ? '#3a3a55' : homeColor,
-                          letterSpacing: '0.04em',
+                          fontFamily: 'var(--db-font-display)', fontSize: 20, letterSpacing: '0.04em',
+                          color: isFinished ? 'rgba(255,255,255,0.2)' : tomorrow ? 'rgba(255,255,255,0.15)' : homeColor,
                         }}>{home}</span>
                       </div>
                       {room.sport && room.sport !== 'nba' && (
                         <span style={{
-                          fontFamily: 'var(--db-font-mono)', fontSize: 8, fontWeight: 700,
-                          color: room.sport === 'ncaa' ? '#22c55e' : room.sport === 'mlb' ? '#ff6b35' : '#555577',
-                          letterSpacing: '0.08em', textTransform: 'uppercase',
+                          fontFamily: 'var(--db-font-ui)', fontSize: 9, fontWeight: 600,
+                          color: room.sport === 'ncaa' ? 'rgba(34,197,94,0.7)' : room.sport === 'mlb' ? 'rgba(255,107,53,0.7)' : 'rgba(255,255,255,0.2)',
+                          letterSpacing: '0.06em', textTransform: 'uppercase',
                         }}>
                           {room.sport.toUpperCase()}
                         </span>
@@ -428,48 +430,48 @@ export default function LobbyPage() {
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 4, justifyContent: 'flex-end' }}>
                           <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#ff2d2d', display: 'inline-block', animation: 'pulse-live 1.4s ease-in-out infinite' }} />
-                          <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 700, color: '#ff2d2d' }}>LIVE</span>
+                          <span style={{ fontFamily: 'var(--db-font-display)', fontSize: 11, letterSpacing: '0.06em', color: '#ff4444' }}>LIVE</span>
                           {!isPlaying && (
-                            <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 8, fontWeight: 800, color: '#0c0c14', background: '#ff6b35', padding: '1px 5px', borderRadius: 3, marginLeft: 4 }}>NEW</span>
+                            <span style={{ fontFamily: 'var(--db-font-ui)', fontSize: 9, fontWeight: 700, color: '#fff', background: 'linear-gradient(135deg, #ff7a45, #e05520)', padding: '2px 6px', borderRadius: 4, marginLeft: 2 }}>NEW</span>
                           )}
                         </div>
                         {room.away_score != null && room.home_score != null && (
-                          <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 14, fontWeight: 800, color: '#e0e0f0', margin: '4px 0 0' }}>{room.away_score} - {room.home_score}</p>
+                          <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 14, fontWeight: 700, color: '#e8e8f4', margin: '4px 0 0', fontVariantNumeric: 'tabular-nums' }}>{room.away_score} – {room.home_score}</p>
                         )}
-                        <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, color: '#ff6b35', marginTop: 2 }}>
-                          {isPlaying ? 'CONTINUE →' : 'TAP TO PLAY →'}
+                        <p style={{ fontFamily: 'var(--db-font-ui)', fontSize: 10, color: 'rgba(255,107,53,0.7)', marginTop: 3 }}>
+                          {isPlaying ? 'Continue →' : 'Tap to play →'}
                         </p>
                       </div>
                     ) : isFinished ? (
                       <div>
-                        <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, fontWeight: 700, color: '#3a3a55', letterSpacing: '0.08em' }}>FINAL</span>
+                        <span style={{ fontFamily: 'var(--db-font-display)', fontSize: 10, letterSpacing: '0.1em', color: 'rgba(255,255,255,0.2)' }}>FINAL</span>
                         {room.away_score != null && room.home_score != null && (
-                          <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 12, fontWeight: 700, color: '#555577', margin: '2px 0 0' }}>{room.away_score} - {room.home_score}</p>
+                          <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.3)', margin: '2px 0 0', fontVariantNumeric: 'tabular-nums' }}>{room.away_score} – {room.home_score}</p>
                         )}
-                        <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, color: '#3a3a55', marginTop: 2 }}>VIEW RESULTS →</p>
+                        <p style={{ fontFamily: 'var(--db-font-ui)', fontSize: 10, color: 'rgba(255,255,255,0.15)', marginTop: 2 }}>View results →</p>
                       </div>
                     ) : tomorrow ? (
                       <div>
-                        <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, fontWeight: 700, color: '#3a3a55', letterSpacing: '0.08em' }}>TOMORROW</span>
-                        <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, color: '#3a3a55', marginTop: 2 }}>
+                        <span style={{ fontFamily: 'var(--db-font-display)', fontSize: 10, letterSpacing: '0.1em', color: 'rgba(255,255,255,0.2)' }}>TOMORROW</span>
+                        <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.2)', marginTop: 2 }}>
                           {new Date(room.starts_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
                         </p>
                       </div>
                     ) : (
                       <div>
-                        <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 14, fontWeight: 700, color: '#8888aa' }}>
+                        <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.5)' }}>
                           {room.starts_at
                             ? new Date(room.starts_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
                             : 'Upcoming'}
                         </span>
-                        <div style={{ marginTop: 4, display: 'flex', justifyContent: 'flex-end' }}>
+                        <div style={{ marginTop: 5, display: 'flex', justifyContent: 'flex-end' }}>
                           {isPlaying ? (
-                            <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 8, fontWeight: 700, letterSpacing: '0.10em', color: '#22c55e', background: 'rgba(34,197,94,0.10)', border: '1px solid rgba(34,197,94,0.20)', borderRadius: 3, padding: '2px 6px' }}>
-                              ✓ JOINED
+                            <span style={{ fontFamily: 'var(--db-font-ui)', fontSize: 10, fontWeight: 600, color: '#22c55e', background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.18)', borderRadius: 10, padding: '2px 8px' }}>
+                              ✓ Joined
                             </span>
                           ) : (
-                            <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 8, fontWeight: 700, letterSpacing: '0.10em', color: '#555577' }}>
-                              TAP TO JOIN
+                            <span style={{ fontFamily: 'var(--db-font-ui)', fontSize: 10, fontWeight: 500, color: 'rgba(255,255,255,0.2)' }}>
+                              Tap to join
                             </span>
                           )}
                         </div>

@@ -48,7 +48,7 @@ export default function MyGameItem({ room }) {
               LIVE
             </span>
           ) : (
-            <span style={{ fontSize: 11, color: '#555577' }}>
+            <span style={{ fontFamily: 'var(--db-font-ui)', fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>
               {formatStartsAt(room.starts_at)}
             </span>
           )}

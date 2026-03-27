@@ -249,16 +249,16 @@ function GameRoom({
   return (
     <div className="game-room-root flex h-[calc(100vh-4rem)] flex-col bg-bg-primary">
       {/* ── Header ── */}
-      <header className="game-room-header flex h-12 shrink-0 items-center justify-between border-b border-border-subtle bg-bg-secondary px-3 md:px-4">
+      <header className="game-room-header flex h-12 shrink-0 items-center justify-between px-3 md:px-4" style={{ background: 'rgba(10,10,18,0.98)', borderBottom: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(12px)' }}>
         <div className="flex items-center gap-3 min-w-0">
           {/* Back button */}
           <button
             type="button"
             onClick={() => navigate('/')}
             aria-label="Back to home"
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#555577', padding: '4px 6px', display: 'flex', alignItems: 'center', flexShrink: 0, borderRadius: 4 }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = '#e0e0f0'; e.currentTarget.style.background = '#1a1a2e' }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = '#555577'; e.currentTarget.style.background = 'none' }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.3)', padding: '4px 6px', display: 'flex', alignItems: 'center', flexShrink: 0, borderRadius: 6, transition: 'color 120ms ease, background 120ms ease' }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.8)'; e.currentTarget.style.background = 'rgba(255,255,255,0.06)' }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.3)'; e.currentTarget.style.background = 'none' }}
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M10 3L5 8l5 5" />
@@ -271,9 +271,9 @@ function GameRoom({
               <button
                 type="button"
                 onClick={() => setGamesDropdownOpen((v) => !v)}
-                style={{ background: '#1a1a2e', border: '1px solid #2a2a44', borderRadius: 4, padding: '3px 8px', fontFamily: 'var(--db-font-mono)', fontSize: 10, color: '#8888aa', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#ff6b35'; e.currentTarget.style.color = '#e0e0f0' }}
-                onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#2a2a44'; e.currentTarget.style.color = '#8888aa' }}
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 6, padding: '4px 10px', fontFamily: 'var(--db-font-ui)', fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.4)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, transition: 'background 120ms, border-color 120ms, color 120ms' }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(255,107,53,0.35)'; e.currentTarget.style.color = '#ff6b35'; e.currentTarget.style.background = 'rgba(255,107,53,0.06)' }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = 'rgba(255,255,255,0.4)'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}
               >
                 MY GAMES
                 <svg width="8" height="8" viewBox="0 0 8 8" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -283,19 +283,19 @@ function GameRoom({
               {gamesDropdownOpen && (
                 <div
                   className="absolute left-0 top-8 z-50"
-                  style={{ background: '#12121e', border: '1px solid #2a2a44', borderRadius: 6, boxShadow: '0 8px 32px rgba(0,0,0,0.5)', minWidth: 200, maxHeight: 280, overflowY: 'auto' }}
+                  style={{ background: 'linear-gradient(160deg, #141420 0%, #0e0e1a 100%)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, boxShadow: '0 8px 32px rgba(0,0,0,0.5)', minWidth: 200, maxHeight: 280, overflowY: 'auto' }}
                 >
                   {activeRooms.map((r) => (
                     <button
                       key={r.id}
                       type="button"
                       onClick={() => { navigate(`/room/${r.id}`); setGamesDropdownOpen(false) }}
-                      style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px', fontFamily: 'var(--db-font-mono)', fontSize: 12, color: r.id === roomId ? '#ff6b35' : '#8888aa', background: r.id === roomId ? 'rgba(255,107,53,0.08)' : 'none', border: 'none', cursor: 'pointer', borderLeft: r.id === roomId ? '2px solid #ff6b35' : '2px solid transparent' }}
-                      onMouseEnter={(e) => { if (r.id !== roomId) { e.currentTarget.style.background = '#1a1a2e'; e.currentTarget.style.color = '#e0e0f0' } }}
-                      onMouseLeave={(e) => { if (r.id !== roomId) { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = '#8888aa' } }}
+                      style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px', fontFamily: 'var(--db-font-ui)', fontSize: 12, fontWeight: 500, color: r.id === roomId ? '#ff6b35' : 'rgba(255,255,255,0.5)', background: r.id === roomId ? 'rgba(255,107,53,0.08)' : 'none', border: 'none', cursor: 'pointer', borderLeft: r.id === roomId ? '2px solid #ff6b35' : '2px solid transparent', transition: 'background 100ms, color 100ms' }}
+                      onMouseEnter={(e) => { if (r.id !== roomId) { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#e8e8f4' } }}
+                      onMouseLeave={(e) => { if (r.id !== roomId) { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'rgba(255,255,255,0.5)' } }}
                     >
                       <span style={{ display: 'block', marginBottom: 2 }}>{r.name}</span>
-                      <span style={{ fontSize: 10, color: r.status === 'live' ? '#ff2d2d' : '#555577' }}>
+                      <span style={{ fontFamily: 'var(--db-font-display)', fontSize: 9, letterSpacing: '0.06em', color: r.status === 'live' ? '#ff2d2d' : 'rgba(255,255,255,0.25)' }}>
                         {r.status === 'live' ? '● LIVE' : 'LOBBY'}
                       </span>
                     </button>
@@ -305,7 +305,7 @@ function GameRoom({
             </div>
           )}
 
-          <h1 className="truncate text-sm font-semibold text-text-primary sm:text-base">
+          <h1 className="truncate" style={{ fontFamily: 'var(--db-font-display)', fontSize: 18, letterSpacing: '0.06em', color: '#e8e8f4', lineHeight: 1 }}>
             {room?.name || 'Game Room'}
           </h1>
           <Badge variant={statusVariant} pulse={room?.status === 'live'}>
@@ -341,9 +341,9 @@ function GameRoom({
                 <button
                   type="button"
                   onClick={onStartGame}
-                  style={{ background: '#22c55e', color: '#0c0c14', border: 'none', borderRadius: 4, padding: '4px 12px', fontFamily: 'var(--db-font-mono)', fontSize: 11, fontWeight: 700, cursor: 'pointer', transition: 'background 100ms ease' }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = '#16a34a' }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = '#22c55e' }}
+                  style={{ background: 'rgba(34,197,94,0.15)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.3)', borderRadius: 6, padding: '4px 12px', fontFamily: 'var(--db-font-ui)', fontSize: 11, fontWeight: 600, cursor: 'pointer', transition: 'background 100ms ease' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(34,197,94,0.25)' }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(34,197,94,0.15)' }}
                 >
                   Start Game
                 </button>
@@ -351,7 +351,9 @@ function GameRoom({
               <button
                 type="button"
                 onClick={onEndGame}
-                className="rounded-md border border-border-active bg-bg-card px-3 py-1 text-[11px] font-medium text-text-secondary hover:bg-bg-hover"
+                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)', borderRadius: 6, padding: '4px 12px', fontFamily: 'var(--db-font-ui)', fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.35)', cursor: 'pointer', transition: 'background 100ms ease' }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)' }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
               >
                 End Game
               </button>
@@ -374,37 +376,36 @@ function GameRoom({
             justifyContent: 'center',
             gap: 16,
             padding: '6px 16px',
-            background: '#12121e',
-            borderBottom: '1px solid #2a2a44',
-            fontFamily: 'var(--db-font-mono)',
+            background: 'rgba(10,10,18,0.95)',
+            borderBottom: '1px solid rgba(255,255,255,0.06)',
             flexShrink: 0,
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 12, fontWeight: 700, color: '#c0c0d8', letterSpacing: '0.06em' }}>
+            <span style={{ fontFamily: 'var(--db-font-display)', fontSize: 13, letterSpacing: '0.06em', color: 'rgba(255,255,255,0.5)' }}>
               {room.name?.split(' vs ')[0] ?? 'AWAY'}
             </span>
-            <span style={{ fontSize: 20, fontWeight: 800, color: '#e0e0f0', fontVariantNumeric: 'tabular-nums' }}>
+            <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 22, fontWeight: 700, color: '#e8e8f4', fontVariantNumeric: 'tabular-nums' }}>
               {room.away_score ?? 0}
             </span>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 60 }}>
-            <span style={{ fontSize: 9, fontWeight: 700, color: '#ff6b35', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+            <span style={{ fontFamily: 'var(--db-font-display)', fontSize: 9, color: '#ff6b35', letterSpacing: '0.12em' }}>
               {room.game_status_detail || (room.game_period ? `Q${room.game_period}` : 'PRE')}
             </span>
             {room.game_clock && (
-              <span style={{ fontSize: 14, fontWeight: 700, color: '#e0e0f0', fontVariantNumeric: 'tabular-nums' }}>
+              <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.6)', fontVariantNumeric: 'tabular-nums' }}>
                 {room.game_clock}
               </span>
             )}
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 20, fontWeight: 800, color: '#e0e0f0', fontVariantNumeric: 'tabular-nums' }}>
+            <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 22, fontWeight: 700, color: '#e8e8f4', fontVariantNumeric: 'tabular-nums' }}>
               {room.home_score ?? 0}
             </span>
-            <span style={{ fontSize: 12, fontWeight: 700, color: '#c0c0d8', letterSpacing: '0.06em' }}>
+            <span style={{ fontFamily: 'var(--db-font-display)', fontSize: 13, letterSpacing: '0.06em', color: 'rgba(255,255,255,0.5)' }}>
               {room.name?.split(' vs ')[1] ?? 'HOME'}
             </span>
           </div>
@@ -420,19 +421,18 @@ function GameRoom({
             justifyContent: 'center',
             gap: 16,
             padding: '6px 16px',
-            background: '#12121e',
-            borderBottom: '1px solid #2a2a44',
-            fontFamily: 'var(--db-font-mono)',
+            background: 'rgba(10,10,18,0.95)',
+            borderBottom: '1px solid rgba(255,255,255,0.05)',
             flexShrink: 0,
           }}
         >
-          <span style={{ fontSize: 12, fontWeight: 700, color: '#555577' }}>
+          <span style={{ fontFamily: 'var(--db-font-display)', fontSize: 13, letterSpacing: '0.06em', color: 'rgba(255,255,255,0.25)' }}>
             {room.name?.split(' vs ')[0]} {room.away_score}
           </span>
-          <span style={{ fontSize: 9, fontWeight: 700, color: '#555577', letterSpacing: '0.1em' }}>
+          <span style={{ fontFamily: 'var(--db-font-display)', fontSize: 9, color: 'rgba(255,255,255,0.2)', letterSpacing: '0.12em' }}>
             FINAL
           </span>
-          <span style={{ fontSize: 12, fontWeight: 700, color: '#555577' }}>
+          <span style={{ fontFamily: 'var(--db-font-display)', fontSize: 13, letterSpacing: '0.06em', color: 'rgba(255,255,255,0.25)' }}>
             {room.home_score} {room.name?.split(' vs ')[1]}
           </span>
         </div>
@@ -452,17 +452,16 @@ function GameRoom({
 
       {isLateJoin && (
         <div style={{
-          background: 'rgba(255,107,53,0.08)',
-          border: '1px solid rgba(255,107,53,0.25)',
-          borderRadius: 0,
-          padding: '8px 16px',
+          background: 'rgba(255,107,53,0.06)',
+          borderBottom: '1px solid rgba(255,107,53,0.15)',
+          padding: '7px 16px',
           textAlign: 'center',
           flexShrink: 0,
         }}>
-          <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 700, color: '#ff6b35', letterSpacing: '0.08em', margin: '0 0 2px' }}>
+          <p style={{ fontFamily: 'var(--db-font-display)', fontSize: 11, letterSpacing: '0.08em', color: '#ff6b35', margin: '0 0 1px' }}>
             LATE JOIN — CASUAL MODE
           </p>
-          <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, color: '#8888aa', margin: 0 }}>
+          <p style={{ fontFamily: 'var(--db-font-ui)', fontSize: 10, fontWeight: 400, color: 'rgba(255,255,255,0.3)', margin: 0 }}>
             You&apos;ll earn Dobs for squares &amp; lines, but you won&apos;t appear on the leaderboard or qualify for prizes.
           </p>
         </div>
@@ -474,7 +473,7 @@ function GameRoom({
         {/* LEFT: Bingo Board */}
         <div className={`game-room-board flex shrink-0 flex-col items-center justify-center overflow-y-auto p-2 md:p-4 gap-3 transition-all duration-200 ${selectedSquare ? 'w-full lg:w-[45%]' : 'w-full lg:w-[65%]'}`}>
           {loadingCard ? (
-            <div style={{ fontFamily: 'var(--db-font-mono)', fontSize: 12, color: '#555577' }}>Loading your card...</div>
+            <div style={{ fontFamily: 'var(--db-font-ui)', fontSize: 12, color: 'rgba(255,255,255,0.25)' }}>Loading your card...</div>
           ) : card ? (
             <>
               <BingoBoard
@@ -502,13 +501,13 @@ function GameRoom({
                     </p>
                   )}
                   {swapCount < 2 ? (
-                    <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, color: '#3a3a55', textAlign: 'center', letterSpacing: '0.04em' }}>
+                    <p style={{ fontFamily: 'var(--db-font-ui)', fontSize: 11, fontWeight: 400, color: 'rgba(255,255,255,0.2)', textAlign: 'center' }}>
                       {swapCount === 0
-                        ? 'HOLD A SQUARE TO SWAP · 2 LEFT'
-                        : 'HOLD A SQUARE TO SWAP · 1 LEFT'}
+                        ? 'Hold a square to swap · 2 remaining'
+                        : 'Hold a square to swap · 1 remaining'}
                     </p>
                   ) : (
-                    <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, color: '#555577', textAlign: 'center', letterSpacing: '0.04em' }}>
+                    <p style={{ fontFamily: 'var(--db-font-ui)', fontSize: 11, fontWeight: 400, color: 'rgba(255,255,255,0.2)', textAlign: 'center' }}>
                       Max swaps reached (2/2)
                     </p>
                   )}
@@ -517,17 +516,17 @@ function GameRoom({
 
               {/* Store promo banner (lobby only) */}
               {room?.status === 'lobby' && !storePromoDismissed && (
-                <div className="hidden md:flex" style={{ width: '100%', maxWidth: 512, alignItems: 'center', justifyContent: 'space-between', background: '#12121e', border: '1px solid #2a2a44', borderRadius: 4, padding: '8px 16px' }}>
-                  <Link to="/store" style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, color: '#8888aa', textDecoration: 'none', letterSpacing: '0.04em' }}
+                <div className="hidden md:flex" style={{ width: '100%', maxWidth: 512, alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 6, padding: '8px 16px' }}>
+                  <Link to="/store" style={{ fontFamily: 'var(--db-font-ui)', fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.3)', textDecoration: 'none', letterSpacing: '0.04em' }}
                     onMouseEnter={(e) => { e.currentTarget.style.color = '#ff6b35' }}
-                    onMouseLeave={(e) => { e.currentTarget.style.color = '#8888aa' }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.3)' }}
                   >
-                    CUSTOMIZE YOUR LOOK IN THE DOBS STORE →
+                    Customize your look in the Dobs Store →
                   </Link>
                   <button type="button" onClick={handleDismissStorePromo}
-                    style={{ background: 'none', border: 'none', color: '#3a3a55', cursor: 'pointer', fontFamily: 'var(--db-font-mono)', fontSize: 12, padding: '0 0 0 12px', lineHeight: 1 }}
-                    onMouseEnter={(e) => { e.currentTarget.style.color = '#555577' }}
-                    onMouseLeave={(e) => { e.currentTarget.style.color = '#3a3a55' }}
+                    style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.15)', cursor: 'pointer', fontFamily: 'var(--db-font-ui)', fontSize: 14, padding: '0 0 0 12px', lineHeight: 1 }}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.4)' }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.15)' }}
                   >✕</button>
                 </div>
               )}
@@ -535,21 +534,21 @@ function GameRoom({
           ) : room?.odds_status === 'pending' ? (
             // Animated grid placeholder — odds are being built server-side
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, width: '100%', maxWidth: 512 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 4, width: '100%', opacity: 0.35 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 4, width: '100%', opacity: 0.3 }}>
                 {Array.from({ length: 25 }).map((_, i) => (
                   <div
                     key={i}
                     style={{
                       aspectRatio: '1',
-                      background: '#1a1a2e',
-                      border: '1px solid #2a2a44',
-                      borderRadius: 4,
+                      background: 'rgba(255,255,255,0.04)',
+                      border: '1px solid rgba(255,255,255,0.07)',
+                      borderRadius: 6,
                       animation: `pulse 1.8s ease-in-out ${(i % 5) * 0.12}s infinite`,
                     }}
                   />
                 ))}
               </div>
-              <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, color: '#555577', letterSpacing: '0.08em' }}>
+              <span style={{ fontFamily: 'var(--db-font-display)', fontSize: 12, letterSpacing: '0.1em', color: 'rgba(255,255,255,0.2)' }}>
                 BUILDING YOUR CARD...
               </span>
             </div>
@@ -557,21 +556,21 @@ function GameRoom({
             // Not enough props — show informative state + soft retry
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
               <span style={{ fontSize: 28 }}>📊</span>
-              <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, color: '#555577', letterSpacing: '0.08em' }}>
+              <span style={{ fontFamily: 'var(--db-font-display)', fontSize: 13, letterSpacing: '0.08em', color: 'rgba(255,255,255,0.25)' }}>
                 NOT ENOUGH PROPS YET
               </span>
-              <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, color: '#3a3a55', textAlign: 'center', maxWidth: 260 }}>
+              <span style={{ fontFamily: 'var(--db-font-ui)', fontSize: 12, fontWeight: 400, color: 'rgba(255,255,255,0.2)', textAlign: 'center', maxWidth: 260, lineHeight: 1.5 }}>
                 Props for this game aren't available yet. Check back closer to tip-off.
               </span>
               {onRetryCard && (
                 <button
                   type="button"
                   onClick={onRetryCard}
-                  style={{ background: 'none', color: '#555577', border: '1px solid #2a2a44', borderRadius: 4, fontFamily: 'var(--db-font-mono)', fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', padding: '6px 16px', cursor: 'pointer' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#3a3a55'; e.currentTarget.style.color = '#8888aa' }}
-                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#2a2a44'; e.currentTarget.style.color = '#555577' }}
+                  style={{ background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.35)', border: '1px solid rgba(255,255,255,0.09)', borderRadius: 8, fontFamily: 'var(--db-font-ui)', fontSize: 12, fontWeight: 600, padding: '7px 18px', cursor: 'pointer', transition: 'background 120ms ease' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = 'rgba(255,255,255,0.6)' }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = 'rgba(255,255,255,0.35)' }}
                 >
-                  CHECK AGAIN
+                  Check again
                 </button>
               )}
             </div>
@@ -581,7 +580,7 @@ function GameRoom({
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
               {!error && <span style={{ fontSize: 28 }}>🎯</span>}
               {!error && (
-                <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 12, color: '#555577', textAlign: 'center', maxWidth: 300 }}>
+                <span style={{ fontFamily: 'var(--db-font-ui)', fontSize: 12, color: 'rgba(255,255,255,0.3)', textAlign: 'center', maxWidth: 300 }}>
                   Couldn&apos;t generate your card.
                 </span>
               )}
@@ -589,11 +588,11 @@ function GameRoom({
                 <button
                   type="button"
                   onClick={onRetryCard}
-                  style={{ background: '#ff6b35', color: '#0c0c14', border: 'none', borderRadius: 4, fontFamily: 'var(--db-font-mono)', fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', padding: '6px 16px', cursor: 'pointer' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = '#ff8855' }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = '#ff6b35' }}
+                  style={{ background: 'linear-gradient(135deg, #ff7a45 0%, #e05520 100%)', color: '#fff', border: 'none', borderRadius: 6, fontFamily: 'var(--db-font-ui)', fontSize: 11, fontWeight: 700, letterSpacing: '0.04em', padding: '6px 16px', cursor: 'pointer', boxShadow: '0 2px 8px rgba(255,107,53,0.3)', transition: 'opacity 100ms ease' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.85' }}
+                  onMouseLeave={(e) => { e.currentTarget.style.opacity = '1' }}
                 >
-                  TRY AGAIN
+                  Try again
                 </button>
               )}
             </div>
@@ -605,22 +604,26 @@ function GameRoom({
           <button
             type="button"
             onClick={() => setMobileLeaderboardSheet(true)}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: '#1a1a2e', border: '1px solid #2a2a44', borderRadius: 6, fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 700, color: '#8888aa', letterSpacing: '0.08em', cursor: 'pointer' }}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)', borderRadius: 20, fontFamily: 'var(--db-font-ui)', fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.45)', letterSpacing: '0.04em', cursor: 'pointer', transition: 'background 120ms ease, color 120ms ease' }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.07)'; e.currentTarget.style.color = 'rgba(255,255,255,0.7)' }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = 'rgba(255,255,255,0.45)' }}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 20V10M6 20v-4M18 20v-8" />
             </svg>
-            STANDINGS
+            Standings
           </button>
           <button
             type="button"
             onClick={() => setMobileChatSheet(true)}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: '#1a1a2e', border: '1px solid #2a2a44', borderRadius: 6, fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 700, color: '#8888aa', letterSpacing: '0.08em', cursor: 'pointer' }}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)', borderRadius: 20, fontFamily: 'var(--db-font-ui)', fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.45)', letterSpacing: '0.04em', cursor: 'pointer', transition: 'background 120ms ease, color 120ms ease' }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.07)'; e.currentTarget.style.color = 'rgba(255,255,255,0.7)' }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = 'rgba(255,255,255,0.45)' }}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
             </svg>
-            CHAT
+            Chat
           </button>
         </div>
 
@@ -730,8 +733,9 @@ function GameRoom({
             aria-modal="true"
             aria-label="Player Stats"
             style={{
-              background: '#12121e',
-              borderRadius: '12px 12px 0 0',
+              background: '#0f0f1c',
+              borderTop: '1px solid rgba(255,255,255,0.08)',
+              borderRadius: '14px 14px 0 0',
               height: '60vh',
               overflow: 'hidden',
               display: 'flex',
@@ -740,7 +744,7 @@ function GameRoom({
           >
             {/* Drag handle */}
             <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0 6px', flexShrink: 0 }}>
-              <div style={{ width: 32, height: 4, background: '#2a2a44', borderRadius: 2 }} />
+              <div style={{ width: 32, height: 3, background: 'rgba(255,255,255,0.12)', borderRadius: 2 }} />
             </div>
             <PlayerStatsPanel
               playerId={selectedSquare.player_id}
@@ -759,14 +763,14 @@ function GameRoom({
       {/* ── Mobile: Leaderboard bottom sheet ── */}
       {mobileLeaderboardSheet && (
         <div className="md:hidden">
-          <div className="fixed inset-0 z-40" role="presentation" aria-hidden="true" style={{ background: 'rgba(12, 12, 20, 0.7)' }} onClick={() => setMobileLeaderboardSheet(false)} />
-          <div className="fixed bottom-0 left-0 right-0 z-50 animate-slide-up" role="dialog" aria-modal="true" aria-label="Leaderboard" style={{ background: '#12121e', borderRadius: '12px 12px 0 0', height: '55vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+          <div className="fixed inset-0 z-40" role="presentation" aria-hidden="true" style={{ background: 'rgba(6,6,12,0.75)' }} onClick={() => setMobileLeaderboardSheet(false)} />
+          <div className="fixed bottom-0 left-0 right-0 z-50 animate-slide-up" role="dialog" aria-modal="true" aria-label="Leaderboard" style={{ background: '#0f0f1c', borderTop: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px 14px 0 0', height: '55vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
             <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0 4px', flexShrink: 0 }}>
-              <div style={{ width: 32, height: 4, background: '#2a2a44', borderRadius: 2 }} />
+              <div style={{ width: 32, height: 3, background: 'rgba(255,255,255,0.12)', borderRadius: 2 }} />
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px 8px', flexShrink: 0 }}>
-              <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, fontWeight: 700, color: '#555577', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Leaderboard</span>
-              <button type="button" onClick={() => setMobileLeaderboardSheet(false)} style={{ background: 'none', border: 'none', color: '#555577', fontSize: 18, cursor: 'pointer', padding: '4px 8px' }}>✕</button>
+              <span style={{ fontFamily: 'var(--db-font-display)', fontSize: 14, letterSpacing: '0.1em', color: 'rgba(255,255,255,0.5)' }}>STANDINGS</span>
+              <button type="button" onClick={() => setMobileLeaderboardSheet(false)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.25)', fontSize: 18, cursor: 'pointer', padding: '4px 8px', lineHeight: 1 }}>✕</button>
             </div>
             <div style={{ flex: 1, overflowY: 'auto', padding: '0 12px 16px' }}>
               <Suspense fallback={<PanelFallback />}>
@@ -786,14 +790,14 @@ function GameRoom({
       {/* ── Mobile: Chat bottom sheet ── */}
       {mobileChatSheet && (
         <div className="md:hidden">
-          <div className="fixed inset-0 z-40" role="presentation" aria-hidden="true" style={{ background: 'rgba(12, 12, 20, 0.7)' }} onClick={() => setMobileChatSheet(false)} />
-          <div className="fixed bottom-0 left-0 right-0 z-50 animate-slide-up" role="dialog" aria-modal="true" aria-label="Chat" style={{ background: '#12121e', borderRadius: '12px 12px 0 0', height: '65vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+          <div className="fixed inset-0 z-40" role="presentation" aria-hidden="true" style={{ background: 'rgba(6,6,12,0.75)' }} onClick={() => setMobileChatSheet(false)} />
+          <div className="fixed bottom-0 left-0 right-0 z-50 animate-slide-up" role="dialog" aria-modal="true" aria-label="Chat" style={{ background: '#0f0f1c', borderTop: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px 14px 0 0', height: '65vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
             <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0 4px', flexShrink: 0 }}>
-              <div style={{ width: 32, height: 4, background: '#2a2a44', borderRadius: 2 }} />
+              <div style={{ width: 32, height: 3, background: 'rgba(255,255,255,0.12)', borderRadius: 2 }} />
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px 8px', flexShrink: 0 }}>
-              <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, fontWeight: 700, color: '#555577', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Chat</span>
-              <button type="button" onClick={() => setMobileChatSheet(false)} style={{ background: 'none', border: 'none', color: '#555577', fontSize: 18, cursor: 'pointer', padding: '4px 8px' }}>✕</button>
+              <span style={{ fontFamily: 'var(--db-font-display)', fontSize: 14, letterSpacing: '0.1em', color: 'rgba(255,255,255,0.5)' }}>CHAT</span>
+              <button type="button" onClick={() => setMobileChatSheet(false)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.25)', fontSize: 18, cursor: 'pointer', padding: '4px 8px', lineHeight: 1 }}>✕</button>
             </div>
             <div style={{ flex: 1, overflowY: 'auto', padding: '0 12px', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
               <Suspense fallback={<PanelFallback />}>
@@ -811,16 +815,16 @@ function GameRoom({
       )}
 
       {/* ── Footer ── */}
-      <footer className="flex h-8 md:h-10 shrink-0 items-center justify-between border-t border-border-subtle bg-bg-secondary px-3 md:px-4">
-        <div className="flex items-center gap-4 text-[10px] md:text-[11px] text-text-muted">
-          <span>
-            <span className="font-semibold text-text-primary">{markedCount}</span>/25 marked
+      <footer style={{ display: 'flex', height: 36, flexShrink: 0, alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid rgba(255,255,255,0.05)', background: 'rgba(10,10,18,0.97)', padding: '0 12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <span style={{ fontFamily: 'var(--db-font-ui)', fontSize: 11, color: 'rgba(255,255,255,0.25)' }}>
+            <span style={{ fontWeight: 600, color: 'rgba(255,255,255,0.6)' }}>{markedCount}</span>/25 marked
           </span>
-          <span>
-            <span className="font-semibold text-text-primary">{winningLines.length}</span> line{winningLines.length === 1 ? '' : 's'}
+          <span style={{ fontFamily: 'var(--db-font-ui)', fontSize: 11, color: 'rgba(255,255,255,0.25)' }}>
+            <span style={{ fontWeight: 600, color: 'rgba(255,255,255,0.6)' }}>{winningLines.length}</span> line{winningLines.length === 1 ? '' : 's'}
           </span>
         </div>
-        <span className="text-[11px] text-text-muted">
+        <span style={{ fontFamily: 'var(--db-font-ui)', fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.25)' }}>
           {username}
         </span>
       </footer>
@@ -828,35 +832,33 @@ function GameRoom({
       {/* ── Game Over modal ── */}
       {dobsSummary && !gameOverDismissed && (
         <div
-          className="fixed inset-0 flex items-center justify-center bg-black/85 p-4"
-          style={{ zIndex: 100 }}
+          style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(5,5,10,0.88)', backdropFilter: 'blur(6px)', padding: 16, zIndex: 100 }}
           role="dialog"
           aria-modal="true"
           aria-label="Game over summary"
           onClick={(e) => { if (e.target === e.currentTarget) setGameOverDismissed(true) }}
         >
           <div
-            className="machine-glow w-full max-w-sm"
-            style={{ position: 'relative', background: '#12121e', border: '1px solid rgba(255,107,53,0.35)', borderRadius: 10, padding: '28px 24px 24px' }}
+            style={{ position: 'relative', width: '100%', maxWidth: 360, background: 'linear-gradient(160deg, #141420 0%, #0e0e1a 100%)', border: '1px solid rgba(255,107,53,0.2)', borderRadius: 14, padding: '32px 24px 24px', boxShadow: '0 24px 60px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04) inset' }}
           >
             <button
               type="button"
               onClick={() => setGameOverDismissed(true)}
-              style={{ position: 'absolute', top: 12, right: 14, background: 'none', border: 'none', color: '#555577', cursor: 'pointer', fontFamily: 'var(--db-font-mono)', fontSize: 16, lineHeight: 1, padding: 4 }}
-              onMouseEnter={(e) => { e.currentTarget.style.color = '#e0e0f0' }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = '#555577' }}
+              style={{ position: 'absolute', top: 14, right: 16, background: 'none', border: 'none', color: 'rgba(255,255,255,0.2)', cursor: 'pointer', fontSize: 18, lineHeight: 1, padding: 4, transition: 'color 120ms ease' }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.6)' }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.2)' }}
               aria-label="Close"
             >✕</button>
 
             {/* Rank emoji + title */}
-            <div style={{ textAlign: 'center', marginBottom: 20 }}>
-              <div style={{ fontSize: 48, lineHeight: 1, marginBottom: 10 }}>
+            <div style={{ textAlign: 'center', marginBottom: 24 }}>
+              <div style={{ fontSize: 44, lineHeight: 1, marginBottom: 12 }}>
                 {dobsSummary.isLateJoin ? '🎯' : dobsSummary.myRank === 1 ? '🥇' : dobsSummary.myRank === 2 ? '🥈' : dobsSummary.myRank === 3 ? '🥉' : '🎯'}
               </div>
-              <h2 style={{ fontFamily: 'var(--db-font-display)', fontSize: 22, fontWeight: 800, letterSpacing: '0.06em', color: '#e0e0f0', margin: 0 }}>
+              <h2 style={{ fontFamily: 'var(--db-font-display)', fontSize: 40, letterSpacing: '0.06em', color: '#e8e8f4', margin: 0, lineHeight: 0.9 }}>
                 GAME OVER
               </h2>
-              <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, color: '#8888aa', marginTop: 6, letterSpacing: '0.05em' }}>
+              <p style={{ fontFamily: 'var(--db-font-ui)', fontSize: 12, fontWeight: 500, color: 'rgba(255,255,255,0.35)', marginTop: 8 }}>
                 {dobsSummary.isLateJoin
                   ? 'Casual mode — late join'
                   : dobsSummary.myRank > 0 && dobsSummary.totalPlayers > 0
@@ -864,48 +866,48 @@ function GameRoom({
                     : 'Final results'}
               </p>
               {room?.name && (
-                <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, color: '#3a3a55', marginTop: 3, letterSpacing: '0.04em' }}>
+                <p style={{ fontFamily: 'var(--db-font-ui)', fontSize: 11, color: 'rgba(255,255,255,0.15)', marginTop: 2 }}>
                   {room.name}
                 </p>
               )}
             </div>
 
             {/* Dobs breakdown */}
-            <div style={{ background: 'rgba(255,107,53,0.05)', border: '1px solid rgba(255,107,53,0.12)', borderRadius: 6, padding: '12px 14px', marginBottom: 20 }}>
+            <div style={{ background: 'rgba(255,107,53,0.04)', border: '1px solid rgba(255,107,53,0.1)', borderRadius: 8, padding: '12px 14px', marginBottom: 20 }}>
               {[
                 { label: `${card.squares_marked} square${card.squares_marked === 1 ? '' : 's'} × 2`, value: dobsSummary.squareDobs },
                 { label: `${card.lines_completed} line${card.lines_completed === 1 ? '' : 's'} × 10`, value: dobsSummary.lineDobs },
                 ...(dobsSummary.posBonus > 0 ? [{ label: `${dobsSummary.ordinal(dobsSummary.myRank)} place bonus`, value: dobsSummary.posBonus }] : []),
                 { label: 'Participation', value: dobsSummary.participation },
               ].map(({ label, value }) => (
-                <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 7, marginBottom: 7, borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                  <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, color: '#8888aa', letterSpacing: '0.03em' }}>{label}</span>
+                <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 8, marginBottom: 8, borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                  <span style={{ fontFamily: 'var(--db-font-ui)', fontSize: 12, fontWeight: 400, color: 'rgba(255,255,255,0.4)' }}>{label}</span>
                   <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 12, fontWeight: 700, color: '#ff6b35' }}>+{value} ◈</span>
                 </div>
               ))}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 4 }}>
-                <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 12, fontWeight: 700, color: '#e0e0f0', letterSpacing: '0.04em' }}>TOTAL</span>
-                <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 15, fontWeight: 800, color: '#ff6b35' }}>+{dobsSummary.total} ◈</span>
+                <span style={{ fontFamily: 'var(--db-font-display)', fontSize: 14, letterSpacing: '0.06em', color: '#e8e8f4' }}>TOTAL</span>
+                <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 18, fontWeight: 700, color: '#ff6b35' }}>+{dobsSummary.total} ◈</span>
               </div>
             </div>
 
             {/* Buttons */}
-            <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
+            <div style={{ display: 'flex', gap: 10 }}>
               <button
                 type="button"
                 onClick={() => setGameOverDismissed(true)}
-                style={{ flex: 1, fontFamily: 'var(--db-font-mono)', fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', padding: '10px 0', borderRadius: 4, background: 'rgba(255,107,53,0.10)', color: '#ff6b35', border: '1px solid rgba(255,107,53,0.25)', cursor: 'pointer', transition: 'background 0.1s ease' }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,107,53,0.18)' }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,107,53,0.10)' }}
+                style={{ flex: 1, fontFamily: 'var(--db-font-ui)', fontSize: 13, fontWeight: 600, padding: '11px 0', borderRadius: 8, background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer', transition: 'background 120ms ease, color 120ms ease' }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.09)'; e.currentTarget.style.color = 'rgba(255,255,255,0.8)' }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = 'rgba(255,255,255,0.5)' }}
               >
-                VIEW BOARD
+                View board
               </button>
               <button
                 type="button"
                 onClick={() => navigate('/')}
-                style={{ flex: 1, fontFamily: 'var(--db-font-mono)', fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', padding: '10px 0', borderRadius: 4, background: '#ff6b35', color: '#0c0c14', border: 'none', cursor: 'pointer', transition: 'background 0.1s ease' }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = '#ff8855' }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = '#ff6b35' }}
+                style={{ flex: 1, fontFamily: 'var(--db-font-display)', fontSize: 16, letterSpacing: '0.08em', padding: '11px 0', borderRadius: 8, background: 'linear-gradient(135deg, #ff7a45 0%, #e05520 100%)', color: '#fff', border: 'none', cursor: 'pointer', boxShadow: '0 4px 14px rgba(255,107,53,0.35)', transition: 'opacity 120ms ease' }}
+                onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.9' }}
+                onMouseLeave={(e) => { e.currentTarget.style.opacity = '1' }}
               >
                 CONTINUE
               </button>

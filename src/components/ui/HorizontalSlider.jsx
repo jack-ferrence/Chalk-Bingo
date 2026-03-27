@@ -3,18 +3,18 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 const arrowBase = {
   position: 'absolute',
   top: '50%',
-  transform: 'translateY(-60%)', /* shift up slightly to account for pb-3 */
+  transform: 'translateY(-60%)',
   zIndex: 10,
   width: 32,
   height: 32,
   borderRadius: '50%',
-  background: '#1a1a2e',
-  border: '1px solid #2a2a44',
+  background: 'rgba(255,255,255,0.06)',
+  border: '1px solid rgba(255,255,255,0.1)',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
   cursor: 'pointer',
-  color: '#8888aa',
+  color: 'rgba(255,255,255,0.4)',
   transition: 'background 100ms ease, color 100ms ease',
   flexShrink: 0,
 }
@@ -55,8 +55,8 @@ export default function HorizontalSlider({ children, scrollAmount = 320 }) {
           aria-label="Scroll left"
           onClick={scrollLeft}
           style={{ ...arrowBase, left: -14 }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = '#22223a'; e.currentTarget.style.color = '#e0e0f0' }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = '#1a1a2e'; e.currentTarget.style.color = '#8888aa' }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = 'rgba(255,255,255,0.8)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = 'rgba(255,255,255,0.4)' }}
         >
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M8 2L4 6l4 4" />
@@ -78,8 +78,8 @@ export default function HorizontalSlider({ children, scrollAmount = 320 }) {
           aria-label="Scroll right"
           onClick={scrollRight}
           style={{ ...arrowBase, right: -14 }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = '#22223a'; e.currentTarget.style.color = '#e0e0f0' }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = '#1a1a2e'; e.currentTarget.style.color = '#8888aa' }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = 'rgba(255,255,255,0.8)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = 'rgba(255,255,255,0.4)' }}
         >
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M4 2l4 4-4 4" />

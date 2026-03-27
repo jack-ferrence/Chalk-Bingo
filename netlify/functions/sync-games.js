@@ -195,6 +195,35 @@ export async function handler() {
       log.push(`created room for ${game.id} (${game.roomName}) [${game.sport}]`)
       console.log(`sync-games: created public room for game ${game.id} — ${game.roomName} [${game.sport}]`)
       // Odds are populated by refresh-odds via sport-level batch fetch (no per-room API call here)
+
+      // Link to any featured game waiting for this game_id + sport
+      const { data: fgMatch } = await supabase
+        .from('featured_games')
+        .select('id')
+        .eq('game_id', game.id)
+        .eq('sport', game.sport)
+        .is('room_id', null)
+        .in('status', ['active', 'live'])
+        .maybeSingle()
+
+      if (fgMatch) {
+        const { data: newRoom } = await supabase
+          .from('rooms')
+          .select('id')
+          .eq('game_id', game.id)
+          .eq('sport', game.sport)
+          .eq('room_type', 'public')
+          .neq('status', 'finished')
+          .maybeSingle()
+
+        if (newRoom) {
+          await supabase
+            .from('featured_games')
+            .update({ room_id: newRoom.id, updated_at: new Date().toISOString() })
+            .eq('id', fgMatch.id)
+          log.push(`linked featured game ${fgMatch.id} to room ${newRoom.id}`)
+        }
+      }
     }
   }
 

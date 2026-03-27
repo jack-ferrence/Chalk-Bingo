@@ -72,23 +72,23 @@ function RecentEvents({ gameId }) {
 
   return (
     <div>
-      <h2 style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#555577' }}>
-        Recent events
+      <h2 style={{ fontFamily: 'var(--db-font-display)', fontSize: 10, letterSpacing: '0.12em', color: 'rgba(255,255,255,0.25)' }}>
+        RECENT EVENTS
       </h2>
       <ul className="mt-2 space-y-1.5 overflow-hidden">
         {events.length === 0 ? (
-          <li style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, color: '#555577' }}>No events yet.</li>
+          <li style={{ fontFamily: 'var(--db-font-ui)', fontSize: 11, color: 'rgba(255,255,255,0.25)' }}>No events yet.</li>
         ) : (
           events.map((ev) => (
             <li
               key={ev.id}
               className="animate-in-from-top"
-              style={{ background: '#12121e', border: '1px solid #2a2a44', borderRadius: 4, padding: '6px 8px', fontFamily: 'var(--db-font-mono)', fontSize: 11, color: '#e0e0f0' }}
+              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 6, padding: '6px 10px', fontFamily: 'var(--db-font-ui)', fontSize: 11, color: 'rgba(255,255,255,0.7)' }}
             >
-              <span style={{ fontWeight: 700, color: '#ff6b35' }}>
+              <span style={{ fontWeight: 600, color: '#ff6b35' }}>
                 {PLAYER_NAMES[ev.player_id] ?? ev.player_id}
               </span>
-              <span style={{ color: '#555577' }}> — </span>
+              <span style={{ color: 'rgba(255,255,255,0.2)' }}> — </span>
               <span>{statTypeLabel(ev.stat_type)}</span>
             </li>
           ))

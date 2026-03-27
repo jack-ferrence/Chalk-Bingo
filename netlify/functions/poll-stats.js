@@ -444,6 +444,26 @@ export async function handler() {
           } else {
             log.push(`Dobs awarded for room ${room.id}`)
           }
+
+          // Auto-award featured game winner if this room is linked to one
+          const { data: linkedFg } = await supabase
+            .from('featured_games')
+            .select('id, winner_user_id')
+            .eq('room_id', room.id)
+            .is('winner_user_id', null)
+            .maybeSingle()
+
+          if (linkedFg) {
+            const { data: awardResult } = await supabase.rpc('award_featured_winner', {
+              p_featured_game_id: linkedFg.id,
+            })
+            if (awardResult?.success) {
+              log.push(`Featured game ${linkedFg.id} winner: ${awardResult.winner_username}`)
+              console.log(`poll-stats: Featured game ${linkedFg.id} winner: ${awardResult.winner_username}`)
+            } else if (awardResult?.reason) {
+              log.push(`Featured game ${linkedFg.id} award skipped: ${awardResult.reason}`)
+            }
+          }
         }
       }
     }

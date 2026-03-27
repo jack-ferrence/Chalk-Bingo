@@ -30,8 +30,8 @@
   --color-vegas-gold:   #ff6b35;
   --color-vegas-border: #2a2a44;
 
-  --font-sans:    'JetBrains Mono', monospace;
-  --font-display: 'JetBrains Mono', monospace;
+  --font-sans:    'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: 'Bebas Neue', sans-serif;
   --font-mono:    'JetBrains Mono', monospace;
 }
 
@@ -42,7 +42,7 @@ html {
 body {
   background-color: #0c0c14;
   color: #e0e0f0;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -99,9 +99,9 @@ body {
   content-visibility: auto;
   contain-intrinsic-size: 500px;
   box-shadow:
-    0 0 20px rgba(255, 107, 53, 0.08),
-    0 0 60px rgba(255, 107, 53, 0.04),
-    inset 0 1px 0 rgba(255, 107, 53, 0.08);
+    0 0 0 1px rgba(255,255,255,0.04),
+    0 4px 24px rgba(0,0,0,0.5),
+    0 0 40px rgba(255,107,53,0.06);
 }
 
 /* Winning square ring pulse */
@@ -379,8 +379,9 @@ html, body {
 
 /* Glassmorphism card surface (retained for legacy uses) */
 .glass-card {
-  background: #1a1a2e;
-  border: 1px solid #2a2a44;
+  background: rgba(22,22,34,0.8);
+  border: 1px solid rgba(255,255,255,0.07);
+  backdrop-filter: blur(8px);
 }
 
 /* ── Game card ── */
@@ -389,52 +390,56 @@ html, body {
   flex-shrink: 0;
   width: 244px;
   min-height: 156px;
-  border-radius: 6px;
+  border-radius: 10px;
   overflow: hidden;
-  background: #12121e;
-  border: 1px solid #2a2a44;
+  background: linear-gradient(160deg, #161622 0%, #111119 100%);
+  border: 1px solid rgba(255,255,255,0.07);
   border-top: none;
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
   display: flex;
   flex-direction: column;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.3);
 }
 .game-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 4px 32px var(--team-glow, rgba(255, 107, 53, 0.2));
-  border-color: #3a3a55;
+  transform: translateY(-4px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px var(--team-glow, rgba(255, 107, 53, 0.15));
+  border-color: rgba(255,255,255,0.12);
 }
 
 /* Team abbreviation */
 .team-abbr {
   font-family: var(--db-font-display);
-  font-size: 38px;
+  font-size: 40px;
   line-height: 1;
   letter-spacing: 0.02em;
 }
 
 /* VS separator */
 .vs-text {
-  font-family: var(--db-font-display);
-  font-size: 13px;
+  font-family: var(--db-font-ui);
+  font-size: 11px;
+  font-weight: 700;
   letter-spacing: 0.14em;
-  color: var(--color-text-muted);
+  color: rgba(255,255,255,0.2);
   flex-shrink: 0;
+  text-transform: uppercase;
 }
 
 /* LIVE badge */
 .live-badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 3px 7px;
-  border-radius: 5px;
-  background: rgba(255, 45, 45, 0.12);
-  border: 1px solid rgba(255, 45, 45, 0.30);
-  color: #ff2d2d;
-  font-size: 9.5px;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 20px;
+  background: rgba(255, 45, 45, 0.1);
+  border: 1px solid rgba(255, 45, 45, 0.25);
+  color: #ff4444;
+  font-size: 9px;
   font-weight: 700;
-  letter-spacing: 0.12em;
-  font-family: var(--db-font-body);
+  letter-spacing: 0.1em;
+  font-family: var(--db-font-ui);
+  text-transform: uppercase;
 }
 
 .live-dot {
@@ -471,46 +476,46 @@ html, body {
 
 /* JOIN button */
 .btn-join {
-  font-family: var(--db-font-mono);
-  letter-spacing: 0.08em;
-  font-size: 11px;
+  font-family: var(--db-font-ui);
+  letter-spacing: 0.02em;
+  font-size: 12px;
   padding: 7px 16px;
-  border-radius: 4px;
-  background: #ff6b35;
-  color: #0c0c14;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #ff7a45 0%, #e05520 100%);
+  color: #fff;
   border: none;
   cursor: pointer;
   font-weight: 700;
-  text-transform: uppercase;
-  transition: background 0.1s ease, transform 0.1s ease;
+  transition: opacity 0.12s ease, transform 0.1s ease, box-shadow 0.12s ease;
   white-space: nowrap;
   flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(255,107,53,0.3);
 }
 .btn-join:hover:not(:disabled) {
-  background: #ff8855;
-  transform: scale(1.03);
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(255,107,53,0.4);
 }
-.btn-join:active:not(:disabled) { background: #e05520; }
-.btn-join:disabled { opacity: 0.40; cursor: not-allowed; }
+.btn-join:active:not(:disabled) { transform: scale(0.97); opacity: 0.85; }
+.btn-join:disabled { opacity: 0.35; cursor: not-allowed; box-shadow: none; }
 
 /* JOINED button */
 .btn-joined {
-  font-family: var(--db-font-mono);
-  letter-spacing: 0.08em;
-  font-size: 11px;
+  font-family: var(--db-font-ui);
+  letter-spacing: 0.02em;
+  font-size: 12px;
   padding: 7px 14px;
-  border-radius: 4px;
-  background: rgba(255, 107, 53, 0.10);
-  color: #ff6b35;
-  border: 1px solid rgba(255, 107, 53, 0.25);
+  border-radius: 6px;
+  background: rgba(255, 107, 53, 0.08);
+  color: #ff7a45;
+  border: 1px solid rgba(255, 107, 53, 0.2);
   cursor: pointer;
-  font-weight: 700;
-  text-transform: uppercase;
-  transition: background 0.1s ease;
+  font-weight: 600;
+  transition: background 0.12s ease, border-color 0.12s ease;
   white-space: nowrap;
   flex-shrink: 0;
 }
-.btn-joined:hover { background: rgba(255, 107, 53, 0.18); }
+.btn-joined:hover { background: rgba(255, 107, 53, 0.14); border-color: rgba(255,107,53,0.3); }
 
 /* Sidebar game item */
 .sidebar-game-item {
@@ -665,14 +670,14 @@ html, body {
 
   /* Bingo grid: tighter but readable */
   .bingo-grid {
-    gap: 2px !important;
+    gap: 3px !important;
   }
 
   /* Square text — mobile readable sizes */
-  .bingo-grid button .sq-player { font-size: 9px !important; }
+  .bingo-grid button .sq-player { font-size: 8px !important; }
   .bingo-grid button .sq-stat   { font-size: 11px !important; }
-  .bingo-grid button .sq-team   { font-size: 7px !important; }
-  .bingo-grid button .sq-odds   { font-size: 7px !important; }
+  .bingo-grid button .sq-team   { font-size: 6.5px !important; }
+  .bingo-grid button .sq-odds   { font-size: 6.5px !important; }
 
   /* Mobile stats bottom sheet */
   .mobile-stats-sheet .animate-slide-in-left {

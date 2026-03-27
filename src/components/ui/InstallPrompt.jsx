@@ -54,9 +54,9 @@ export default function InstallPrompt() {
       left: 12,
       right: 12,
       zIndex: 60,
-      background: '#12121e',
-      border: '1px solid #2a2a44',
-      borderRadius: 8,
+      background: 'linear-gradient(160deg, #141420 0%, #0e0e1a 100%)',
+      border: '1px solid rgba(255,255,255,0.08)',
+      borderRadius: 12,
       padding: '14px 16px',
       display: 'flex',
       alignItems: 'center',
@@ -67,10 +67,10 @@ export default function InstallPrompt() {
       <img src="/icon-192.png" alt="Dobber" width={40} height={40} style={{ borderRadius: 8, flexShrink: 0 }} />
 
       <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, fontWeight: 700, color: '#e0e0f0', margin: '0 0 2px', letterSpacing: '0.04em' }}>
+        <p style={{ fontFamily: 'var(--db-font-display)', fontSize: 11, letterSpacing: '0.08em', color: '#e8e8f4', margin: '0 0 2px' }}>
           ADD DOBBER TO HOME SCREEN
         </p>
-        <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, color: '#555577', margin: 0 }}>
+        <p style={{ fontFamily: 'var(--db-font-ui)', fontSize: 10, fontWeight: 400, color: 'rgba(255,255,255,0.3)', margin: 0 }}>
           {isIos ? 'Tap Share ↑ then "Add to Home Screen"' : 'Install for the full app experience'}
         </p>
       </div>
@@ -79,7 +79,7 @@ export default function InstallPrompt() {
         <button
           type="button"
           onClick={handleInstall}
-          style={{ background: '#ff6b35', color: '#0c0c14', border: 'none', borderRadius: 4, fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 800, letterSpacing: '0.06em', padding: '8px 14px', cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap' }}
+          style={{ background: 'linear-gradient(135deg, #ff7a45 0%, #e05520 100%)', color: '#fff', border: 'none', borderRadius: 6, fontFamily: 'var(--db-font-display)', fontSize: 11, letterSpacing: '0.06em', padding: '7px 14px', cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap' }}
         >
           INSTALL
         </button>
@@ -88,7 +88,9 @@ export default function InstallPrompt() {
       <button
         type="button"
         onClick={handleDismiss}
-        style={{ background: 'none', border: 'none', color: '#555577', fontSize: 16, cursor: 'pointer', padding: '4px', flexShrink: 0, lineHeight: 1 }}
+        style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.2)', fontSize: 16, cursor: 'pointer', padding: '4px', flexShrink: 0, lineHeight: 1, transition: 'color 120ms ease' }}
+        onMouseEnter={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.6)' }}
+        onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.2)' }}
       >
         ✕
       </button>

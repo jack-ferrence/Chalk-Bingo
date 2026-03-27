@@ -126,28 +126,29 @@ function SwapModal({
     >
       <div
         style={{
-          background: '#12121e',
-          border: '1px solid #2a2a44',
-          borderRadius: 8,
+          background: 'linear-gradient(160deg, #141420 0%, #0e0e1a 100%)',
+          border: '1px solid rgba(255,255,255,0.08)',
+          borderRadius: 14,
           maxWidth: 400,
           width: 'calc(100% - 32px)',
           padding: 20,
           display: 'flex',
           flexDirection: 'column',
           gap: 14,
+          boxShadow: '0 24px 60px rgba(0,0,0,0.6)',
         }}
       >
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 13, fontWeight: 800, color: '#ff6b35', letterSpacing: '0.08em' }}>
+          <span style={{ fontFamily: 'var(--db-font-display)', fontSize: 16, letterSpacing: '0.08em', color: '#ff6b35' }}>
             SWAP SQUARE
           </span>
           <button
             type="button"
             onClick={handleClose}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#555577', fontFamily: 'var(--db-font-mono)', fontSize: 14, padding: '2px 6px', lineHeight: 1, borderRadius: 3 }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = '#e0e0f0' }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = '#555577' }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.2)', fontSize: 16, padding: '2px 6px', lineHeight: 1, borderRadius: 4, transition: 'color 120ms ease' }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.6)' }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.2)' }}
             aria-label="Cancel"
           >
             ✕
@@ -156,26 +157,26 @@ function SwapModal({
 
         {/* Current square */}
         <div>
-          <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, color: '#555577', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-            Current
+          <span style={{ fontFamily: 'var(--db-font-display)', fontSize: 9, letterSpacing: '0.1em', color: 'rgba(255,255,255,0.25)' }}>
+            CURRENT
           </span>
           <div
             style={{
-              marginTop: 4,
-              background: '#1a1a2e',
-              border: '1px solid #2a2a44',
-              borderRadius: 4,
+              marginTop: 6,
+              background: 'rgba(255,255,255,0.04)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              borderRadius: 8,
               padding: '8px 12px',
             }}
           >
-            <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 13, fontWeight: 600, color: '#e0e0f0', display: 'block' }}>
+            <span style={{ fontFamily: 'var(--db-font-ui)', fontSize: 13, fontWeight: 500, color: '#e8e8f4', display: 'block' }}>
               {currentSquare?.display_text}
             </span>
             {currentOdds != null && (
-              <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, color: '#555577' }}>
+              <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>
                 {oddsLabel(currentOdds)}
                 {currentSquare?.implied_prob != null && (
-                  <span style={{ marginLeft: 6, fontSize: 9, color: '#3a3a55' }}>
+                  <span style={{ marginLeft: 6, fontSize: 9, color: 'rgba(255,255,255,0.2)' }}>
                     ~{Math.round(currentSquare.implied_prob * 100)}%
                   </span>
                 )}
@@ -185,30 +186,30 @@ function SwapModal({
         </div>
 
         {/* Divider */}
-        <div style={{ height: 1, background: '#2a2a44' }} />
+        <div style={{ height: 1, background: 'rgba(255,255,255,0.06)' }} />
 
         {/* Candidates or confirm step */}
         {confirming && selected ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, color: '#555577', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-              Replace With
+            <span style={{ fontFamily: 'var(--db-font-display)', fontSize: 9, letterSpacing: '0.1em', color: 'rgba(255,255,255,0.25)' }}>
+              REPLACE WITH
             </span>
             <div
               style={{
-                background: 'rgba(255,107,53,0.08)',
-                border: '1px solid rgba(255,107,53,0.4)',
-                borderRadius: 4,
+                background: 'rgba(255,107,53,0.06)',
+                border: '1px solid rgba(255,107,53,0.3)',
+                borderRadius: 8,
                 padding: '10px 12px',
               }}
             >
-              <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 13, fontWeight: 600, color: '#e0e0f0', display: 'block' }}>
+              <span style={{ fontFamily: 'var(--db-font-ui)', fontSize: 13, fontWeight: 500, color: '#e8e8f4', display: 'block' }}>
                 {selected.display_text}
               </span>
               {selected.american_odds != null && (
                 <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, color: '#ff6b35' }}>
                   {oddsLabel(selected.american_odds)}
                   {selected.implied_prob != null && (
-                    <span style={{ marginLeft: 6, fontSize: 9, color: '#555577' }}>
+                    <span style={{ marginLeft: 6, fontSize: 9, color: 'rgba(255,255,255,0.3)' }}>
                       ~{Math.round(selected.implied_prob * 100)}%
                     </span>
                   )}
@@ -217,7 +218,7 @@ function SwapModal({
             </div>
 
             {error && (
-              <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, color: '#ff2d2d', margin: 0 }}>
+              <p style={{ fontFamily: 'var(--db-font-ui)', fontSize: 11, fontWeight: 500, color: '#ff5555', margin: 0 }}>
                 {error}
               </p>
             )}
@@ -228,20 +229,20 @@ function SwapModal({
               disabled={loading}
               style={{
                 width: '100%',
-                padding: '9px 16px',
-                background: loading ? '#2a2a44' : '#ff6b35',
-                color: loading ? '#555577' : '#0c0c14',
+                padding: '10px 16px',
+                background: loading ? 'rgba(255,255,255,0.06)' : 'linear-gradient(135deg, #ff7a45 0%, #e05520 100%)',
+                color: loading ? 'rgba(255,255,255,0.25)' : '#fff',
                 border: 'none',
-                borderRadius: 4,
-                fontFamily: 'var(--db-font-mono)',
-                fontSize: 12,
-                fontWeight: 800,
+                borderRadius: 8,
+                fontFamily: 'var(--db-font-display)',
+                fontSize: 14,
                 letterSpacing: '0.06em',
                 cursor: loading ? 'not-allowed' : 'pointer',
-                transition: 'background 100ms ease',
+                boxShadow: loading ? 'none' : '0 4px 14px rgba(255,107,53,0.35)',
+                transition: 'opacity 100ms ease',
               }}
-              onMouseEnter={(e) => { if (!loading) e.currentTarget.style.background = '#ff8855' }}
-              onMouseLeave={(e) => { if (!loading) e.currentTarget.style.background = '#ff6b35' }}
+              onMouseEnter={(e) => { if (!loading) e.currentTarget.style.opacity = '0.9' }}
+              onMouseLeave={(e) => { if (!loading) e.currentTarget.style.opacity = '1' }}
             >
               {loading ? 'SWAPPING…' : `CONFIRM SWAP — ${cost} ◈`}
             </button>
@@ -252,30 +253,31 @@ function SwapModal({
               disabled={loading}
               style={{
                 width: '100%',
-                padding: '7px 16px',
-                background: 'none',
-                color: '#8888aa',
-                border: '1px solid #2a2a44',
-                borderRadius: 4,
-                fontFamily: 'var(--db-font-mono)',
-                fontSize: 11,
+                padding: '8px 16px',
+                background: 'rgba(255,255,255,0.04)',
+                color: 'rgba(255,255,255,0.4)',
+                border: '1px solid rgba(255,255,255,0.09)',
+                borderRadius: 8,
+                fontFamily: 'var(--db-font-ui)',
+                fontSize: 12,
+                fontWeight: 500,
                 cursor: loading ? 'not-allowed' : 'pointer',
-                transition: 'border-color 100ms ease, color 100ms ease',
+                transition: 'background 100ms ease, color 100ms ease',
               }}
-              onMouseEnter={(e) => { if (!loading) { e.currentTarget.style.borderColor = '#555577'; e.currentTarget.style.color = '#e0e0f0' } }}
-              onMouseLeave={(e) => { if (!loading) { e.currentTarget.style.borderColor = '#2a2a44'; e.currentTarget.style.color = '#8888aa' } }}
+              onMouseEnter={(e) => { if (!loading) { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = 'rgba(255,255,255,0.7)' } }}
+              onMouseLeave={(e) => { if (!loading) { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = 'rgba(255,255,255,0.4)' } }}
             >
-              BACK
+              Back
             </button>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, color: '#555577', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-              Pick a Replacement
+            <span style={{ fontFamily: 'var(--db-font-display)', fontSize: 9, letterSpacing: '0.1em', color: 'rgba(255,255,255,0.25)' }}>
+              PICK A REPLACEMENT
             </span>
 
             {candidates.length === 0 ? (
-              <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, color: '#555577', textAlign: 'center', padding: '12px 0' }}>
+              <p style={{ fontFamily: 'var(--db-font-ui)', fontSize: 12, fontWeight: 400, color: 'rgba(255,255,255,0.25)', textAlign: 'center', padding: '12px 0' }}>
                 No similar props available
               </p>
             ) : (
@@ -286,17 +288,17 @@ function SwapModal({
                   onClick={() => handleSelect(candidate)}
                   style={{
                     textAlign: 'left',
-                    background: '#1a1a2e',
-                    border: '1px solid #2a2a44',
-                    borderRadius: 4,
+                    background: 'rgba(255,255,255,0.04)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    borderRadius: 8,
                     padding: '10px 12px',
                     cursor: 'pointer',
                     transition: 'border-color 100ms ease, background 100ms ease',
                   }}
-                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#ff6b35'; e.currentTarget.style.background = '#22223a' }}
-                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#2a2a44'; e.currentTarget.style.background = '#1a1a2e' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(255,107,53,0.4)'; e.currentTarget.style.background = 'rgba(255,107,53,0.06)' }}
+                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
                 >
-                  <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 12, fontWeight: 600, color: '#e0e0f0', display: 'block' }}>
+                  <span style={{ fontFamily: 'var(--db-font-ui)', fontSize: 13, fontWeight: 500, color: '#e8e8f4', display: 'block' }}>
                     {candidate.display_text}
                   </span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
@@ -306,7 +308,7 @@ function SwapModal({
                       </span>
                     )}
                     {candidate.implied_prob != null && (
-                      <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, color: '#555577' }}>
+                      <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, color: 'rgba(255,255,255,0.3)' }}>
                         ~{Math.round(candidate.implied_prob * 100)}%
                       </span>
                     )}
@@ -319,28 +321,28 @@ function SwapModal({
 
         {/* Footer */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, color: '#3a3a55' }}>
-            Cost: {cost} ◈ (Swap {swapNumLabel})
+          <span style={{ fontFamily: 'var(--db-font-ui)', fontSize: 11, fontWeight: 400, color: 'rgba(255,255,255,0.2)' }}>
+            Cost: {cost} ◈ · Swap {swapNumLabel}
           </span>
           <button
             type="button"
             onClick={handleClose}
             style={{
-              background: 'none',
-              color: '#555577',
-              border: '1px solid #2a2a44',
-              borderRadius: 4,
-              fontFamily: 'var(--db-font-mono)',
-              fontSize: 10,
-              padding: '4px 12px',
+              background: 'rgba(255,255,255,0.04)',
+              color: 'rgba(255,255,255,0.35)',
+              border: '1px solid rgba(255,255,255,0.09)',
+              borderRadius: 6,
+              fontFamily: 'var(--db-font-ui)',
+              fontSize: 11,
+              fontWeight: 500,
+              padding: '5px 14px',
               cursor: 'pointer',
-              letterSpacing: '0.06em',
-              transition: 'color 100ms ease, border-color 100ms ease',
+              transition: 'background 100ms ease, color 100ms ease',
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = '#e0e0f0'; e.currentTarget.style.borderColor = '#555577' }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = '#555577'; e.currentTarget.style.borderColor = '#2a2a44' }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = 'rgba(255,255,255,0.6)' }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = 'rgba(255,255,255,0.35)' }}
           >
-            CANCEL
+            Cancel
           </button>
         </div>
       </div>

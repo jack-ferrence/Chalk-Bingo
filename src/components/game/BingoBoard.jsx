@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import BingoSquare from './BingoSquare.jsx'
 
 const CONFETTI_COLORS = ['#FFD700', '#00D46E', '#8B5CF6', '#FF4757', '#00FF88', '#FF6B6B']
+const HEADER_LETTERS = ['B', 'I', 'N', 'G', 'O']
 
 function BingoBoard({
   squares = [],
@@ -71,9 +72,33 @@ function BingoBoard({
       <div
         className={`machine-glow ${skinClass}`}
         style={{
-          background: '#0c0c14', border: '1px solid #2a2a44', borderRadius: 8, padding: 12,
+          background: 'linear-gradient(180deg, #0f0f1c 0%, #0a0a14 100%)',
+          border: '1px solid rgba(255,255,255,0.08)',
+          borderRadius: 12,
+          padding: 10,
+          boxShadow: '0 4px 32px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.05) inset, 0 -1px 0 rgba(0,0,0,0.3) inset',
         }}
       >
+        {/* B·I·N·G·O column headers */}
+        <div className="grid grid-cols-5 mb-1.5" style={{ gap: 6 }}>
+          {HEADER_LETTERS.map((letter) => (
+            <div
+              key={letter}
+              style={{
+                textAlign: 'center',
+                fontFamily: 'var(--db-font-display)',
+                fontSize: 15,
+                letterSpacing: '0.12em',
+                color: 'rgba(255,107,53,0.55)',
+                lineHeight: 1,
+                paddingBottom: 2,
+              }}
+            >
+              {letter}
+            </div>
+          ))}
+        </div>
+
         {/* 5×5 Grid */}
         <div className="grid grid-cols-5 gap-1.5 bingo-grid">
           {flat.slice(0, 25).map((square, index) => (
@@ -95,49 +120,63 @@ function BingoBoard({
           ))}
         </div>
 
-        {/* Footer divider */}
-        <div style={{ marginTop: 8, height: 1, background: '#1a1a2e' }} />
+        {/* Footer rule */}
+        <div style={{ marginTop: 8, height: 1, background: 'rgba(255,255,255,0.04)' }} />
       </div>
 
       {/* Full-board BINGO overlay */}
       {hasBingo && !bingoDismissed && (
         <div
           className="absolute inset-0 z-10 flex flex-col items-center justify-center"
-          style={{ borderRadius: 8, background: 'rgba(12,12,20,0.92)', backdropFilter: 'blur(4px)', cursor: 'pointer' }}
+          style={{ borderRadius: 12, background: 'rgba(8,8,18,0.94)', backdropFilter: 'blur(6px)', cursor: 'pointer' }}
           onClick={() => setBingoDismissed(true)}
           role="alert"
           aria-live="polite"
         >
-          <div
-            style={{
-              fontFamily: 'var(--db-font-mono)',
-              fontSize: 36,
-              fontWeight: 900,
-              letterSpacing: '0.1em',
-              color: '#ff6b35',
-              animation: 'db-bingo 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)',
-            }}
-          >
-            BINGO!
+          <div style={{ textAlign: 'center' }}>
+            <div
+              style={{
+                fontFamily: 'var(--db-font-display)',
+                fontSize: 72,
+                letterSpacing: '0.1em',
+                color: '#ff6b35',
+                lineHeight: 0.95,
+                animation: 'db-bingo 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                textShadow: '0 0 40px rgba(255,107,53,0.5)',
+              }}
+            >
+              BINGO
+            </div>
+            <div style={{
+              fontFamily: 'var(--db-font-display)',
+              fontSize: 16,
+              letterSpacing: '0.3em',
+              color: 'rgba(255,255,255,0.35)',
+              marginTop: 4,
+            }}>
+              {winningLines.length} LINE{winningLines.length === 1 ? '' : 'S'}
+            </div>
           </div>
-          <p style={{ marginTop: 8, fontFamily: 'var(--db-font-mono)', fontSize: 12, color: '#8888aa' }}>
-            {winningLines.length} line{winningLines.length === 1 ? '' : 's'} completed
-          </p>
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); setBingoDismissed(true) }}
             style={{
-              marginTop: 20,
-              fontFamily: 'var(--db-font-mono)', fontSize: 11, fontWeight: 700,
-              letterSpacing: '0.08em', textTransform: 'uppercase',
-              padding: '10px 28px', borderRadius: 4,
-              background: '#ff6b35', color: '#0c0c14', border: 'none',
+              marginTop: 28,
+              fontFamily: 'var(--db-font-display)',
+              fontSize: 16,
+              letterSpacing: '0.14em',
+              padding: '11px 32px',
+              borderRadius: 6,
+              background: 'linear-gradient(135deg, #ff7a45 0%, #e05520 100%)',
+              color: '#fff',
+              border: 'none',
               cursor: 'pointer',
+              boxShadow: '0 4px 16px rgba(255,107,53,0.4)',
             }}
           >
-            CONTINUE PLAYING
+            KEEP PLAYING
           </button>
-          <p style={{ marginTop: 10, fontFamily: 'var(--db-font-mono)', fontSize: 9, color: '#3a3a55' }}>
+          <p style={{ marginTop: 12, fontFamily: 'var(--db-font-ui)', fontSize: 11, color: 'rgba(255,255,255,0.2)', letterSpacing: '0.02em' }}>
             tap anywhere to dismiss
           </p>
         </div>
@@ -150,7 +189,13 @@ function BingoBoard({
         >
           <div
             className="relative overflow-hidden"
-            style={{ background: '#12121e', border: '1px solid rgba(255,107,53,0.5)', borderRadius: 6, padding: '8px 20px' }}
+            style={{
+              background: 'linear-gradient(160deg, #141420 0%, #0e0e1a 100%)',
+              border: '1px solid rgba(255,107,53,0.4)',
+              borderRadius: 8,
+              padding: '8px 22px',
+              boxShadow: '0 8px 24px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,107,53,0.1)',
+            }}
           >
             <div className="bingo-toast-confetti" aria-hidden="true">
               {CONFETTI_COLORS.map((color, i) => (
@@ -165,11 +210,11 @@ function BingoBoard({
                 />
               ))}
             </div>
-            <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 13, fontWeight: 800, color: '#ff6b35', letterSpacing: '0.06em' }}>
+            <p style={{ fontFamily: 'var(--db-font-display)', fontSize: 18, letterSpacing: '0.1em', color: '#ff6b35', lineHeight: 1 }}>
               BINGO!
             </p>
-            <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, color: '#8888aa' }}>
-              Line {toast.lineNum} completed!
+            <p style={{ fontFamily: 'var(--db-font-ui)', fontSize: 10, color: '#6666aa', marginTop: 2, fontWeight: 500 }}>
+              Line {toast.lineNum} completed
             </p>
           </div>
         </div>

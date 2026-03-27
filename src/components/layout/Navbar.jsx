@@ -12,139 +12,172 @@ export default function Navbar({ onMenuClick }) {
   const location = useLocation()
   const isStore = location.pathname === '/store'
 
+  const initial = (profileUsername ?? (user?.is_anonymous ? 'G' : user?.email))?.[0]?.toUpperCase() ?? 'U'
+  const displayName = profileUsername ?? (user?.is_anonymous ? `Guest_${user?.id?.slice(0, 6)}` : user?.email)
+
   return (
     <header
       className="flex-shrink-0 z-50"
-      style={{ background: '#0c0c14', borderBottom: '1px solid #1a1a2e' }}
+      style={{
+        background: 'rgba(10,10,18,0.97)',
+        borderBottom: '1px solid rgba(255,255,255,0.06)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+      }}
     >
-      {/* Top row */}
       <div className="flex h-12 items-center justify-between px-4">
 
-        {/* Left: logo (hamburger hidden on mobile — bottom tab bar replaces it) */}
-        <div className="flex items-center gap-3">
-          <Link
-            to="/"
-            style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}
+        {/* Left: wordmark */}
+        <Link
+          to="/"
+          style={{ display: 'flex', alignItems: 'center', gap: 9, textDecoration: 'none' }}
+        >
+          <DobberLogo size={24} />
+          <span
+            className="navbar-wordmark"
+            style={{
+              fontFamily: 'var(--db-font-display)',
+              fontSize: 22,
+              letterSpacing: '5px',
+              color: '#e8e8f4',
+              lineHeight: 1,
+              paddingTop: 2,
+            }}
           >
-            <DobberLogo size={26} />
-            <span className="navbar-wordmark" style={{ fontFamily: 'var(--db-font-mono)', fontSize: 16, fontWeight: 800, letterSpacing: '4px', color: '#e0e0f0', lineHeight: 1 }}>
-              DOBBER
-            </span>
-          </Link>
-        </div>
+            DOBBER
+          </span>
+        </Link>
 
         {/* Right: user area */}
         {loading ? null : user ? (
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
 
-            {/* Dobs balance — visible on mobile (tapping goes to store) */}
+            {/* Dobs balance */}
             {dobsBalance !== null && (
               <>
-                {/* Mobile: compact balance pill */}
+                {/* Mobile: compact */}
                 <Link
                   to="/store"
                   title="Open Dobs Store"
                   className="flex items-center md:hidden"
-                  style={{
-                    gap: 4,
-                    textDecoration: 'none',
-                  }}
+                  style={{ gap: 4, textDecoration: 'none' }}
                 >
-                  <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 13, fontWeight: 800, color: '#ff6b35', letterSpacing: '0.04em' }}>
+                  <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 13, fontWeight: 800, color: '#ff6b35', letterSpacing: '0.03em' }}>
                     {dobsBalance.toLocaleString()} ◈
                   </span>
                 </Link>
-                {/* Desktop: full balance badge */}
+
+                {/* Desktop: pill chip */}
                 <Link
                   to="/store"
                   title="Open Dobs Store"
                   className="hidden md:flex items-center"
                   style={{
-                    background: '#1a1a2e',
-                    border: '1px solid #2a2a44',
-                    borderRadius: 4,
-                    padding: '4px 10px',
-                    gap: 4,
+                    background: 'rgba(255,107,53,0.08)',
+                    border: '1px solid rgba(255,107,53,0.2)',
+                    borderRadius: 20,
+                    padding: '4px 12px 4px 8px',
+                    gap: 6,
                     textDecoration: 'none',
-                    cursor: 'pointer',
+                    transition: 'background 140ms ease, border-color 140ms ease',
                   }}
-                  onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '0 0 12px rgba(255,107,53,0.2)' }}
-                  onMouseLeave={(e) => { e.currentTarget.style.boxShadow = '' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,107,53,0.14)'; e.currentTarget.style.borderColor = 'rgba(255,107,53,0.35)' }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,107,53,0.08)'; e.currentTarget.style.borderColor = 'rgba(255,107,53,0.2)' }}
                 >
-                  <span style={{ color: '#ff6b35', fontSize: 10, marginRight: 4 }}>◆</span>
-                  <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 12, fontWeight: 800, color: '#ff6b35' }}>
+                  <span style={{ color: '#ff6b35', fontSize: 12, lineHeight: 1 }}>◆</span>
+                  <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 12, fontWeight: 800, color: '#ff6b35', letterSpacing: '0.02em' }}>
                     {dobsBalance.toLocaleString()}
                   </span>
-                  <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, color: '#555577', marginLeft: 3 }}>
-                    DOBS
+                  <span style={{ fontFamily: 'var(--db-font-ui)', fontSize: 10, fontWeight: 600, color: 'rgba(255,107,53,0.55)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                    Dobs
                   </span>
                 </Link>
               </>
             )}
 
-            {/* Store link — desktop only */}
+            {/* Store link — desktop */}
             <Link
               to="/store"
-              className="hidden md:flex"
+              className="hidden md:flex items-center"
               style={{
-                fontFamily: 'var(--db-font-mono)', fontSize: 11, fontWeight: 700,
-                letterSpacing: '0.06em', textTransform: 'uppercase', textDecoration: 'none',
-                color: isStore ? '#ff6b35' : '#555577',
-                alignItems: 'center', gap: 4,
+                fontFamily: 'var(--db-font-ui)', fontSize: 12, fontWeight: 600,
+                letterSpacing: '0.02em', textDecoration: 'none',
+                color: isStore ? '#ff6b35' : 'rgba(255,255,255,0.35)',
+                gap: 4,
+                transition: 'color 120ms ease',
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.color = '#ff6b35' }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = isStore ? '#ff6b35' : '#555577' }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.7)' }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = isStore ? '#ff6b35' : 'rgba(255,255,255,0.35)' }}
             >
-              <span style={{ fontSize: 13 }}>◈</span>
-              STORE
+              Store
             </Link>
 
-            {/* User button + dropdown — desktop only */}
+            {/* Avatar + dropdown — desktop */}
             <div className="relative hidden md:block">
               <button
                 type="button"
                 onClick={() => setDropdownOpen((v) => !v)}
                 className="flex items-center gap-2"
-                style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
               >
                 <span
                   className="flex h-7 w-7 items-center justify-center text-xs font-bold flex-shrink-0"
-                  style={{ background: '#ff6b35', color: '#0c0c14', borderRadius: 4, fontFamily: 'var(--db-font-mono)', fontWeight: 800 }}
+                  style={{
+                    background: 'linear-gradient(135deg, #ff7a45 0%, #e05520 100%)',
+                    color: '#fff',
+                    borderRadius: '50%',
+                    fontFamily: 'var(--db-font-ui)',
+                    fontWeight: 800,
+                    fontSize: 11,
+                    letterSpacing: 0,
+                    boxShadow: '0 2px 8px rgba(255,107,53,0.4)',
+                  }}
                 >
-                  {(profileUsername ?? (user.is_anonymous ? 'G' : user.email))?.[0]?.toUpperCase() ?? 'U'}
+                  {initial}
                 </span>
                 <span
-                  className="hidden sm:block max-w-[160px] truncate"
-                  style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, color: '#555577' }}
+                  className="hidden sm:block max-w-[120px] truncate"
+                  style={{ fontFamily: 'var(--db-font-ui)', fontSize: 12, fontWeight: 500, color: 'rgba(255,255,255,0.45)' }}
                 >
-                  {profileUsername ?? (user.is_anonymous ? `Guest_${user.id.slice(0, 6)}` : user.email)}
+                  {displayName}
                 </span>
+                <span style={{ color: 'rgba(255,255,255,0.25)', fontSize: 10 }}>▾</span>
               </button>
 
               {dropdownOpen && (
                 <>
                   <div className="fixed inset-0 z-10" onClick={() => setDropdownOpen(false)} />
                   <div
-                    className="absolute right-0 top-10 z-20 w-44 py-1 animate-in-from-top"
-                    style={{ background: '#12121e', border: '1px solid #2a2a44', borderRadius: 4 }}
+                    className="absolute right-0 top-10 z-20 w-44 py-1.5 animate-in-from-top"
+                    style={{
+                      background: 'linear-gradient(160deg, #141420 0%, #0e0e1a 100%)',
+                      border: '1px solid rgba(255,255,255,0.08)',
+                      borderRadius: 8,
+                      boxShadow: '0 16px 40px rgba(0,0,0,0.6)',
+                    }}
                   >
+                    <div style={{ padding: '6px 12px 8px', borderBottom: '1px solid rgba(255,255,255,0.06)', marginBottom: 4 }}>
+                      <p style={{ fontFamily: 'var(--db-font-ui)', fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.7)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {displayName}
+                      </p>
+                    </div>
                     <Link
                       to="/settings"
                       onClick={() => setDropdownOpen(false)}
-                      className="block w-full px-4 py-2.5 text-left"
-                      style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, color: '#8888aa', textDecoration: 'none', letterSpacing: '0.03em', display: 'block' }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = '#1a1a2e'; e.currentTarget.style.color = '#e0e0f0' }}
-                      onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = '#8888aa' }}
+                      className="block w-full px-3 py-2 text-left"
+                      style={{ fontFamily: 'var(--db-font-ui)', fontSize: 12, fontWeight: 500, color: 'rgba(255,255,255,0.5)', textDecoration: 'none', display: 'block', borderRadius: 4, margin: '0 4px', width: 'calc(100% - 8px)', transition: 'background 100ms, color 100ms' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = 'rgba(255,255,255,0.85)' }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'rgba(255,255,255,0.5)' }}
                     >
                       Settings
                     </Link>
                     <button
                       type="button"
                       onClick={() => { supabase.auth.signOut(); setDropdownOpen(false) }}
-                      className="w-full px-4 py-2.5 text-left"
-                      style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, color: '#8888aa', background: 'none', border: 'none', cursor: 'pointer', letterSpacing: '0.03em' }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = '#1a1a2e'; e.currentTarget.style.color = '#e0e0f0' }}
-                      onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = '#8888aa' }}
+                      className="w-full px-3 py-2 text-left"
+                      style={{ fontFamily: 'var(--db-font-ui)', fontSize: 12, fontWeight: 500, color: 'rgba(255,255,255,0.5)', background: 'none', border: 'none', cursor: 'pointer', display: 'block', borderRadius: 4, margin: '0 4px', width: 'calc(100% - 8px)', transition: 'background 100ms, color 100ms' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = 'rgba(255,255,255,0.85)' }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'rgba(255,255,255,0.5)' }}
                     >
                       Sign out
                     </button>
@@ -157,24 +190,30 @@ export default function Navbar({ onMenuClick }) {
           <div className="flex items-center gap-3">
             <Link
               to="/login"
-              style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, fontWeight: 600, color: '#555577', textDecoration: 'none', textTransform: 'uppercase', letterSpacing: '0.06em' }}
-              onMouseEnter={(e) => { e.currentTarget.style.color = '#8888aa' }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = '#555577' }}
+              style={{ fontFamily: 'var(--db-font-ui)', fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.4)', textDecoration: 'none', transition: 'color 120ms' }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.7)' }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.4)' }}
             >
               Log in
             </Link>
             <Link
               to="/register"
-              style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, fontWeight: 700, color: '#0c0c14', background: '#ff6b35', borderRadius: 4, padding: '5px 12px', textDecoration: 'none', textTransform: 'uppercase', letterSpacing: '0.06em' }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = '#ff8855' }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = '#ff6b35' }}
+              style={{
+                fontFamily: 'var(--db-font-ui)', fontSize: 12, fontWeight: 700,
+                color: '#fff', background: 'linear-gradient(135deg, #ff7a45 0%, #e05520 100%)',
+                borderRadius: 6, padding: '6px 14px',
+                textDecoration: 'none', letterSpacing: '0.01em',
+                boxShadow: '0 2px 8px rgba(255,107,53,0.3)',
+                transition: 'opacity 120ms ease',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.9' }}
+              onMouseLeave={(e) => { e.currentTarget.style.opacity = '1' }}
             >
               Sign up
             </Link>
           </div>
         )}
       </div>
-
     </header>
   )
 }

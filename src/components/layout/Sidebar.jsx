@@ -74,18 +74,18 @@ function SidebarContent({ onClose }) {
       <div className="flex-1 overflow-y-auto scrollbar-thin py-4">
         <p
           className="px-5 mb-2"
-          style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#ff6b35' }}
+          style={{ fontFamily: 'var(--db-font-display)', fontSize: 10, letterSpacing: '0.18em', color: '#ff6b35' }}
         >
-          My Games
+          MY GAMES
         </p>
 
         {!user ? (
           <div className="mx-4 mt-2">
             <div
               className="rounded-lg px-4 py-5 text-center"
-              style={{ border: '1px dashed #2a2a44' }}
+              style={{ border: '1px dashed rgba(255,255,255,0.07)' }}
             >
-              <p className="text-xs" style={{ color: '#555577' }}>
+              <p className="text-xs" style={{ fontFamily: 'var(--db-font-ui)', color: 'rgba(255,255,255,0.25)' }}>
                 No active games.{' '}
                 <Link
                   to="/login"
@@ -102,9 +102,9 @@ function SidebarContent({ onClose }) {
           <div className="mx-4 mt-2">
             <div
               className="rounded-lg px-4 py-5 text-center"
-              style={{ border: '1px dashed #2a2a44' }}
+              style={{ border: '1px dashed rgba(255,255,255,0.07)' }}
             >
-              <p className="text-xs" style={{ color: '#555577' }}>
+              <p className="text-xs" style={{ fontFamily: 'var(--db-font-ui)', color: 'rgba(255,255,255,0.25)' }}>
                 No active games. Join one →
               </p>
             </div>
@@ -123,18 +123,18 @@ function SidebarContent({ onClose }) {
       {/* ── Bottom ── */}
       <div
         className="flex-shrink-0 px-5 py-4 space-y-2"
-        style={{ borderTop: '1px solid #2a2a44' }}
+        style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}
       >
         {/* User info */}
         {user && (
-          <div className="flex items-center gap-3 pb-3 mb-1" style={{ borderBottom: '1px solid #2a2a44' }}>
+          <div className="flex items-center gap-3 pb-3 mb-1" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
             <span
               className="flex h-7 w-7 flex-shrink-0 items-center justify-center text-xs font-bold"
-              style={{ background: '#ff6b35', color: '#0c0c14', borderRadius: 4, fontFamily: 'var(--db-font-mono)', fontWeight: 800 }}
+              style={{ background: 'linear-gradient(135deg, #ff7a45 0%, #e05520 100%)', color: '#fff', borderRadius: 4, fontFamily: 'var(--db-font-ui)', fontWeight: 800, boxShadow: '0 2px 8px rgba(255,107,53,0.35)' }}
             >
               {initials}
             </span>
-            <p className="truncate text-xs" style={{ color: '#8888aa', maxWidth: 160 }}>
+            <p className="truncate text-xs" style={{ fontFamily: 'var(--db-font-ui)', color: 'rgba(255,255,255,0.45)', maxWidth: 160 }}>
               {displayName}
             </p>
           </div>
@@ -145,9 +145,9 @@ function SidebarContent({ onClose }) {
             to="/settings"
             onClick={() => onClose?.()}
             className="flex items-center gap-2 text-xs"
-            style={{ color: '#555577', textDecoration: 'none' }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = '#8888aa' }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = '#555577' }}
+            style={{ fontFamily: 'var(--db-font-ui)', color: 'rgba(255,255,255,0.35)', textDecoration: 'none', transition: 'color 120ms ease' }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.65)' }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.35)' }}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -160,9 +160,9 @@ function SidebarContent({ onClose }) {
           to="/"
           onClick={() => onClose?.()}
           className="flex items-center gap-2 text-xs"
-          style={{ color: '#555577', textDecoration: 'none' }}
-          onMouseEnter={(e) => { e.currentTarget.style.color = '#8888aa' }}
-          onMouseLeave={(e) => { e.currentTarget.style.color = '#555577' }}
+          style={{ fontFamily: 'var(--db-font-ui)', color: 'rgba(255,255,255,0.35)', textDecoration: 'none', transition: 'color 120ms ease' }}
+          onMouseEnter={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.65)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.35)' }}
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -175,15 +175,15 @@ function SidebarContent({ onClose }) {
             type="button"
             onClick={handleSignOut}
             className="block text-xs"
-            style={{ color: '#555577', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = '#ff2d2d' }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = '#555577' }}
+            style={{ fontFamily: 'var(--db-font-ui)', color: 'rgba(255,255,255,0.3)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, transition: 'color 120ms ease' }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = '#ff4444' }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.3)' }}
           >
-            Sign Out
+            Sign out
           </button>
         )}
 
-        <p className="text-[10px]" style={{ color: '#3a3a55' }}>Dobber v0.1</p>
+        <p className="text-[10px]" style={{ fontFamily: 'var(--db-font-ui)', color: 'rgba(255,255,255,0.1)' }}>Dobber v0.1</p>
       </div>
     </div>
   )
@@ -191,8 +191,8 @@ function SidebarContent({ onClose }) {
 
 export default function Sidebar({ open, onClose }) {
   const sidebarStyle = {
-    background: '#1a1a2e',
-    borderRight: '1px solid #2a2a44',
+    background: 'rgba(10,10,18,0.98)',
+    borderRight: '1px solid rgba(255,255,255,0.06)',
   }
 
   return (
@@ -210,7 +210,7 @@ export default function Sidebar({ open, onClose }) {
         <div className="md:hidden fixed inset-0 z-40 flex">
           <div
             className="absolute inset-0"
-            style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }}
+            style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
             onClick={onClose}
           />
           <aside
@@ -220,15 +220,17 @@ export default function Sidebar({ open, onClose }) {
             {/* Mobile header with close */}
             <div
               className="flex h-12 flex-shrink-0 items-center justify-between px-5"
-              style={{ borderBottom: '1px solid #2a2a44' }}
+              style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
             >
-              <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#ff6b35' }}>
-                My Games
+              <span style={{ fontFamily: 'var(--db-font-display)', fontSize: 10, letterSpacing: '0.18em', color: '#ff6b35' }}>
+                MY GAMES
               </span>
               <button
                 type="button"
                 onClick={onClose}
-                style={{ color: '#555577', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}
+                style={{ color: 'rgba(255,255,255,0.25)', background: 'none', border: 'none', cursor: 'pointer', padding: 4, transition: 'color 120ms ease' }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.6)' }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.25)' }}
                 aria-label="Close menu"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

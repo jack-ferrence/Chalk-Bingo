@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { getFontFamily, getBadge } from '../../lib/fontMap'
 
-const RANK_COLORS = ['#ff6b35', '#e0e0f0', '#e0e0f0', '#555577', '#555577']
+const RANK_COLORS = ['#ff6b35', 'rgba(255,255,255,0.7)', 'rgba(255,255,255,0.7)', 'rgba(255,255,255,0.3)', 'rgba(255,255,255,0.3)']
 
 export default function TopPlayers() {
   const [players, setPlayers] = useState(null) // null = loading
@@ -26,41 +26,40 @@ export default function TopPlayers() {
     <>
       {/* ── Desktop: bordered box layout ── */}
       <div className="hidden md:block" style={{
-        background: '#12121e',
-        border: '1px solid #2a2a44',
-        borderRadius: 6,
-        padding: '10px 14px',
-        fontFamily: 'var(--db-font-mono)',
+        background: 'linear-gradient(160deg, #141420 0%, #0f0f1a 100%)',
+        border: '1px solid rgba(255,255,255,0.07)',
+        borderRadius: 10,
+        padding: '12px 16px',
       }}>
-        <p style={{ fontSize: 10, fontWeight: 700, color: '#555577', letterSpacing: '0.10em', textTransform: 'uppercase', marginBottom: 10 }}>
-          Top Players
+        <p style={{ fontFamily: 'var(--db-font-display)', fontSize: 10, letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', marginBottom: 10 }}>
+          TOP PLAYERS
         </p>
         {players === null ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             {Array.from({ length: 5 }, (_, i) => (
-              <div key={i} style={{ height: 26, borderRadius: 3, background: '#1a1a2e' }} />
+              <div key={i} style={{ height: 26, borderRadius: 4, background: 'rgba(255,255,255,0.04)' }} />
             ))}
           </div>
         ) : players.length === 0 ? (
-          <p style={{ fontSize: 11, color: '#555577' }}>No players yet</p>
+          <p style={{ fontFamily: 'var(--db-font-ui)', fontSize: 12, color: 'rgba(255,255,255,0.2)' }}>No players yet</p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             {playerRows.map(({ p, i, badge, name }) => (
               <div
                 key={p.id}
-                style={{ display: 'flex', alignItems: 'center', gap: 8, height: 26, borderRadius: 3, padding: '0 4px', transition: 'background 0.1s ease' }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,107,53,0.04)' }}
+                style={{ display: 'flex', alignItems: 'center', gap: 8, height: 28, borderRadius: 4, padding: '0 4px', transition: 'background 0.1s ease' }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,107,53,0.05)' }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
               >
-                <span style={{ width: 18, textAlign: 'right', fontSize: 11, fontWeight: 800, color: RANK_COLORS[i], flexShrink: 0 }}>{i + 1}</span>
+                <span style={{ width: 18, textAlign: 'right', fontFamily: 'var(--db-font-mono)', fontSize: 11, fontWeight: 700, color: RANK_COLORS[i], flexShrink: 0 }}>{i + 1}</span>
                 <span
                   className={p.name_color === 'rainbow' ? 'name-rainbow' : ''}
-                  style={{ flex: 1, fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: p.name_color && p.name_color !== 'rainbow' ? p.name_color : '#c0c0d8', fontFamily: getFontFamily(p.name_font) }}
+                  style={{ flex: 1, fontFamily: getFontFamily(p.name_font), fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: p.name_color && p.name_color !== 'rainbow' ? p.name_color : 'rgba(255,255,255,0.7)' }}
                 >
                   {badge && <span style={{ fontSize: 11, marginRight: 3 }}>{badge.emoji}</span>}
                   {name}
                 </span>
-                <span style={{ fontSize: 11, fontWeight: 700, color: '#ff6b35', flexShrink: 0 }}>{(p.total_earned ?? 0).toLocaleString()} ◈</span>
+                <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, fontWeight: 600, color: '#ff6b35', flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>{(p.total_earned ?? 0).toLocaleString()} ◈</span>
               </div>
             ))}
           </div>
@@ -70,28 +69,28 @@ export default function TopPlayers() {
       {/* ── Mobile: inline horizontal scroll ── */}
       <div className="block md:hidden">
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-          <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, fontWeight: 700, color: '#555577', letterSpacing: '0.15em', flexShrink: 0, textTransform: 'uppercase' }}>
-            Top Players
+          <span style={{ fontFamily: 'var(--db-font-display)', fontSize: 9, letterSpacing: '0.15em', color: 'rgba(255,255,255,0.25)', flexShrink: 0 }}>
+            TOP PLAYERS
           </span>
-          <div style={{ flex: 1, height: 1, background: '#1a1a2e' }} />
+          <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.06)' }} />
         </div>
         {players === null ? (
-          <div style={{ height: 20, borderRadius: 3, background: '#12121e', width: '60%' }} />
+          <div style={{ height: 20, borderRadius: 4, background: 'rgba(255,255,255,0.04)', width: '60%' }} />
         ) : players.length === 0 ? null : (
           <div className="leaderboard-scroll" style={{ display: 'flex', gap: 14, overflowX: 'auto', paddingBottom: 2, WebkitOverflowScrolling: 'touch' }}>
             {playerRows.map(({ p, i, badge, name }) => (
               <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0 }}>
-                <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 800, color: i === 0 ? '#ff6b35' : '#555577' }}>
+                <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 700, color: i === 0 ? '#ff6b35' : 'rgba(255,255,255,0.3)' }}>
                   {i + 1}
                 </span>
                 {badge && <span style={{ fontSize: 11 }}>{badge.emoji}</span>}
                 <span
                   className={p.name_color === 'rainbow' ? 'name-rainbow' : ''}
-                  style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, color: i === 0 ? '#e0e0f0' : '#8888aa', fontWeight: i === 0 ? 700 : 400 }}
+                  style={{ fontFamily: 'var(--db-font-ui)', fontSize: 11, fontWeight: i === 0 ? 600 : 400, color: i === 0 ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.4)' }}
                 >
                   {name}
                 </span>
-                <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, color: '#3a3a55' }}>
+                <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, color: 'rgba(255,107,53,0.6)', fontVariantNumeric: 'tabular-nums' }}>
                   {(p.total_earned ?? 0).toLocaleString()} ◈
                 </span>
               </div>

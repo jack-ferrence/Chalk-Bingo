@@ -7,11 +7,11 @@ const TIER_COLORS = {
 }
 
 function MiniSquare({ square, index }) {
-  if (!square) return <div style={{ background: '#1a1a2e', borderRadius: 3, aspectRatio: '1' }} />
+  if (!square) return <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: 3, aspectRatio: '1' }} />
 
   const isFree   = index === 12 || square.stat_type === 'free'
   const isMarked = isFree || square.marked === true || square.marked === 'true'
-  const tierColor = TIER_COLORS[square.tier] ?? '#555577'
+  const tierColor = TIER_COLORS[square.tier] ?? 'rgba(255,255,255,0.2)'
 
   const parts = (square.display_text ?? '').split(' ')
   const namePart = parts[0] ?? ''
@@ -24,8 +24,8 @@ function MiniSquare({ square, index }) {
         aspectRatio: '1',
         borderRadius: 3,
         overflow: 'hidden',
-        background: isMarked ? 'rgba(255,107,53,0.12)' : '#1a1a2e',
-        border: `1px solid ${isMarked ? 'rgba(255,107,53,0.4)' : '#2a2a44'}`,
+        background: isMarked ? 'rgba(255,107,53,0.12)' : 'rgba(255,255,255,0.03)',
+        border: `1px solid ${isMarked ? 'rgba(255,107,53,0.4)' : 'rgba(255,255,255,0.08)'}`,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -49,15 +49,15 @@ function MiniSquare({ square, index }) {
       )}
 
       {isFree ? (
-        <span style={{ fontSize: 9, fontWeight: 800, color: '#ff6b35', fontFamily: 'var(--db-font-mono)', letterSpacing: '0.05em' }}>
+        <span style={{ fontSize: 9, fontWeight: 800, color: '#ff6b35', fontFamily: 'var(--db-font-display)', letterSpacing: '0.05em' }}>
           FREE
         </span>
       ) : (
         <>
-          <span style={{ fontSize: 7, color: '#555577', fontFamily: 'var(--db-font-mono)', lineHeight: 1, textAlign: 'center', overflow: 'hidden', maxWidth: '100%', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+          <span style={{ fontSize: 7, color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--db-font-ui)', lineHeight: 1, textAlign: 'center', overflow: 'hidden', maxWidth: '100%', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
             {namePart}
           </span>
-          <span style={{ fontSize: 7, fontWeight: 700, color: isMarked ? '#ff6b35' : '#c0c0d8', fontFamily: 'var(--db-font-mono)', lineHeight: 1, textAlign: 'center', overflow: 'hidden', maxWidth: '100%', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+          <span style={{ fontSize: 7, fontWeight: 700, color: isMarked ? '#ff6b35' : 'rgba(255,255,255,0.65)', fontFamily: 'var(--db-font-mono)', lineHeight: 1, textAlign: 'center', overflow: 'hidden', maxWidth: '100%', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
             {statPart}
           </span>
         </>
@@ -105,24 +105,24 @@ export default function CardViewerModal({
           position: 'relative',
           width: '100%',
           maxWidth: 'min(480px, calc(100vw - 32px))',
-          background: '#12121e',
-          border: '1px solid #2a2a44',
-          borderRadius: 8,
+          background: 'linear-gradient(160deg, #141420 0%, #0e0e1a 100%)',
+          border: '1px solid rgba(255,255,255,0.08)',
+          borderRadius: 14,
           padding: 20,
-          fontFamily: 'var(--db-font-mono)',
+          boxShadow: '0 24px 60px rgba(0,0,0,0.6)',
         }}
       >
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-          <span style={{ fontSize: 14, fontWeight: 800, color: '#e0e0f0', letterSpacing: '0.04em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 'calc(100% - 40px)' }}>
+          <span style={{ fontFamily: 'var(--db-font-ui)', fontSize: 14, fontWeight: 600, color: '#e8e8f4', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 'calc(100% - 40px)' }}>
             {playerName}&apos;s Card
           </span>
           <button
             type="button"
             onClick={onClose}
-            style={{ background: 'none', border: 'none', color: '#555577', cursor: 'pointer', fontSize: 16, lineHeight: 1, padding: 4, flexShrink: 0 }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = '#e0e0f0' }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = '#555577' }}
+            style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.2)', cursor: 'pointer', fontSize: 16, lineHeight: 1, padding: '2px 6px', flexShrink: 0, borderRadius: 4, transition: 'color 120ms ease' }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.6)' }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.2)' }}
             aria-label="Close"
           >✕</button>
         </div>
@@ -130,11 +130,11 @@ export default function CardViewerModal({
         {/* Body */}
         {loading ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 160 }}>
-            <span style={{ fontSize: 12, color: '#555577' }}>Loading card...</span>
+            <span style={{ fontFamily: 'var(--db-font-ui)', fontSize: 12, color: 'rgba(255,255,255,0.25)' }}>Loading card...</span>
           </div>
         ) : !squares?.length ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 160 }}>
-            <span style={{ fontSize: 12, color: '#555577' }}>Card not available</span>
+            <span style={{ fontFamily: 'var(--db-font-ui)', fontSize: 12, color: 'rgba(255,255,255,0.25)' }}>Card not available</span>
           </div>
         ) : (
           <>
@@ -146,7 +146,7 @@ export default function CardViewerModal({
             </div>
 
             {/* Footer stats */}
-            <p style={{ marginTop: 12, fontSize: 11, color: '#555577', textAlign: 'center' }}>
+            <p style={{ marginTop: 12, fontFamily: 'var(--db-font-ui)', fontSize: 11, color: 'rgba(255,255,255,0.25)', textAlign: 'center' }}>
               {squaresMarked}/25 marked · {linesCompleted} line{linesCompleted === 1 ? '' : 's'}
             </p>
           </>

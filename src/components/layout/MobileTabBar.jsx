@@ -2,9 +2,42 @@ import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth.jsx'
 
 const TABS = [
-  { path: '/',         label: 'Games',    icon: '🏀' },
-  { path: '/store',    label: 'Store',    icon: '◈'  },
-  { path: '/settings', label: 'Settings', icon: '⚙'  },
+  {
+    path: '/',
+    label: 'Games',
+    icon: (active) => (
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <rect x="2" y="5" width="16" height="11" rx="2" stroke={active ? '#ff6b35' : 'rgba(255,255,255,0.3)'} strokeWidth="1.5" />
+        <circle cx="6.5" cy="10.5" r="1.5" fill={active ? '#ff6b35' : 'rgba(255,255,255,0.3)'} />
+        <circle cx="10" cy="10.5" r="1.5" fill={active ? '#ff6b35' : 'rgba(255,255,255,0.3)'} />
+        <circle cx="13.5" cy="10.5" r="1.5" fill={active ? '#ff6b35' : 'rgba(255,255,255,0.3)'} />
+        <path d="M6 5V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v1" stroke={active ? '#ff6b35' : 'rgba(255,255,255,0.3)'} strokeWidth="1.5" />
+      </svg>
+    ),
+  },
+  {
+    path: '/store',
+    label: 'Store',
+    icon: (active) => (
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <path d="M3 5h14l-1.5 8H4.5L3 5Z" stroke={active ? '#ff6b35' : 'rgba(255,255,255,0.3)'} strokeWidth="1.5" strokeLinejoin="round" />
+        <path d="M3 5l-.8-2H1" stroke={active ? '#ff6b35' : 'rgba(255,255,255,0.3)'} strokeWidth="1.5" strokeLinecap="round" />
+        <circle cx="7" cy="16.5" r="1" fill={active ? '#ff6b35' : 'rgba(255,255,255,0.3)'} />
+        <circle cx="13" cy="16.5" r="1" fill={active ? '#ff6b35' : 'rgba(255,255,255,0.3)'} />
+        <path d="M7.5 9l1.5 2 3-3" stroke={active ? '#ff6b35' : 'rgba(255,255,255,0.3)'} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
+  },
+  {
+    path: '/settings',
+    label: 'Profile',
+    icon: (active) => (
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <circle cx="10" cy="7" r="3" stroke={active ? '#ff6b35' : 'rgba(255,255,255,0.3)'} strokeWidth="1.5" />
+        <path d="M3 17c0-3.314 3.134-6 7-6s7 2.686 7 6" stroke={active ? '#ff6b35' : 'rgba(255,255,255,0.3)'} strokeWidth="1.5" strokeLinecap="round" />
+      </svg>
+    ),
+  },
 ]
 
 export default function MobileTabBar() {
@@ -23,12 +56,15 @@ export default function MobileTabBar() {
         left: 0,
         right: 0,
         zIndex: 50,
-        background: '#12121e',
-        borderTop: '1px solid #2a2a44',
+        background: 'rgba(10,10,18,0.97)',
+        borderTop: '1px solid rgba(255,255,255,0.06)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
         display: 'flex',
         justifyContent: 'space-around',
         alignItems: 'center',
+        height: 56,
       }}
     >
       {TABS.map((tab) => {
@@ -41,23 +77,38 @@ export default function MobileTabBar() {
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              gap: 2,
-              padding: '8px 16px',
+              gap: 3,
+              padding: '8px 20px',
               textDecoration: 'none',
-              color: isActive ? '#ff6b35' : '#555577',
               minHeight: 44,
-              minWidth: 44,
+              minWidth: 60,
               justifyContent: 'center',
-              transition: 'color 100ms ease',
+              position: 'relative',
+              transition: 'opacity 120ms ease',
             }}
           >
-            <span style={{ fontSize: 20, lineHeight: 1 }}>{tab.icon}</span>
+            {/* Active indicator */}
+            {isActive && (
+              <span style={{
+                position: 'absolute',
+                top: 0,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: 32,
+                height: 2,
+                background: '#ff6b35',
+                borderRadius: '0 0 2px 2px',
+                boxShadow: '0 0 8px rgba(255,107,53,0.6)',
+              }} />
+            )}
+            {tab.icon(isActive)}
             <span style={{
-              fontFamily: 'var(--db-font-mono)',
-              fontSize: 9,
-              fontWeight: 700,
-              letterSpacing: '0.06em',
-              textTransform: 'uppercase',
+              fontFamily: 'var(--db-font-ui)',
+              fontSize: 9.5,
+              fontWeight: isActive ? 700 : 500,
+              letterSpacing: '0.03em',
+              color: isActive ? '#ff6b35' : 'rgba(255,255,255,0.3)',
+              transition: 'color 120ms ease',
             }}>
               {tab.label}
             </span>
