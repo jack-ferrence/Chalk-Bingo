@@ -45,7 +45,8 @@ function GameRoom({
 }) {
   const navigate = useNavigate()
   const [selectedSquare, setSelectedSquare] = useState(null)
-  const [mobileLeaderboard, setMobileLeaderboard] = useState(false)
+  const [mobileLeaderboardSheet, setMobileLeaderboardSheet] = useState(false)
+  const [mobileChatSheet, setMobileChatSheet] = useState(false)
   const [mobileStats, setMobileStats] = useState(false)
   const [activeRooms, setActiveRooms] = useState([])
   const [gamesDropdownOpen, setGamesDropdownOpen] = useState(false)
@@ -176,7 +177,7 @@ function GameRoom({
     setSwapError('')
     onCardSwap?.({ squareIndex, newSquare })
   }, [onCardSwap])
-  const handleToggleMobileLeaderboard = useCallback(() => setMobileLeaderboard((v) => !v), [])
+
 
   const handlePlayerClick = useCallback(async (userId, username) => {
     if (userId === user?.id) return
@@ -464,6 +465,7 @@ function GameRoom({
                 swappingSquareIndex={swappingSquareIndex}
                 swapCount={swapCount}
                 oddsPool={oddsPool}
+                sport={room?.sport}
               />
 
               {/* Swap hint + error (lobby only) */}
@@ -477,8 +479,8 @@ function GameRoom({
                   {swapCount < 2 ? (
                     <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, color: '#3a3a55', textAlign: 'center', letterSpacing: '0.04em' }}>
                       {swapCount === 0
-                        ? 'Hover any square to swap it — 10 ◈ (swap 1) · 50 ◈ (swap 2)'
-                        : 'One swap left — 50 ◈ (1/2 used)'}
+                        ? 'HOLD A SQUARE TO SWAP · 2 LEFT'
+                        : 'HOLD A SQUARE TO SWAP · 1 LEFT'}
                     </p>
                   ) : (
                     <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, color: '#555577', textAlign: 'center', letterSpacing: '0.04em' }}>
@@ -490,7 +492,7 @@ function GameRoom({
 
               {/* Store promo banner (lobby only) */}
               {room?.status === 'lobby' && !storePromoDismissed && (
-                <div style={{ width: '100%', maxWidth: 512, display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#12121e', border: '1px solid #2a2a44', borderRadius: 4, padding: '8px 16px' }}>
+                <div className="hidden md:flex" style={{ width: '100%', maxWidth: 512, alignItems: 'center', justifyContent: 'space-between', background: '#12121e', border: '1px solid #2a2a44', borderRadius: 4, padding: '8px 16px' }}>
                   <Link to="/store" style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, color: '#8888aa', textDecoration: 'none', letterSpacing: '0.04em' }}
                     onMouseEnter={(e) => { e.currentTarget.style.color = '#ff6b35' }}
                     onMouseLeave={(e) => { e.currentTarget.style.color = '#8888aa' }}
@@ -571,6 +573,30 @@ function GameRoom({
               )}
             </div>
           )}
+        </div>
+
+        {/* Mobile floating action buttons */}
+        <div className="flex md:hidden items-center justify-center gap-3" style={{ marginTop: 8, marginBottom: 4 }}>
+          <button
+            type="button"
+            onClick={() => setMobileLeaderboardSheet(true)}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: '#1a1a2e', border: '1px solid #2a2a44', borderRadius: 6, fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 700, color: '#8888aa', letterSpacing: '0.08em', cursor: 'pointer' }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 20V10M6 20v-4M18 20v-8" />
+            </svg>
+            STANDINGS
+          </button>
+          <button
+            type="button"
+            onClick={() => setMobileChatSheet(true)}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: '#1a1a2e', border: '1px solid #2a2a44', borderRadius: 6, fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 700, color: '#8888aa', letterSpacing: '0.08em', cursor: 'pointer' }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+            </svg>
+            CHAT
+          </button>
         </div>
 
         {/* CENTER: Player Stats Panel (desktop) */}
@@ -705,43 +731,59 @@ function GameRoom({
         </div>
       )}
 
-      {/* ── Mobile: stacked panels ── */}
-      <div className="border-t border-border-subtle md:hidden">
-        <button
-          type="button"
-          onClick={handleToggleMobileLeaderboard}
-          className="flex w-full items-center justify-between border-b border-border-subtle bg-bg-secondary px-4 py-2 text-xs font-semibold uppercase tracking-wider text-text-muted"
-        >
-          Leaderboard
-          <span className="text-text-muted">{mobileLeaderboard ? '▲' : '▼'}</span>
-        </button>
-        {mobileLeaderboard && (
-          <div className="overflow-y-auto bg-bg-secondary p-3 scrollbar-thin" style={{ maxHeight: '14rem' }}>
-            <Suspense fallback={<PanelFallback />}>
-              <Leaderboard
-                roomId={roomId}
-                currentUserId={user?.id}
-                realtimeCards={leaderboardCards}
-                participantJoined={participantJoined}
-                onPlayerClick={handlePlayerClick}
-              />
-            </Suspense>
+      {/* ── Mobile: Leaderboard bottom sheet ── */}
+      {mobileLeaderboardSheet && (
+        <div className="md:hidden">
+          <div className="fixed inset-0 z-40" role="presentation" aria-hidden="true" style={{ background: 'rgba(12, 12, 20, 0.7)' }} onClick={() => setMobileLeaderboardSheet(false)} />
+          <div className="fixed bottom-0 left-0 right-0 z-50 animate-slide-up" role="dialog" aria-modal="true" aria-label="Leaderboard" style={{ background: '#12121e', borderRadius: '12px 12px 0 0', height: '55vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0 4px', flexShrink: 0 }}>
+              <div style={{ width: 32, height: 4, background: '#2a2a44', borderRadius: 2 }} />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px 8px', flexShrink: 0 }}>
+              <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, fontWeight: 700, color: '#555577', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Leaderboard</span>
+              <button type="button" onClick={() => setMobileLeaderboardSheet(false)} style={{ background: 'none', border: 'none', color: '#555577', fontSize: 18, cursor: 'pointer', padding: '4px 8px' }}>✕</button>
+            </div>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '0 12px 16px' }}>
+              <Suspense fallback={<PanelFallback />}>
+                <Leaderboard
+                  roomId={roomId}
+                  currentUserId={user?.id}
+                  realtimeCards={leaderboardCards}
+                  participantJoined={participantJoined}
+                  onPlayerClick={handlePlayerClick}
+                />
+              </Suspense>
+            </div>
           </div>
-        )}
-
-        {/* Inline chat — always visible on mobile */}
-        <div className="mobile-inline-chat border-t border-border-subtle p-3">
-          <Suspense fallback={<PanelFallback />}>
-            <LiveChat
-              roomId={roomId}
-              userId={user?.id}
-              username={username}
-              realtimeMessages={chatMessages}
-              initChatMessages={initChatMessages}
-            />
-          </Suspense>
         </div>
-      </div>
+      )}
+
+      {/* ── Mobile: Chat bottom sheet ── */}
+      {mobileChatSheet && (
+        <div className="md:hidden">
+          <div className="fixed inset-0 z-40" role="presentation" aria-hidden="true" style={{ background: 'rgba(12, 12, 20, 0.7)' }} onClick={() => setMobileChatSheet(false)} />
+          <div className="fixed bottom-0 left-0 right-0 z-50 animate-slide-up" role="dialog" aria-modal="true" aria-label="Chat" style={{ background: '#12121e', borderRadius: '12px 12px 0 0', height: '65vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0 4px', flexShrink: 0 }}>
+              <div style={{ width: 32, height: 4, background: '#2a2a44', borderRadius: 2 }} />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px 8px', flexShrink: 0 }}>
+              <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, fontWeight: 700, color: '#555577', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Chat</span>
+              <button type="button" onClick={() => setMobileChatSheet(false)} style={{ background: 'none', border: 'none', color: '#555577', fontSize: 18, cursor: 'pointer', padding: '4px 8px' }}>✕</button>
+            </div>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '0 12px', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+              <Suspense fallback={<PanelFallback />}>
+                <LiveChat
+                  roomId={roomId}
+                  userId={user?.id}
+                  username={username}
+                  realtimeMessages={chatMessages}
+                  initChatMessages={initChatMessages}
+                />
+              </Suspense>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Footer ── */}
       <footer className="flex h-8 md:h-10 shrink-0 items-center justify-between border-t border-border-subtle bg-bg-secondary px-3 md:px-4">

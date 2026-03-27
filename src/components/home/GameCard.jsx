@@ -1,5 +1,12 @@
 import { NBA_TEAM_COLORS, MLB_TEAM_COLORS, NCAA_TEAM_COLORS, hexToRgba } from '../../constants/teamColors.js'
 
+function ordinal(n) {
+  if (n <= 0) return ''
+  const s = ['th', 'st', 'nd', 'rd']
+  const v = n % 100
+  return '#' + n + (s[(v - 20) % 10] || s[v] || s[0])
+}
+
 function parseTeams(name) {
   const parts = (name ?? '').split(' vs ')
   return {
@@ -87,9 +94,9 @@ export default function GameCard({ game, onOpenGame, rank = 0, isPlaying = false
       {isFinished && rank > 0 && (
         <div style={{ position: 'absolute', top: 10, left: 14, zIndex: 1, display: 'flex', alignItems: 'center', gap: 3 }}>
           <span style={{
-            fontFamily: 'var(--db-font-display)', fontSize: 22, fontWeight: 800, lineHeight: 1,
+            fontFamily: 'var(--db-font-display)', fontSize: 18, fontWeight: 800, lineHeight: 1,
             color: rank === 1 ? '#FFD700' : rank === 2 ? '#C0C0C0' : rank === 3 ? '#CD7F32' : '#555577',
-          }}>{rank}</span>
+          }}>{ordinal(rank)}</span>
           {rank <= 3 && (
             <span style={{ fontSize: 14 }}>
               {rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉'}

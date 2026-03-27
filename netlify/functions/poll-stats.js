@@ -378,6 +378,7 @@ export async function handler() {
                 id:            sq.id,
                 player_id:     replacement.player_id,
                 player_name:   replacement.player_name,
+                team_abbr:     replacement.team_abbr ?? '',
                 stat_type:     replacement.stat_type,
                 threshold:     replacement.threshold,
                 display_text:  replacement.display_text,

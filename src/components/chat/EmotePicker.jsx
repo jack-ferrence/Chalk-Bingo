@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { EMOTE_MAP } from '../../lib/fontMap'
 
-export default function EmotePicker({ userId, onSelect }) {
+export default function EmotePicker({ userId, onQuickReact }) {
   const [open, setOpen] = useState(false)
   const [ownedEmotes, setOwnedEmotes] = useState([])
   const ref = useRef(null)
@@ -64,7 +64,7 @@ export default function EmotePicker({ userId, onSelect }) {
                     key={itemId}
                     type="button"
                     title={emote.code}
-                    onClick={() => { onSelect(emote.code); setOpen(false) }}
+                    onClick={() => { onQuickReact?.(emote.code); setOpen(false) }}
                     style={{ width: 28, height: 28, borderRadius: 4, background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 100ms ease' }}
                     onMouseEnter={(e) => { e.currentTarget.style.background = '#22223a' }}
                     onMouseLeave={(e) => { e.currentTarget.style.background = 'none' }}

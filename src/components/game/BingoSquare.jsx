@@ -1,5 +1,13 @@
 import { memo, useEffect, useRef, useState } from 'react'
 import DaubOverlay from './DaubOverlay.jsx'
+import { NBA_TEAM_COLORS, MLB_TEAM_COLORS, NCAA_TEAM_COLORS } from '../../constants/teamColors.js'
+
+function getTeamColor(abbr, sport) {
+  if (!abbr) return null
+  if (sport === 'mlb') return MLB_TEAM_COLORS[abbr] ?? null
+  if (sport === 'ncaa') return NCAA_TEAM_COLORS[abbr] ?? null
+  return NBA_TEAM_COLORS[abbr] ?? null
+}
 
 const BingoSquare = memo(function BingoSquare({
   square,
@@ -13,6 +21,7 @@ const BingoSquare = memo(function BingoSquare({
   swapsExhausted = false,
   nextSwapCost = 10,
   daubStyle = 'classic',
+  sport = 'nba',
 }) {
   const isFree = index === 12
   const marked = square?.marked === true
@@ -20,6 +29,39 @@ const BingoSquare = memo(function BingoSquare({
   const prevMarkedRef = useRef(marked)
   const [justMarked, setJustMarked] = useState(false)
   const [hovered, setHovered] = useState(false)
+
+  // Long-press state for mobile swap
+  const longPressTimer = useRef(null)
+  const longPressFired = useRef(false)
+  const touchStartPos = useRef({ x: 0, y: 0 })
+
+  function handleTouchStart(e) {
+    if (!isLobby || swapsExhausted) return
+    longPressFired.current = false
+    touchStartPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }
+    longPressTimer.current = setTimeout(() => {
+      longPressFired.current = true
+      onSwapRequest?.(square, index)
+    }, 500)
+  }
+
+  function cancelLongPress() {
+    clearTimeout(longPressTimer.current)
+  }
+
+  function handleTouchMove(e) {
+    const dx = e.touches[0].clientX - touchStartPos.current.x
+    const dy = e.touches[0].clientY - touchStartPos.current.y
+    if (Math.abs(dx) > 10 || Math.abs(dy) > 10) cancelLongPress()
+  }
+
+  function handleTouchEnd(e) {
+    cancelLongPress()
+    if (longPressFired.current) {
+      e.preventDefault()
+      longPressFired.current = false
+    }
+  }
 
   useEffect(() => {
     if (marked && !prevMarkedRef.current) {
@@ -32,7 +74,7 @@ const BingoSquare = memo(function BingoSquare({
     prevMarkedRef.current = marked
   }, [marked])
 
-
+  // Parse display_text into player name + stat line
   let playerLabel = ''
   let statLabel = displayText
   if (!isFree && displayText) {
@@ -42,6 +84,9 @@ const BingoSquare = memo(function BingoSquare({
       statLabel = match[2]
     }
   }
+
+  const teamAbbr = square?.team_abbr ?? ''
+  const teamColor = getTeamColor(teamAbbr, sport)
 
   const TIER_COLORS = {
     1: '#22c55e', easy: '#22c55e',
@@ -62,7 +107,7 @@ const BingoSquare = memo(function BingoSquare({
         type="button"
         className={`select-none sq-free-glow ${isWinning ? 'sq-winning' : ''} ${isLineFlash ? 'sq-line-flash' : ''}`}
         style={{
-          aspectRatio: '1',
+          aspectRatio: '4/5',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -84,7 +129,7 @@ const BingoSquare = memo(function BingoSquare({
     return (
       <div
         style={{
-          aspectRatio: '1',
+          aspectRatio: '4/5',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -107,7 +152,7 @@ const BingoSquare = memo(function BingoSquare({
         onClick={() => onClick?.(square, index)}
         className={`select-none sq-marked-glow ${justMarked ? 'sq-mark-in sq-shine' : ''} ${isWinning ? 'sq-winning' : ''} ${isLineFlash ? 'sq-line-flash' : ''}`}
         style={{
-          aspectRatio: '1',
+          aspectRatio: '4/5',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -115,8 +160,9 @@ const BingoSquare = memo(function BingoSquare({
           gap: 2,
           background: '#2a1a10',
           border: '1px solid #ff6b35',
+          borderLeft: '3px solid #ff6b35',
           borderRadius: 4,
-          padding: 4,
+          padding: '4px 6px',
           cursor: 'pointer',
           overflow: 'hidden',
           position: 'relative',
@@ -127,11 +173,16 @@ const BingoSquare = memo(function BingoSquare({
             {playerLabel}
           </span>
         )}
-        <span className="sq-stat" style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 800, color: '#ff6b35', lineHeight: 1.2 }}>
+        {teamAbbr && (
+          <span className="sq-team" style={{ fontFamily: 'var(--db-font-mono)', fontSize: 8, fontWeight: 600, color: 'rgba(255,107,53,0.5)', letterSpacing: '0.06em' }}>
+            {teamAbbr}
+          </span>
+        )}
+        <span className="sq-stat" style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, fontWeight: 900, color: '#ff6b35', lineHeight: 1.2, textAlign: 'center' }}>
           {statLabel}
         </span>
         {oddsLabel && (
-          <span className="sq-odds" style={{ fontFamily: 'var(--db-font-mono)', fontSize: 8, color: 'rgba(255,107,53,0.6)', lineHeight: 1 }}>
+          <span className="sq-odds" style={{ fontFamily: 'var(--db-font-mono)', fontSize: 8, color: 'rgba(255,107,53,0.5)', lineHeight: 1 }}>
             {oddsLabel}
           </span>
         )}
@@ -151,25 +202,32 @@ const BingoSquare = memo(function BingoSquare({
 
   // ── Normal (unmarked) square ─────────────────────────────────────────────────
   const showSwapBtn = isLobby && hovered && !swapsExhausted
+  const accentColor = teamColor ?? '#2a2a44'
 
   return (
     <button
       type="button"
-      onClick={() => onClick?.(square, index)}
+      onClick={() => { if (longPressFired.current) { longPressFired.current = false; return } onClick?.(square, index) }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={cancelLongPress}
+      onContextMenu={(e) => { if (isLobby) e.preventDefault() }}
       className="select-none"
       style={{
-        aspectRatio: '1',
+        aspectRatio: '4/5',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 1,
+        gap: 2,
         background: hovered ? '#22223a' : '#1a1a2e',
         border: `1px solid ${hovered ? '#3a3a55' : '#2a2a44'}`,
+        borderLeft: `3px solid ${accentColor}`,
         borderRadius: 4,
-        padding: 4,
+        padding: '4px 6px',
         cursor: 'pointer',
         transition: 'background 100ms ease, border-color 100ms ease',
         position: 'relative',
@@ -177,15 +235,20 @@ const BingoSquare = memo(function BingoSquare({
       }}
     >
       {playerLabel && (
-        <span className="sq-player" style={{ width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'center', fontFamily: 'var(--db-font-mono)', fontSize: 8, fontWeight: 600, color: '#8888aa' }}>
+        <span className="sq-player" style={{ width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'center', fontFamily: 'var(--db-font-mono)', fontSize: 11, fontWeight: 700, color: '#c0c0d8' }}>
           {playerLabel}
         </span>
       )}
-      <span className="sq-stat" style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 800, color: '#e0e0f0', lineHeight: 1.2, textAlign: 'center' }}>
+      {teamAbbr && (
+        <span className="sq-team" style={{ fontFamily: 'var(--db-font-mono)', fontSize: 8, fontWeight: 600, color: teamColor ?? '#555577', letterSpacing: '0.06em' }}>
+          {teamAbbr}
+        </span>
+      )}
+      <span className="sq-stat" style={{ fontFamily: 'var(--db-font-mono)', fontSize: 14, fontWeight: 900, color: '#e0e0f0', lineHeight: 1.2, textAlign: 'center' }}>
         {statLabel}
       </span>
       {oddsLabel && (
-        <span className="sq-odds" style={{ fontFamily: 'var(--db-font-mono)', fontSize: 8, fontWeight: 600, color: tierColor ?? '#555577', lineHeight: 1 }}>
+        <span className="sq-odds" style={{ fontFamily: 'var(--db-font-mono)', fontSize: 8, fontWeight: 500, color: '#555577', lineHeight: 1 }}>
           {oddsLabel}
         </span>
       )}
@@ -194,18 +257,23 @@ const BingoSquare = memo(function BingoSquare({
       {square?.replaced_injury && (
         <span
           title="Replaced — player ruled out"
-          style={{ position: 'absolute', top: 2, left: 2, fontSize: 7, color: '#ff6b35', opacity: 0.6 }}
+          style={{ position: 'absolute', top: 2, left: 5, fontSize: 7, color: '#ff6b35', opacity: 0.6 }}
         >
           ♻
         </span>
       )}
 
-      {/* Tier difficulty dot — shown on odds-based cards */}
+      {/* Tier difficulty dot */}
       {tierColor && (
         <span
           title={tierPct != null ? `${square.tier} — ${tierPct}%` : square.tier}
-          style={{ position: 'absolute', left: 3, top: 3, width: 4, height: 4, borderRadius: '50%', background: tierColor, opacity: 0.7, flexShrink: 0 }}
+          style={{ position: 'absolute', right: 3, top: 3, width: 4, height: 4, borderRadius: '50%', background: tierColor, opacity: 0.7, flexShrink: 0 }}
         />
+      )}
+
+      {/* Mobile swap hint — lobby only */}
+      {isLobby && !swapsExhausted && !showSwapBtn && (
+        <span className="sq-swap-hint">↻</span>
       )}
 
       {/* Swap button — lobby only, shown on hover */}
@@ -216,7 +284,7 @@ const BingoSquare = memo(function BingoSquare({
             e.stopPropagation()
             onSwapRequest?.(square, index)
           }}
-          title="Swap this square (5 Dobs)"
+          title="Swap this square"
           style={{
             position: 'absolute',
             top: 2,

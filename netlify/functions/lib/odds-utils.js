@@ -532,7 +532,7 @@ export function matchOddsToRoster(oddsProps, rosterPlayers) {
     const fn = normalizeName(prop.player_name)
     const ln = normalizeName(getLastName(prop.player_name))
     const m  = byFull.get(fn) || (ln ? byLast.get(ln) : null)
-    if (m) matched.push({ ...prop, player_id: m.id, player_name: m.name })
+    if (m) matched.push({ ...prop, player_id: m.id, player_name: m.name, team_abbr: m.teamAbbr ?? m.team_abbr ?? '' })
   }
   return matched
 }

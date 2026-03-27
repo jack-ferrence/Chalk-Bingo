@@ -60,6 +60,7 @@ function SwapModal({
       id: randomId(),
       player_id: selected.player_id ?? null,
       player_name: selected.player_name ?? null,
+      team_abbr: selected.team_abbr ?? '',
       stat_type: selected.stat_type,
       threshold: selected.threshold,
       display_text: selected.display_text,

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
-import { getFontFamily, getBadge } from '../../lib/fontMap'
+import { getFontFamily, getBadge, EMOTE_MAP } from '../../lib/fontMap'
 import DaubOverlay from '../game/DaubOverlay.jsx'
 
 // ── Previews ─────────────────────────────────────────────────────────────────
@@ -118,6 +118,16 @@ function DaubPreview({ daubStyle }) {
   )
 }
 
+function EmotePreview({ itemId }) {
+  const emote = EMOTE_MAP[itemId]
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 72, gap: 4 }}>
+      <span style={{ fontSize: 32, lineHeight: 1 }}>{emote?.emoji ?? '😊'}</span>
+      <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, color: '#555577', letterSpacing: '0.08em' }}>{emote?.code ?? ''}</span>
+    </div>
+  )
+}
+
 function ItemPreview({ item }) {
   switch (item.category) {
     case 'name_color':
@@ -132,6 +142,8 @@ function ItemPreview({ item }) {
       return <SkinPreview skinClass={item.metadata?.class || 'default'} />
     case 'daub_style':
       return <DaubPreview daubStyle={item.metadata?.style || 'classic'} />
+    case 'chat_emote':
+      return <EmotePreview itemId={item.id} />
     default:
       return null
   }
@@ -288,43 +300,47 @@ export default function StoreItemCard({ item, owned, equipped, dobsBalance, isEm
               </button>
             )}
 
-            {(owned || isFree) && (
-              <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 700, color: isFree ? '#555577' : '#8888aa', letterSpacing: '0.06em' }}>
-                {isFree ? 'FREE' : 'OWNED ✓'}
+            {(owned || isFree) && item.category === 'chat_emote' ? (
+              <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 700, color: '#22c55e', letterSpacing: '0.06em' }}>
+                ✓ USE IN CHAT
               </span>
-            )}
+            ) : (owned || isFree) ? (
+              <>
+                <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 700, color: isFree ? '#555577' : '#8888aa', letterSpacing: '0.06em' }}>
+                  {isFree ? 'FREE' : 'OWNED ✓'}
+                </span>
 
-            {/* Equip row */}
-            {(owned || isFree) && (
-              equipped ? (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4 }}>
-                  <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 700, color: '#ff6b35', letterSpacing: '0.06em' }}>
-                    EQUIPPED ✓
-                  </span>
-                  {item.category === 'badge' && (
-                    <button
-                      type="button"
-                      onClick={handleUnequip}
-                      disabled={equipping}
-                      style={{ background: 'none', color: '#555577', border: '1px solid #2a2a44', borderRadius: 3, fontFamily: 'var(--db-font-mono)', fontSize: 9, fontWeight: 600, padding: '2px 7px', cursor: 'pointer', letterSpacing: '0.05em' }}
-                    >
-                      UNEQUIP
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={doEquip}
-                  disabled={equipping}
-                  style={{ width: '100%', background: 'none', color: '#8888aa', border: '1px solid #2a2a44', borderRadius: 3, fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', padding: '5px 0', cursor: equipping ? 'wait' : 'pointer', transition: 'all 100ms ease' }}
-                  onMouseEnter={(e) => { if (!equipping) { e.currentTarget.style.borderColor = '#ff6b35'; e.currentTarget.style.color = '#ff6b35' } }}
-                  onMouseLeave={(e) => { if (!equipping) { e.currentTarget.style.borderColor = '#2a2a44'; e.currentTarget.style.color = '#8888aa' } }}
-                >
-                  {equipping ? '...' : 'EQUIP'}
-                </button>
-              )
-            )}
+                {/* Equip row */}
+                {equipped ? (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4 }}>
+                    <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 700, color: '#ff6b35', letterSpacing: '0.06em' }}>
+                      EQUIPPED ✓
+                    </span>
+                    {item.category === 'badge' && (
+                      <button
+                        type="button"
+                        onClick={handleUnequip}
+                        disabled={equipping}
+                        style={{ background: 'none', color: '#555577', border: '1px solid #2a2a44', borderRadius: 3, fontFamily: 'var(--db-font-mono)', fontSize: 9, fontWeight: 600, padding: '2px 7px', cursor: 'pointer', letterSpacing: '0.05em' }}
+                      >
+                        UNEQUIP
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={doEquip}
+                    disabled={equipping}
+                    style={{ width: '100%', background: 'none', color: '#8888aa', border: '1px solid #2a2a44', borderRadius: 3, fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', padding: '5px 0', cursor: equipping ? 'wait' : 'pointer', transition: 'all 100ms ease' }}
+                    onMouseEnter={(e) => { if (!equipping) { e.currentTarget.style.borderColor = '#ff6b35'; e.currentTarget.style.color = '#ff6b35' } }}
+                    onMouseLeave={(e) => { if (!equipping) { e.currentTarget.style.borderColor = '#2a2a44'; e.currentTarget.style.color = '#8888aa' } }}
+                  >
+                    {equipping ? '...' : 'EQUIP'}
+                  </button>
+                )}
+              </>
+            ) : null}
           </>
         )}
       </div>

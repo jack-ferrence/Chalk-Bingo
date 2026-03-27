@@ -8,6 +8,13 @@ import { NBA_TEAM_COLORS, MLB_TEAM_COLORS, NCAA_TEAM_COLORS, hexToRgba } from '.
 import SportSection from '../components/home/SportSection.jsx'
 import TopPlayers from '../components/home/TopPlayers.jsx'
 
+function ordinal(n) {
+  if (n <= 0) return ''
+  const s = ['th', 'st', 'nd', 'rd']
+  const v = n % 100
+  return '#' + n + (s[(v - 20) % 10] || s[v] || s[0])
+}
+
 function getTeamColor(abbr, sport) {
   if (sport === 'mlb') return MLB_TEAM_COLORS[abbr] ?? MLB_TEAM_COLORS.DEFAULT
   if (sport === 'ncaa') return NCAA_TEAM_COLORS[abbr] ?? NCAA_TEAM_COLORS.DEFAULT
@@ -68,6 +75,18 @@ export default function LobbyPage() {
 
   const [activeSport, setActiveSport] = useState('all')
   const [finishedRanks, setFinishedRanks] = useState({})
+  const [myRoomIds, setMyRoomIds] = useState(new Set())
+
+  useEffect(() => {
+    if (!user) { setMyRoomIds(new Set()); return }
+    supabase
+      .from('room_participants')
+      .select('room_id')
+      .eq('user_id', user.id)
+      .then(({ data }) => {
+        setMyRoomIds(new Set((data ?? []).map((r) => r.room_id)))
+      })
+  }, [user, allRooms])
 
   useEffect(() => {
     if (!user) return
@@ -97,7 +116,7 @@ export default function LobbyPage() {
     navigate(`/room/${roomId}`)
   }
 
-  // Mobile: flat priority-sorted list (live first, then finished, then lobby)
+  // Mobile: flat priority-sorted list (playing live > new live > finished > today > tomorrow)
   const mobileSortedGames = useMemo(() => {
     return [...allRooms].sort((a, b) => {
       const aLive = a.status === 'live' ? 1 : 0
@@ -107,11 +126,17 @@ export default function LobbyPage() {
       const aPriority = aLive * 4 + aFinished * 2
       const bPriority = bLive * 4 + bFinished * 2
       if (bPriority !== aPriority) return bPriority - aPriority
+      // Within same status: playing games sort before new games
+      if (aLive && bLive) {
+        const aPlaying = myRoomIds.has(a.id) ? 1 : 0
+        const bPlaying = myRoomIds.has(b.id) ? 1 : 0
+        if (bPlaying !== aPlaying) return bPlaying - aPlaying
+      }
       const aTime = a.starts_at ? new Date(a.starts_at).getTime() : Infinity
       const bTime = b.starts_at ? new Date(b.starts_at).getTime() : Infinity
       return aTime - bTime
     })
-  }, [allRooms])
+  }, [allRooms, myRoomIds])
 
   // Desktop: group by sport, sorted live → lobby → finished
   const roomsBySport = useMemo(() => {
@@ -255,6 +280,7 @@ export default function LobbyPage() {
                 loading={loading}
                 onOpenGame={handleOpenGame}
                 finishedRanks={finishedRanks}
+                myRoomIds={myRoomIds}
                 style={{ animationDelay: `${i * 100}ms` }}
               />
             </div>
@@ -298,6 +324,7 @@ export default function LobbyPage() {
               const homeColor = getTeamColor(home, room.sport)
               const awayColor = getTeamColor(away, room.sport)
               const rank = finishedRanks[room.id] ?? 0
+              const isPlaying = myRoomIds.has(room.id)
               const group = isLive ? 'live' : isFinished ? 'finished' : tomorrow ? 'tomorrow' : 'today'
 
               const prevGroup = i > 0 ? (() => {
@@ -329,23 +356,38 @@ export default function LobbyPage() {
                   style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                     padding: '14px 16px',
-                    background: isFinished || tomorrow ? '#0e0e18' : `linear-gradient(to right, ${hexToRgba(awayColor, 0.06)}, #12121e 30%, #12121e 70%, ${hexToRgba(homeColor, 0.06)})`,
+                    position: 'relative', overflow: 'hidden',
+                    background: isFinished || tomorrow
+                      ? '#0e0e18'
+                      : isLive
+                        ? '#12121e'
+                        : isPlaying
+                          ? `linear-gradient(135deg, ${hexToRgba(awayColor, 0.18)} 0%, transparent 40%, ${hexToRgba(homeColor, 0.18)} 100%)`
+                          : '#12121e',
                     borderRadius: 8,
-                    border: isLive ? '1px solid rgba(255,45,45,0.3)' : isFinished ? '1px solid #1a1a2e' : tomorrow ? '1px solid #1a1a2e' : '1px solid #2a2a44',
-                    borderLeft: isLive ? '3px solid #ff2d2d' : isFinished ? '3px solid #2a2a44' : tomorrow ? '3px solid #1a1a2e' : `3px solid ${homeColor}`,
+                    border: isLive ? (isPlaying ? '1px solid rgba(255,45,45,0.3)' : '1px solid rgba(255,107,53,0.4)') : isFinished ? '1px solid #1a1a2e' : tomorrow ? '1px solid #1a1a2e' : isPlaying ? `1px solid ${hexToRgba(homeColor, 0.25)}` : '1px solid #2a2a44',
+                    borderLeft: isLive ? (isPlaying ? '3px solid #ff2d2d' : '3px solid #ff6b35') : isFinished ? '3px solid #2a2a44' : tomorrow ? '3px solid #1a1a2e' : isPlaying ? `3px solid ${homeColor}` : '3px solid #2a2a44',
+                    animation: isLive && !isPlaying ? 'glow-pulse 2s ease-in-out infinite' : 'none',
                     cursor: tomorrow ? 'default' : 'pointer',
                     opacity: tomorrow ? 0.5 : 1,
                   }}
                 >
+                  {/* Team color top strip for joined lobby rows */}
+                  {isPlaying && !isLive && !isFinished && !tomorrow && (
+                    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(to right, ${awayColor}, ${homeColor})`, borderRadius: '8px 8px 0 0', pointerEvents: 'none' }} />
+                  )}
                   {/* Left: medal + teams */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    {isLive && isPlaying && (
+                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#22c55e', flexShrink: 0, boxShadow: '0 0 6px rgba(34,197,94,0.5)' }} />
+                    )}
                     {isFinished && rank > 0 && (
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 32 }}>
                         <span style={{
                           fontFamily: 'var(--db-font-display)',
-                          fontSize: rank <= 3 ? 26 : 18, fontWeight: 800, lineHeight: 1,
+                          fontSize: rank <= 3 ? 20 : 15, fontWeight: 800, lineHeight: 1,
                           color: rank === 1 ? '#FFD700' : rank === 2 ? '#C0C0C0' : rank === 3 ? '#CD7F32' : '#555577',
-                        }}>{rank}</span>
+                        }}>{ordinal(rank)}</span>
                         {rank <= 3 && (
                           <span style={{ fontSize: 10, marginTop: 2 }}>
                             {rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉'}
@@ -386,11 +428,16 @@ export default function LobbyPage() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: 4, justifyContent: 'flex-end' }}>
                           <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#ff2d2d', display: 'inline-block', animation: 'pulse-live 1.4s ease-in-out infinite' }} />
                           <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 700, color: '#ff2d2d' }}>LIVE</span>
+                          {!isPlaying && (
+                            <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 8, fontWeight: 800, color: '#0c0c14', background: '#ff6b35', padding: '1px 5px', borderRadius: 3, marginLeft: 4 }}>NEW</span>
+                          )}
                         </div>
                         {room.away_score != null && room.home_score != null && (
                           <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 14, fontWeight: 800, color: '#e0e0f0', margin: '4px 0 0' }}>{room.away_score} - {room.home_score}</p>
                         )}
-                        <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, color: '#ff6b35', marginTop: 2 }}>TAP TO PLAY →</p>
+                        <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, color: '#ff6b35', marginTop: 2 }}>
+                          {isPlaying ? 'CONTINUE →' : 'TAP TO PLAY →'}
+                        </p>
                       </div>
                     ) : isFinished ? (
                       <div>
@@ -414,7 +461,17 @@ export default function LobbyPage() {
                             ? new Date(room.starts_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
                             : 'Upcoming'}
                         </span>
-                        <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, color: '#ff6b35', marginTop: 2 }}>TAP TO PLAY →</p>
+                        <div style={{ marginTop: 4, display: 'flex', justifyContent: 'flex-end' }}>
+                          {isPlaying ? (
+                            <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 8, fontWeight: 700, letterSpacing: '0.10em', color: '#22c55e', background: 'rgba(34,197,94,0.10)', border: '1px solid rgba(34,197,94,0.20)', borderRadius: 3, padding: '2px 6px' }}>
+                              ✓ JOINED
+                            </span>
+                          ) : (
+                            <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 8, fontWeight: 700, letterSpacing: '0.10em', color: '#555577' }}>
+                              TAP TO JOIN
+                            </span>
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>

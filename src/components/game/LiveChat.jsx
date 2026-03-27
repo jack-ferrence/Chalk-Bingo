@@ -27,10 +27,25 @@ function renderMessageText(text) {
   return result
 }
 
+function isEmoteOnly(text) {
+  return EMOTE_CODE_MAP[text?.trim()] != null
+}
+
 const ChatMessage = memo(function ChatMessage({ msg, isNew, profile }) {
   const nameColor = profile?.nameColor || userColor(msg.user_id)
   const fontFamily = getFontFamily(profile?.nameFont)
   const badge = profile?.equippedBadge ? getBadge(profile.equippedBadge) : null
+
+  if (isEmoteOnly(msg.message)) {
+    const emoji = EMOTE_CODE_MAP[msg.message.trim()]
+    return (
+      <div className={`px-1 ${isNew ? 'chat-msg-in' : ''}`} style={{ fontSize: 11, lineHeight: 1.4 }}>
+        {badge && <span style={{ marginRight: 2 }}>{badge.emoji}</span>}
+        <span style={{ fontFamily, fontWeight: 700, color: nameColor }}>{msg.username}</span>
+        <span style={{ marginLeft: 5, fontSize: 18 }}>{emoji}</span>
+      </div>
+    )
+  }
 
   return (
     <div className={`px-1 leading-relaxed break-words ${isNew ? 'chat-msg-in' : ''}`} style={{ fontSize: 11 }}>
@@ -46,10 +61,11 @@ const ChatMessage = memo(function ChatMessage({ msg, isNew, profile }) {
 
 function LiveChat({ roomId, userId, username, realtimeMessages, initChatMessages }) {
   const [localMessages, setLocalMessages] = useState([])
-  const [chatProfiles, setChatProfiles] = useState({}) // userId → { nameColor, nameFont, equippedBadge }
+  const [chatProfiles, setChatProfiles] = useState({})
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
   const [slowDown, setSlowDown] = useState(false)
+  const [floatingEmotes, setFloatingEmotes] = useState([])
   const lastSentRef = useRef(0)
   const listRef = useRef(null)
   const isNearBottomRef = useRef(true)
@@ -57,6 +73,7 @@ function LiveChat({ roomId, userId, username, realtimeMessages, initChatMessages
   const scrollThrottleRef = useRef(null)
   const initialLoadRef = useRef(false)
   const knownProfileIds = useRef(new Set())
+  const seenEmoteIds = useRef(new Set())
 
   const fetchProfiles = useCallback(async (userIds) => {
     const unknown = userIds.filter((id) => !knownProfileIds.current.has(id))
@@ -106,6 +123,8 @@ function LiveChat({ roomId, userId, username, realtimeMessages, initChatMessages
         .limit(MAX_CHAT)
       const msgs = data ?? []
       setLocalMessages(msgs)
+      // Mark existing messages as seen so they don't float on initial load
+      for (const m of msgs) seenEmoteIds.current.add(m.id)
       if (initChatMessages) initChatMessages(msgs)
       fetchProfiles(msgs.map((m) => m.user_id))
       requestAnimationFrame(() => {
@@ -117,7 +136,7 @@ function LiveChat({ roomId, userId, username, realtimeMessages, initChatMessages
     fetchMessages()
   }, [roomId, initChatMessages])
 
-  // Merge realtime messages from the consolidated channel
+  // Merge realtime messages + trigger floating emotes for new ones
   useEffect(() => {
     if (!realtimeMessages || realtimeMessages.length === 0) return
 
@@ -129,11 +148,38 @@ function LiveChat({ roomId, userId, username, realtimeMessages, initChatMessages
       fetchProfiles(newMsgs.map((m) => m.user_id))
       for (const m of newMsgs) animatedIds.add(m.id)
 
+      // Float emote-only messages that are truly new (not from initial load)
+      const floaters = []
+      for (const m of newMsgs) {
+        if (!seenEmoteIds.current.has(m.id) && isEmoteOnly(m.message)) {
+          floaters.push({
+            id: m.id,
+            emoji: EMOTE_CODE_MAP[m.message.trim()],
+            username: m.username,
+            x: 15 + Math.random() * 60,
+            createdAt: Date.now(),
+          })
+        }
+        seenEmoteIds.current.add(m.id)
+      }
+      if (floaters.length > 0) {
+        setFloatingEmotes((prev) => [...prev, ...floaters])
+      }
+
       const next = [...prev, ...newMsgs]
       if (isNearBottomRef.current) throttledScrollToBottom()
       return next.length > MAX_CHAT ? next.slice(-MAX_CHAT) : next
     })
   }, [realtimeMessages, throttledScrollToBottom, animatedIds, fetchProfiles])
+
+  // Clean up floaters after animation
+  useEffect(() => {
+    if (floatingEmotes.length === 0) return
+    const timer = setTimeout(() => {
+      setFloatingEmotes((prev) => prev.filter((e) => Date.now() - e.createdAt < 2500))
+    }, 2500)
+    return () => clearTimeout(timer)
+  }, [floatingEmotes])
 
   const handleSend = useCallback(async () => {
     const text = input.trim()
@@ -160,6 +206,19 @@ function LiveChat({ roomId, userId, username, realtimeMessages, initChatMessages
     setSending(false)
   }, [input, roomId, userId, username, sending])
 
+  const handleQuickReact = useCallback(async (code) => {
+    if (!roomId || !userId) return
+    const now = Date.now()
+    if (now - lastSentRef.current < RATE_LIMIT_MS) return
+    lastSentRef.current = now
+    await supabase.from('chat_messages').insert({
+      room_id: roomId,
+      user_id: userId,
+      username: username || 'Guest',
+      message: code,
+    })
+  }, [roomId, userId, username])
+
   const handleKeyDown = useCallback((e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
@@ -171,29 +230,55 @@ function LiveChat({ roomId, userId, username, realtimeMessages, initChatMessages
 
   return (
     <Panel title="Chat" className="flex flex-col">
-      <div
-        ref={listRef}
-        onScroll={checkNearBottom}
-        className="flex-1 overflow-y-auto scrollbar-thin"
-        style={{ maxHeight: '12rem' }}
-        aria-live="polite"
-      >
-        {localMessages.length === 0 ? (
-          <p className="py-4 text-center text-xs text-text-muted">
-            No messages yet. Say hi!
-          </p>
-        ) : (
-          <div className="space-y-0.5 py-1">
-            {localMessages.map((msg) => (
-              <ChatMessage
-                key={msg.id}
-                msg={msg}
-                isNew={animatedIds.has(msg.id)}
-                profile={chatProfiles[msg.user_id]}
-              />
-            ))}
-          </div>
-        )}
+      <div style={{ position: 'relative' }}>
+        <div
+          ref={listRef}
+          onScroll={checkNearBottom}
+          className="flex-1 overflow-y-auto scrollbar-thin"
+          style={{ maxHeight: '12rem' }}
+          aria-live="polite"
+        >
+          {localMessages.length === 0 ? (
+            <p className="py-4 text-center text-xs text-text-muted">
+              No messages yet. Say hi!
+            </p>
+          ) : (
+            <div className="space-y-0.5 py-1">
+              {localMessages.map((msg) => (
+                <ChatMessage
+                  key={msg.id}
+                  msg={msg}
+                  isNew={animatedIds.has(msg.id)}
+                  profile={chatProfiles[msg.user_id]}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Floating emotes overlay */}
+        <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 10 }}>
+          {floatingEmotes.map((fe) => (
+            <div
+              key={fe.id}
+              style={{
+                position: 'absolute',
+                bottom: 0,
+                left: `${fe.x}%`,
+                animation: 'emoteFloat 2s ease-out forwards',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 2,
+              }}
+            >
+              <span style={{ fontSize: 28 }}>{fe.emoji}</span>
+              <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 8, color: 'rgba(255,255,255,0.5)', whiteSpace: 'nowrap' }}>
+                {fe.username}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="mt-2 border-t border-border-subtle pt-2">
@@ -217,7 +302,7 @@ function LiveChat({ roomId, userId, username, realtimeMessages, initChatMessages
             placeholder="Send a message..."
             className="min-w-0 flex-1 rounded-md border border-border-subtle bg-bg-card px-2.5 py-1.5 text-xs text-text-primary placeholder:text-text-muted focus:border-accent-purple focus:outline-none focus:ring-1 focus:ring-accent-purple disabled:opacity-50"
           />
-          <EmotePicker userId={userId} onSelect={(code) => setInput((v) => v + code)} />
+          <EmotePicker userId={userId} onQuickReact={handleQuickReact} />
           <button
             type="button"
             onClick={handleSend}

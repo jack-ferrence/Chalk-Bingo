@@ -91,13 +91,14 @@ function DaySeparator({ label, sub }) {
 // Render a labelled set of cards inside the slider
 // ---------------------------------------------------------------------------
 
-function GameCardItems({ games, onOpenGame, finishedRanks }) {
+function GameCardItems({ games, onOpenGame, finishedRanks, myRoomIds }) {
   return games.map((game) => (
     <div key={game.id} style={{ scrollSnapAlign: 'start', flexShrink: 0 }}>
       <GameCard
         game={game}
         onOpenGame={onOpenGame}
         rank={finishedRanks?.[game.id] ?? 0}
+        isPlaying={myRoomIds?.has(game.id) ?? false}
       />
     </div>
   ))
@@ -154,7 +155,7 @@ function MobileGameList({ games, onOpenGame }) {
 // Desktop: horizontal scroll of GameCards
 // ---------------------------------------------------------------------------
 
-function SliderWithDays({ games, onOpenGame, finishedRanks }) {
+function SliderWithDays({ games, onOpenGame, finishedRanks, myRoomIds }) {
   const byStartTime     = (a, b) => new Date(a.starts_at) - new Date(b.starts_at)
   const byStartTimeDesc = (a, b) => new Date(b.starts_at) - new Date(a.starts_at)
 
@@ -177,7 +178,7 @@ function SliderWithDays({ games, onOpenGame, finishedRanks }) {
     <HorizontalSlider>
       {/* LIVE — always first */}
       {liveGames.length > 0 && (
-        <GameCardItems games={liveGames} onOpenGame={onOpenGame} finishedRanks={finishedRanks} />
+        <GameCardItems games={liveGames} onOpenGame={onOpenGame} finishedRanks={finishedRanks} myRoomIds={myRoomIds} />
       )}
 
       {/* RECENTLY FINISHED — right after live */}
@@ -187,7 +188,7 @@ function SliderWithDays({ games, onOpenGame, finishedRanks }) {
             label="FINAL"
             sub={`${recentFinished.length} game${recentFinished.length === 1 ? '' : 's'}`}
           />
-          <GameCardItems games={recentFinished} onOpenGame={onOpenGame} finishedRanks={finishedRanks} />
+          <GameCardItems games={recentFinished} onOpenGame={onOpenGame} finishedRanks={finishedRanks} myRoomIds={myRoomIds} />
         </>
       )}
 
@@ -197,7 +198,7 @@ function SliderWithDays({ games, onOpenGame, finishedRanks }) {
           {(liveGames.length > 0 || hasFinished || hasMultipleDays) && (
             <DaySeparator label="TODAY" sub={todayDateStr} />
           )}
-          <GameCardItems games={todayLobby} onOpenGame={onOpenGame} finishedRanks={finishedRanks} />
+          <GameCardItems games={todayLobby} onOpenGame={onOpenGame} finishedRanks={finishedRanks} myRoomIds={myRoomIds} />
         </>
       )}
 
@@ -205,7 +206,7 @@ function SliderWithDays({ games, onOpenGame, finishedRanks }) {
       {tomorrowLobby.length > 0 && (
         <>
           <DaySeparator label="TOMORROW" sub={tomorrowDateStr} />
-          <GameCardItems games={tomorrowLobby} onOpenGame={onOpenGame} finishedRanks={finishedRanks} />
+          <GameCardItems games={tomorrowLobby} onOpenGame={onOpenGame} finishedRanks={finishedRanks} myRoomIds={myRoomIds} />
         </>
       )}
 
@@ -216,7 +217,7 @@ function SliderWithDays({ games, onOpenGame, finishedRanks }) {
             label="UPCOMING"
             sub={fmtDate(pacificDateStr(new Date(futureLobby[0].starts_at)))}
           />
-          <GameCardItems games={futureLobby} onOpenGame={onOpenGame} finishedRanks={finishedRanks} />
+          <GameCardItems games={futureLobby} onOpenGame={onOpenGame} finishedRanks={finishedRanks} myRoomIds={myRoomIds} />
         </>
       )}
 
@@ -239,6 +240,7 @@ export default function SportSection({
   loading,
   onOpenGame,
   finishedRanks,
+  myRoomIds,
   style,
 }) {
   const hasUpcoming = games.some((g) => g.status === 'live' || g.status === 'lobby')
@@ -319,10 +321,10 @@ export default function SportSection({
                 No upcoming games right now — showing recent results.
               </p>
             </div>
-            <SliderWithDays games={games} onOpenGame={onOpenGame} finishedRanks={finishedRanks} />
+            <SliderWithDays games={games} onOpenGame={onOpenGame} finishedRanks={finishedRanks} myRoomIds={myRoomIds} />
           </>
         ) : (
-          <SliderWithDays games={games} onOpenGame={onOpenGame} />
+          <SliderWithDays games={games} onOpenGame={onOpenGame} finishedRanks={finishedRanks} myRoomIds={myRoomIds} />
         )}
       </div>
 

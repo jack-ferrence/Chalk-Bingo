@@ -182,6 +182,7 @@ function assembleCard(selected) {
         id: randomId(),
         player_id: p.player_id,
         player_name: p.player_name,
+        team_abbr: p.team_abbr ?? '',
         stat_type: p.stat_type,
         threshold: p.threshold,
         display_text: p.display_text,
