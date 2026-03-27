@@ -97,12 +97,13 @@ export default function LobbyPage() {
       for (const room of finishedRooms) {
         const { data: cards } = await supabase
           .from('cards')
-          .select('user_id, lines_completed, squares_marked')
+          .select('user_id, lines_completed, squares_marked, late_join')
           .eq('room_id', room.id)
           .order('lines_completed', { ascending: false })
           .order('squares_marked', { ascending: false })
         if (cards) {
-          const rank = cards.findIndex((c) => c.user_id === user.id) + 1
+          const eligible = cards.filter((c) => !c.late_join)
+          const rank = eligible.findIndex((c) => c.user_id === user.id) + 1
           if (rank > 0) ranks[room.id] = rank
         }
       }

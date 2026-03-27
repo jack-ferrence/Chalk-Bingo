@@ -117,8 +117,9 @@ function Leaderboard({ roomId, currentUserId, realtimeCards, participantJoined, 
     const [{ data: cardsData }, { data: profilesData }] = await Promise.all([
       supabase
         .from('cards')
-        .select('user_id, lines_completed, squares_marked')
+        .select('user_id, lines_completed, squares_marked, late_join')
         .eq('room_id', roomId)
+        .eq('late_join', false)
         .in('user_id', userIds),
       supabase
         .from('profiles')
@@ -169,6 +170,7 @@ function Leaderboard({ roomId, currentUserId, realtimeCards, participantJoined, 
       let next = [...prev]
       for (const updated of realtimeCards) {
         if (!updated?.user_id) continue
+        if (updated.late_join) continue  // Late joiners excluded from leaderboard
 
         const oldIdx = next.findIndex((r) => r.user_id === updated.user_id)
         const oldRow = oldIdx >= 0 ? next[oldIdx] : null

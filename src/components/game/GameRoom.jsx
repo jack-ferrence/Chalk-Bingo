@@ -41,6 +41,7 @@ function GameRoom({
   resetStatEvents,
   rosterPlayers,
   oddsPool = [],
+  isLateJoin = false,
   onRetryCard,
 }) {
   const navigate = useNavigate()
@@ -209,8 +210,23 @@ function GameRoom({
   const dobsSummary = useMemo(() => {
     if (room?.status !== 'finished' || !card) return null
 
-    const myRank = leaderboardCards.length > 0
-      ? [...leaderboardCards]
+    const squareDobs = (card.squares_marked ?? 0) * 2
+    const lineDobs   = (card.lines_completed ?? 0) * 10
+    const participation = 3
+
+    const ordinal = (n) => {
+      if (n === 1) return '1st'; if (n === 2) return '2nd'; if (n === 3) return '3rd'
+      return `${n}th`
+    }
+
+    if (isLateJoin) {
+      const total = squareDobs + lineDobs + participation
+      return { isLateJoin: true, myRank: null, posBonus: 0, squareDobs, lineDobs, participation, total, ordinal, totalPlayers: leaderboardCards.length }
+    }
+
+    const eligibleCards = leaderboardCards.filter((c) => !c.late_join)
+    const myRank = eligibleCards.length > 0
+      ? [...eligibleCards]
           .sort((a, b) =>
             b.lines_completed - a.lines_completed ||
             b.squares_marked - a.squares_marked
@@ -223,18 +239,10 @@ function GameRoom({
          myRank === 4 ? 25 : myRank === 5 ? 15 : myRank <= 10 ? 5 : 0)
       : 0
 
-    const squareDobs = (card.squares_marked ?? 0) * 2
-    const lineDobs   = (card.lines_completed ?? 0) * 10
-    const participation = 3
     const total = squareDobs + lineDobs + posBonus + participation
 
-    const ordinal = (n) => {
-      if (n === 1) return '1st'; if (n === 2) return '2nd'; if (n === 3) return '3rd'
-      return `${n}th`
-    }
-
-    return { myRank, posBonus, squareDobs, lineDobs, participation, total, ordinal, totalPlayers: leaderboardCards.length }
-  }, [room?.status, card, leaderboardCards, user?.id])
+    return { isLateJoin: false, myRank, posBonus, squareDobs, lineDobs, participation, total, ordinal, totalPlayers: eligibleCards.length }
+  }, [room?.status, card, isLateJoin, leaderboardCards, user?.id])
 
   const winningLines = bingoResult.winningLines ?? []
 
@@ -442,6 +450,23 @@ function GameRoom({
         </div>
       )}
 
+      {isLateJoin && (
+        <div style={{
+          background: 'rgba(255,107,53,0.08)',
+          border: '1px solid rgba(255,107,53,0.25)',
+          borderRadius: 0,
+          padding: '8px 16px',
+          textAlign: 'center',
+          flexShrink: 0,
+        }}>
+          <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 700, color: '#ff6b35', letterSpacing: '0.08em', margin: '0 0 2px' }}>
+            LATE JOIN — CASUAL MODE
+          </p>
+          <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, color: '#8888aa', margin: 0 }}>
+            You&apos;ll earn Dobs for squares &amp; lines, but you won&apos;t appear on the leaderboard or qualify for prizes.
+          </p>
+        </div>
+      )}
 
       {/* ── Main 3-column area ── */}
       <div className="game-room-main flex flex-1 overflow-hidden">
@@ -826,15 +851,17 @@ function GameRoom({
             {/* Rank emoji + title */}
             <div style={{ textAlign: 'center', marginBottom: 20 }}>
               <div style={{ fontSize: 48, lineHeight: 1, marginBottom: 10 }}>
-                {dobsSummary.myRank === 1 ? '🥇' : dobsSummary.myRank === 2 ? '🥈' : dobsSummary.myRank === 3 ? '🥉' : '🎯'}
+                {dobsSummary.isLateJoin ? '🎯' : dobsSummary.myRank === 1 ? '🥇' : dobsSummary.myRank === 2 ? '🥈' : dobsSummary.myRank === 3 ? '🥉' : '🎯'}
               </div>
               <h2 style={{ fontFamily: 'var(--db-font-display)', fontSize: 22, fontWeight: 800, letterSpacing: '0.06em', color: '#e0e0f0', margin: 0 }}>
                 GAME OVER
               </h2>
               <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, color: '#8888aa', marginTop: 6, letterSpacing: '0.05em' }}>
-                {dobsSummary.myRank > 0 && dobsSummary.totalPlayers > 0
-                  ? `${dobsSummary.ordinal(dobsSummary.myRank)} of ${dobsSummary.totalPlayers} player${dobsSummary.totalPlayers === 1 ? '' : 's'}`
-                  : 'Final results'}
+                {dobsSummary.isLateJoin
+                  ? 'Casual mode — late join'
+                  : dobsSummary.myRank > 0 && dobsSummary.totalPlayers > 0
+                    ? `${dobsSummary.ordinal(dobsSummary.myRank)} of ${dobsSummary.totalPlayers} player${dobsSummary.totalPlayers === 1 ? '' : 's'}`
+                    : 'Final results'}
               </p>
               {room?.name && (
                 <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, color: '#3a3a55', marginTop: 3, letterSpacing: '0.04em' }}>

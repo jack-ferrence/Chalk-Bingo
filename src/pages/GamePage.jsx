@@ -20,6 +20,7 @@ function GamePage() {
   const [loadingRoom, setLoadingRoom] = useState(true)
   const [loadingCard, setLoadingCard] = useState(true)
   const [error, setError] = useState('')
+  const [isLateJoin, setIsLateJoin] = useState(false)
   const [gameStartedNotification, setGameStartedNotification] = useState(false)
   const prevStatusRef = useRef(null)
 
@@ -59,6 +60,7 @@ function GamePage() {
     setRetryCount(0)
     setLoadingRoom(true)
     setLoadingCard(true)
+    setIsLateJoin(false)
     setGameStartedNotification(false)
     prevStatusRef.current = null
   }, [roomId])
@@ -141,28 +143,24 @@ function GamePage() {
         // DON'T return — continue to fetch roster + odds for display and swaps
       }
 
-      // ── Late entry check for live games ─────────────────────────────────────
+      // ── Late join detection (no hard block — casual mode instead) ───────────
+      let lateJoin = false
       if (!cardAlreadyExists && room.status === 'live') {
         const sport = room.sport || 'nba'
         const period = room.game_period ?? 0
         const clock = room.game_clock ?? ''
-        let lateEntryAllowed = false
 
         if (sport === 'nba') {
-          lateEntryAllowed = period <= 1
+          lateJoin = period > 1
         } else if (sport === 'ncaa') {
-          if (period <= 1) {
+          if (period > 1) {
+            lateJoin = true
+          } else {
             const mins = parseInt(clock.split(':')[0], 10)
-            lateEntryAllowed = !isNaN(mins) && mins >= 10
+            lateJoin = !isNaN(mins) && mins < 10
           }
         } else if (sport === 'mlb') {
-          lateEntryAllowed = period <= 3
-        }
-
-        if (!lateEntryAllowed) {
-          setError('Late entry is closed for this game. You can join the next game from the lobby.')
-          setLoadingCard(false)
-          return
+          lateJoin = period > 3
         }
       }
 
@@ -202,12 +200,13 @@ function GamePage() {
         if (oddsCard) {
           const { data: savedCard, error: saveError } = await supabase
             .from('cards')
-            .insert({ room_id: roomId, user_id: user.id, squares: oddsCard })
+            .insert({ room_id: roomId, user_id: user.id, squares: oddsCard, late_join: lateJoin })
             .select()
             .maybeSingle()
 
           if (!saveError && savedCard) {
             if (debug) console.log('[GamePage] odds-based card saved', savedCard.id)
+            setIsLateJoin(lateJoin)
             setCard(savedCard)
             setLoadingCard(false)
             // Kick off roster fetch for PlayerStatsPanel in the background
@@ -310,6 +309,7 @@ function GamePage() {
       resetStatEvents={resetStatEvents}
       rosterPlayers={rosterPlayers}
       oddsPool={oddsPool}
+      isLateJoin={isLateJoin}
       onRetryCard={() => { setCard(null); setRetryCount((c) => c + 1) }}
     />
   )
