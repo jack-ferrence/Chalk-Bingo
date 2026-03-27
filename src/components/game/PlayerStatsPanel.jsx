@@ -11,6 +11,15 @@ const STAT_KEYS = [
   { key: 'blocks',    label: 'BLK',  types: ['blocks', 'block'] },
 ]
 
+const MLB_STAT_KEYS = [
+  { key: 'hits',              label: 'H',   types: ['hits'] },
+  { key: 'home_runs',         label: 'HR',  types: ['home_runs'] },
+  { key: 'rbis',              label: 'RBI', types: ['rbis'] },
+  { key: 'total_bases',       label: 'TB',  types: ['total_bases'] },
+  { key: 'pitcher_strikeouts', label: 'K',  types: ['pitcher_strikeouts'] },
+  { key: 'earned_runs',       label: 'ER',  types: ['earned_runs'] },
+]
+
 function bestValueForCategory(events, types) {
   let best = 0
   for (const ev of events) {
@@ -36,7 +45,7 @@ function awayLabel(current, threshold, marked) {
   return `${diff} away`
 }
 
-function PlayerStatsPanel({ playerId, playerName, playerSquares, gameId, realtimeStatEvents, resetStatEvents, onClose }) {
+function PlayerStatsPanel({ playerId, playerName, playerSquares, gameId, sport, realtimeStatEvents, resetStatEvents, onClose }) {
   const [events, setEvents] = useState([])
 
   // Initial fetch for this player
@@ -69,12 +78,14 @@ function PlayerStatsPanel({ playerId, playerName, playerSquares, gameId, realtim
     return [...newForPlayer, ...events]
   }, [events, realtimeStatEvents, playerId])
 
+  const activeStatKeys = sport === 'mlb' ? MLB_STAT_KEYS : STAT_KEYS
+
   const statSummary = useMemo(() => {
-    return STAT_KEYS.map((cat) => ({
+    return activeStatKeys.map((cat) => ({
       ...cat,
       value: bestValueForCategory(playerEvents, cat.types),
     }))
-  }, [playerEvents])
+  }, [playerEvents, activeStatKeys])
 
   const currentValues = useMemo(() => {
     const map = {}

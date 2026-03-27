@@ -627,6 +627,7 @@ function GameRoom({
               playerName={selectedSquare.player_name}
               playerSquares={playerSquares}
               gameId={room?.game_id}
+              sport={room?.sport}
               realtimeStatEvents={statEvents}
               resetStatEvents={resetStatEvents}
               onClose={handleCloseStats}
@@ -671,6 +672,7 @@ function GameRoom({
               playerName={selectedSquare.player_name}
               playerSquares={playerSquares}
               gameId={room?.game_id}
+              sport={room?.sport}
               realtimeStatEvents={statEvents}
               resetStatEvents={resetStatEvents}
               onClose={handleCloseStats}
@@ -738,6 +740,7 @@ function GameRoom({
               playerName={selectedSquare.player_name}
               playerSquares={playerSquares}
               gameId={room?.game_id}
+              sport={room?.sport}
               realtimeStatEvents={statEvents}
               resetStatEvents={resetStatEvents}
               onClose={handleCloseStatsMobile}

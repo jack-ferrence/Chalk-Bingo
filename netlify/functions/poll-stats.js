@@ -83,12 +83,13 @@ export async function handler() {
     // Used for both auto-start and auto-finish so we only hit ESPN once per run.
     const espnStatusMap = new Map() // gameId (string) → ESPN status name
     try {
-      const [nbaGames, ncaaGames] = await Promise.allSettled([
+      const [nbaGames, ncaaGames, mlbGames] = await Promise.allSettled([
         fetchLiveEspnGames('nba'),
         fetchLiveEspnGames('ncaa'),
+        fetchLiveEspnGames('mlb'),
       ])
       let total = 0
-      for (const result of [nbaGames, ncaaGames]) {
+      for (const result of [nbaGames, ncaaGames, mlbGames]) {
         if (result.status === 'fulfilled') {
           for (const g of result.value) {
             espnStatusMap.set(g.id, g.status)
@@ -96,7 +97,7 @@ export async function handler() {
           total += result.value.length
         }
       }
-      log.push(`ESPN scoreboard: ${total} game(s) (NBA + NCAA)`)
+      log.push(`ESPN scoreboard: ${total} game(s) (NBA + NCAA + MLB)`)
     } catch (err) {
       // Non-fatal: auto-start/finish will be skipped this run, stat polling continues
       log.push(`ESPN scoreboard fetch failed: ${err.message}`)
