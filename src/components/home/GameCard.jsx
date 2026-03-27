@@ -149,9 +149,16 @@ export default function GameCard({ game, isJoined, joining, onJoin, onContinue }
               ● IN PROGRESS
             </span>
           ) : isFinished ? (
-            <span style={{ color: '#555577', fontSize: 11, fontWeight: 700, letterSpacing: '0.05em' }}>
-              GAME OVER
-            </span>
+            <>
+              <span style={{ color: '#555577', fontSize: 11, fontWeight: 700, letterSpacing: '0.05em' }}>
+                FINAL
+              </span>
+              {game.away_score != null && game.home_score != null && (
+                <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 13, fontWeight: 800, color: '#8888aa', marginTop: 2, display: 'block' }}>
+                  {game.away_score} - {game.home_score}
+                </span>
+              )}
+            </>
           ) : (
             <>
               {formatDateLabel(game.starts_at) && (

@@ -66,17 +66,19 @@ export default function LobbyPage() {
     [myRooms]
   )
 
-  // Mobile: flat priority-sorted list (live+joined first, then upcoming)
+  // Mobile: flat priority-sorted list (live+joined first, then finished, then upcoming)
   const mobileSortedGames = useMemo(() => {
-    const all = allRooms.filter((r) => r.status === 'live' || r.status === 'lobby')
+    const all = allRooms.filter((r) => r.status === 'live' || r.status === 'lobby' || r.status === 'finished')
     return all.sort((a, b) => {
       const aJoined = joinedRoomIds.has(a.id) ? 1 : 0
       const bJoined = joinedRoomIds.has(b.id) ? 1 : 0
       const aLive = a.status === 'live' ? 1 : 0
       const bLive = b.status === 'live' ? 1 : 0
-      // Priority: live+joined=3, live+unjoined=2, lobby+joined=1, lobby+unjoined=0
-      const aPriority = aLive * 2 + aJoined
-      const bPriority = bLive * 2 + bJoined
+      const aFinished = a.status === 'finished' ? 1 : 0
+      const bFinished = b.status === 'finished' ? 1 : 0
+      // Priority: live+joined=5, live=4, finished+joined=3, finished=2, lobby+joined=1, lobby=0
+      const aPriority = aLive * 4 + aFinished * 2 + aJoined
+      const bPriority = bLive * 4 + bFinished * 2 + bJoined
       if (bPriority !== aPriority) return bPriority - aPriority
       // Within same priority: soonest first
       const aTime = a.starts_at ? new Date(a.starts_at).getTime() : Infinity

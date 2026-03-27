@@ -20,14 +20,22 @@ export function useHomeData() {
     setError(null)
 
     try {
-      // Step 1: Fetch lobby/live rooms + user's participations in parallel
-      const [liveAndLobbyResult, participantsResult] = await Promise.all([
+      // Fetch live/lobby rooms, recently finished rooms, and user participations in parallel
+      const [liveAndLobbyResult, recentFinishedResult, participantsResult] = await Promise.all([
         supabase
           .from('rooms_with_counts')
           .select('*')
           .eq('room_type', 'public')
           .in('status', ['lobby', 'live'])
           .order('starts_at', { ascending: true, nullsFirst: false }),
+        supabase
+          .from('rooms_with_counts')
+          .select('*')
+          .eq('room_type', 'public')
+          .eq('status', 'finished')
+          .gte('starts_at', new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString())
+          .order('starts_at', { ascending: false })
+          .limit(30),
         user
           ? supabase
               .from('room_participants')
@@ -41,48 +49,21 @@ export function useHomeData() {
       const participantData = participantsResult.data ?? []
       const joinedIds = participantData.map((p) => p.room_id)
 
-      // Step 2: Fetch only the user's finished rooms from the last 2 days
-      let myFinishedRooms = []
-      if (user && joinedIds.length > 0) {
-        const twoDaysAgo = new Date()
-        twoDaysAgo.setUTCDate(twoDaysAgo.getUTCDate() - 2)
-
-        const { data: finishedData, error: finishedErr } = await supabase
-          .from('rooms_with_counts')
-          .select('*')
-          .eq('room_type', 'public')
-          .eq('status', 'finished')
-          .in('id', joinedIds)
-          .gte('starts_at', twoDaysAgo.toISOString())
-          .order('starts_at', { ascending: false })
-          .limit(20)
-
-        if (finishedErr) {
-          console.warn('useHomeData: finished rooms query failed', finishedErr)
-        } else {
-          myFinishedRooms = finishedData ?? []
-        }
-      }
-
-      // Combine: joinable rooms + user's finished rooms
       const allRoomsData = [
         ...(liveAndLobbyResult.data ?? []),
-        ...myFinishedRooms,
+        ...(recentFinishedResult.data ?? []),
       ]
       setAllRooms(allRoomsData)
 
-      // Build myRooms for sidebar (active + user's finished)
+      // Build myRooms for sidebar (active + finished)
       if (user && joinedIds.length > 0) {
-        const activeJoinedRooms = (liveAndLobbyResult.data ?? []).filter((r) =>
-          joinedIds.includes(r.id)
-        )
-        const allJoined = [...activeJoinedRooms, ...myFinishedRooms]
+        const allJoined = allRoomsData.filter((r) => joinedIds.includes(r.id))
 
         const { data: cardsData } = await supabase
           .from('cards')
           .select('room_id, lines_completed, squares_marked')
           .eq('user_id', user.id)
-          .in('room_id', joinedIds)
+          .in('room_id', allJoined.map((r) => r.id))
 
         const cardsByRoom = {}
         for (const card of cardsData ?? []) {

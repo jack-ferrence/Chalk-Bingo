@@ -147,10 +147,10 @@ function MobileGameList({ games, joinedRoomIds, joiningRoomId, onJoin, onContinu
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       {live.length > 0 && <><Divider label="LIVE" /><Rows list={live} /></>}
+      {finished.length > 0 && <><Divider label="FINAL" /><Rows list={finished} /></>}
       {todayLobby.length > 0 && <><Divider label="TODAY" /><Rows list={todayLobby} /></>}
       {tomorrowLobby.length > 0 && <><Divider label="TOMORROW" /><Rows list={tomorrowLobby} /></>}
       {futureLobby.length > 0 && <><Divider label="UPCOMING" /><Rows list={futureLobby} /></>}
-      {finished.length > 0 && <><Divider label="RESULTS" /><Rows list={finished} /></>}
     </div>
   )
 }
@@ -191,10 +191,27 @@ function SliderWithDays({ games, joinedRoomIds, joiningRoomId, onJoin, onContinu
         />
       )}
 
+      {/* RECENTLY FINISHED — right after live */}
+      {hasFinished && (
+        <>
+          <DaySeparator
+            label="FINAL"
+            sub={`${recentFinished.length} game${recentFinished.length === 1 ? '' : 's'}`}
+          />
+          <GameCardItems
+            games={recentFinished}
+            joinedRoomIds={joinedRoomIds}
+            joiningRoomId={joiningRoomId}
+            onJoin={onJoin}
+            onContinue={onContinue}
+          />
+        </>
+      )}
+
       {/* TODAY's lobby */}
       {todayLobby.length > 0 && (
         <>
-          {(liveGames.length > 0 || hasMultipleDays) && (
+          {(liveGames.length > 0 || hasFinished || hasMultipleDays) && (
             <DaySeparator label="TODAY" sub={todayDateStr} />
           )}
           <GameCardItems
@@ -230,23 +247,6 @@ function SliderWithDays({ games, joinedRoomIds, joiningRoomId, onJoin, onContinu
           />
           <GameCardItems
             games={futureLobby}
-            joinedRoomIds={joinedRoomIds}
-            joiningRoomId={joiningRoomId}
-            onJoin={onJoin}
-            onContinue={onContinue}
-          />
-        </>
-      )}
-
-      {/* MY RESULTS — user's finished games only */}
-      {hasFinished && (
-        <>
-          <DaySeparator
-            label="MY RESULTS"
-            sub={`${recentFinished.length} game${recentFinished.length === 1 ? '' : 's'}`}
-          />
-          <GameCardItems
-            games={recentFinished}
             joinedRoomIds={joinedRoomIds}
             joiningRoomId={joiningRoomId}
             onJoin={onJoin}

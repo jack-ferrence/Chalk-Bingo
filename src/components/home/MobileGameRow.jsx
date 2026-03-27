@@ -45,7 +45,7 @@ export default function MobileGameRow({ room, isJoined, joining, onJoin, onConti
         padding: '10px 12px',
         background: '#12121e',
         borderRadius: 6,
-        borderLeft: isLive ? '3px solid #ff2d2d' : '3px solid transparent',
+        borderLeft: isLive ? '3px solid #ff2d2d' : isFinished ? '3px solid #555577' : '3px solid transparent',
         cursor: isJoined ? 'pointer' : 'default',
       }}
     >
@@ -75,7 +75,14 @@ export default function MobileGameRow({ room, isJoined, joining, onJoin, onConti
               )}
             </div>
           ) : isFinished ? (
-            <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, color: '#555577' }}>FINAL</span>
+            <div>
+              <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, color: '#555577', fontWeight: 700 }}>FINAL</span>
+              {room.away_score != null && room.home_score != null && (
+                <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, color: '#8888aa', marginLeft: 6 }}>
+                  {room.away_score}-{room.home_score}
+                </span>
+              )}
+            </div>
           ) : (
             <div>
               <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, color: '#555577' }}>

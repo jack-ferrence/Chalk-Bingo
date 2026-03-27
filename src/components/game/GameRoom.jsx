@@ -232,7 +232,7 @@ function GameRoom({
       return `${n}th`
     }
 
-    return { myRank, posBonus, squareDobs, lineDobs, participation, total, ordinal }
+    return { myRank, posBonus, squareDobs, lineDobs, participation, total, ordinal, totalPlayers: leaderboardCards.length }
   }, [room?.status, card, leaderboardCards, user?.id])
 
   const winningLines = bingoResult.winningLines ?? []
@@ -441,50 +441,6 @@ function GameRoom({
         </div>
       )}
 
-      {/* ── Game-over Dobs summary ── */}
-      {dobsSummary && (
-        <div
-          className="shrink-0 border-b px-4 py-3 animate-in-from-top"
-          style={{ background: 'rgba(255,107,53,0.06)', borderColor: 'rgba(255,107,53,0.18)' }}
-        >
-          <div className="mx-auto flex max-w-lg flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            {/* Left: rank + total */}
-            <div className="flex items-center gap-3">
-              <span style={{ fontSize: 22 }}>
-                {dobsSummary.myRank === 1 ? '🥇' : dobsSummary.myRank === 2 ? '🥈' : dobsSummary.myRank === 3 ? '🥉' : '🎯'}
-              </span>
-              <div>
-                <p className="text-xs font-semibold" style={{ color: '#e0e0f0' }}>
-                  {dobsSummary.myRank > 0 ? `Finished ${dobsSummary.ordinal(dobsSummary.myRank)}` : 'Game Over'}
-                </p>
-                <p className="text-[10px]" style={{ color: '#555577' }}>
-                  Game finished — Dobs awarded
-                </p>
-              </div>
-            </div>
-
-            {/* Right: breakdown */}
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]" style={{ color: '#8888aa' }}>
-              <span>{card.squares_marked} squares × 2 = <strong style={{ color: '#ff6b35' }}>{dobsSummary.squareDobs}</strong></span>
-              <span style={{ color: '#2a2a44' }}>·</span>
-              <span>{card.lines_completed} lines × 10 = <strong style={{ color: '#ff6b35' }}>{dobsSummary.lineDobs}</strong></span>
-              {dobsSummary.posBonus > 0 && (
-                <>
-                  <span style={{ color: '#2a2a44' }}>·</span>
-                  <span>Position +<strong style={{ color: '#ff6b35' }}>{dobsSummary.posBonus}</strong></span>
-                </>
-              )}
-              <span style={{ color: '#2a2a44' }}>·</span>
-              <span>Participation +<strong style={{ color: '#ff6b35' }}>3</strong></span>
-              <span
-                style={{ marginLeft: 4, borderRadius: 4, padding: '2px 8px', fontFamily: 'var(--db-font-mono)', fontSize: 11, fontWeight: 800, background: 'rgba(255,107,53,0.12)', color: '#ff6b35', border: '1px solid rgba(255,107,53,0.25)' }}
-              >
-                ◈ +{dobsSummary.total} Dobs
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ── Main 3-column area ── */}
       <div className="game-room-main flex flex-1 overflow-hidden">
@@ -803,15 +759,19 @@ function GameRoom({
       </footer>
 
       {/* ── Game Over modal ── */}
-      {room?.status === 'finished' && !gameOverDismissed && (
+      {dobsSummary && !gameOverDismissed && (
         <div
-          className="fixed inset-0 z-40 flex items-center justify-center bg-black/80 p-4"
+          className="fixed inset-0 flex items-center justify-center bg-black/85 p-4"
+          style={{ zIndex: 100 }}
           role="dialog"
           aria-modal="true"
-          aria-label="Final leaderboard"
+          aria-label="Game over summary"
           onClick={(e) => { if (e.target === e.currentTarget) setGameOverDismissed(true) }}
         >
-          <div className="w-full max-w-md max-h-[85vh] overflow-y-auto machine-glow" style={{ position: 'relative', background: '#12121e', border: '1px solid rgba(255,107,53,0.3)', borderRadius: 8, padding: 24 }}>
+          <div
+            className="machine-glow w-full max-w-sm"
+            style={{ position: 'relative', background: '#12121e', border: '1px solid rgba(255,107,53,0.35)', borderRadius: 10, padding: '28px 24px 24px' }}
+          >
             <button
               type="button"
               onClick={() => setGameOverDismissed(true)}
@@ -820,26 +780,52 @@ function GameRoom({
               onMouseLeave={(e) => { e.currentTarget.style.color = '#555577' }}
               aria-label="Close"
             >✕</button>
-            <h2 className="font-display text-lg font-bold tracking-wide text-accent-gold">
-              Game Over
-            </h2>
-            <p className="mt-1 text-xs text-text-muted">Final standings</p>
-            <div className="mt-4">
-              <Suspense fallback={<PanelFallback />}>
-                <Leaderboard
-                  roomId={roomId}
-                  currentUserId={user?.id}
-                  realtimeCards={leaderboardCards}
-                  participantJoined={participantJoined}
-                  onPlayerClick={handlePlayerClick}
-                />
-              </Suspense>
+
+            {/* Rank emoji + title */}
+            <div style={{ textAlign: 'center', marginBottom: 20 }}>
+              <div style={{ fontSize: 48, lineHeight: 1, marginBottom: 10 }}>
+                {dobsSummary.myRank === 1 ? '🥇' : dobsSummary.myRank === 2 ? '🥈' : dobsSummary.myRank === 3 ? '🥉' : '🎯'}
+              </div>
+              <h2 style={{ fontFamily: 'var(--db-font-display)', fontSize: 22, fontWeight: 800, letterSpacing: '0.06em', color: '#e0e0f0', margin: 0 }}>
+                GAME OVER
+              </h2>
+              <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, color: '#8888aa', marginTop: 6, letterSpacing: '0.05em' }}>
+                {dobsSummary.myRank > 0 && dobsSummary.totalPlayers > 0
+                  ? `${dobsSummary.ordinal(dobsSummary.myRank)} of ${dobsSummary.totalPlayers} player${dobsSummary.totalPlayers === 1 ? '' : 's'}`
+                  : 'Final results'}
+              </p>
+              {room?.name && (
+                <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, color: '#3a3a55', marginTop: 3, letterSpacing: '0.04em' }}>
+                  {room.name}
+                </p>
+              )}
             </div>
-            <div style={{ display: 'flex', gap: 10, marginTop: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
+
+            {/* Dobs breakdown */}
+            <div style={{ background: 'rgba(255,107,53,0.05)', border: '1px solid rgba(255,107,53,0.12)', borderRadius: 6, padding: '12px 14px', marginBottom: 20 }}>
+              {[
+                { label: `${card.squares_marked} square${card.squares_marked === 1 ? '' : 's'} × 2`, value: dobsSummary.squareDobs },
+                { label: `${card.lines_completed} line${card.lines_completed === 1 ? '' : 's'} × 10`, value: dobsSummary.lineDobs },
+                ...(dobsSummary.posBonus > 0 ? [{ label: `${dobsSummary.ordinal(dobsSummary.myRank)} place bonus`, value: dobsSummary.posBonus }] : []),
+                { label: 'Participation', value: dobsSummary.participation },
+              ].map(({ label, value }) => (
+                <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 7, marginBottom: 7, borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                  <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, color: '#8888aa', letterSpacing: '0.03em' }}>{label}</span>
+                  <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 12, fontWeight: 700, color: '#ff6b35' }}>+{value} ◈</span>
+                </div>
+              ))}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 4 }}>
+                <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 12, fontWeight: 700, color: '#e0e0f0', letterSpacing: '0.04em' }}>TOTAL</span>
+                <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 15, fontWeight: 800, color: '#ff6b35' }}>+{dobsSummary.total} ◈</span>
+              </div>
+            </div>
+
+            {/* Buttons */}
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
               <button
                 type="button"
                 onClick={() => setGameOverDismissed(true)}
-                style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', padding: '8px 18px', borderRadius: 4, background: 'rgba(255,107,53,0.10)', color: '#ff6b35', border: '1px solid rgba(255,107,53,0.25)', cursor: 'pointer', transition: 'background 0.1s ease' }}
+                style={{ flex: 1, fontFamily: 'var(--db-font-mono)', fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', padding: '10px 0', borderRadius: 4, background: 'rgba(255,107,53,0.10)', color: '#ff6b35', border: '1px solid rgba(255,107,53,0.25)', cursor: 'pointer', transition: 'background 0.1s ease' }}
                 onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,107,53,0.18)' }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,107,53,0.10)' }}
               >
@@ -848,11 +834,11 @@ function GameRoom({
               <button
                 type="button"
                 onClick={() => navigate('/')}
-                style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', padding: '8px 18px', borderRadius: 4, background: '#ff6b35', color: '#0c0c14', border: 'none', cursor: 'pointer', transition: 'background 0.1s ease' }}
+                style={{ flex: 1, fontFamily: 'var(--db-font-mono)', fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', padding: '10px 0', borderRadius: 4, background: '#ff6b35', color: '#0c0c14', border: 'none', cursor: 'pointer', transition: 'background 0.1s ease' }}
                 onMouseEnter={(e) => { e.currentTarget.style.background = '#ff8855' }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = '#ff6b35' }}
               >
-                BACK TO LOBBY
+                CONTINUE
               </button>
             </div>
           </div>
