@@ -2,6 +2,7 @@ import { useState } from 'react'
 import Navbar from './Navbar.jsx'
 import Sidebar from './Sidebar.jsx'
 import MobileTabBar from './MobileTabBar.jsx'
+import InstallPrompt from '../ui/InstallPrompt.jsx'
 
 export default function AppShell({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -25,6 +26,9 @@ export default function AppShell({ children }) {
       </div>
 
       <MobileTabBar />
+      <div className="md:hidden">
+        <InstallPrompt />
+      </div>
     </div>
   )
 }
