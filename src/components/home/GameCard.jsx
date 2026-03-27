@@ -1,5 +1,4 @@
 import { NBA_TEAM_COLORS, hexToRgba } from '../../constants/teamColors.js'
-import { useProfile } from '../../hooks/useProfile.js'
 
 function parseTeams(name) {
   const parts = (name ?? '').split(' vs ')
@@ -36,38 +35,21 @@ function formatDateLabel(dateStr) {
   }
 }
 
-function isLateEntryOpen(game) {
-  if (game.status !== 'live') return false
-  const sport = game.sport || 'nba'
-  const period = game.game_period ?? 0
-  if (sport === 'nba') return period <= 1
-  if (sport === 'ncaa') {
-    if (period > 1) return false
-    const mins = parseInt((game.game_clock ?? '').split(':')[0], 10)
-    return !isNaN(mins) && mins >= 10
-  }
-  if (sport === 'mlb') return period <= 3
-  return false
-}
-
-export default function GameCard({ game, isJoined, joining, onJoin, onContinue }) {
+export default function GameCard({ game, onOpenGame }) {
   const { away, home } = parseTeams(game.name)
   const homeColor = NBA_TEAM_COLORS[home] ?? NBA_TEAM_COLORS.DEFAULT
   const awayColor = NBA_TEAM_COLORS[away] ?? NBA_TEAM_COLORS.DEFAULT
   const isLive = game.status === 'live'
-  const lateEntryOpen = isLateEntryOpen(game)
   const isFinished = game.status === 'finished'
-  const { dobsBalance } = useProfile()
-  const isNcaa = game.sport === 'ncaa'
-  const ENTRY_COST = 10
-  const canAfford = isNcaa || dobsBalance === null || dobsBalance >= ENTRY_COST
 
   return (
     <div
       className="game-card"
+      onClick={() => onOpenGame(game.id)}
       style={{
         '--home-color': homeColor,
         '--team-glow': hexToRgba(homeColor, 0.30),
+        cursor: 'pointer',
       }}
     >
       {/* Dual team-color gradient wash */}
@@ -80,22 +62,19 @@ export default function GameCard({ game, isJoined, joining, onJoin, onContinue }
         }}
       />
 
-      {/* LIVE / FINAL badge */}
-      {isLive && (
-        <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 1 }}>
+      {/* Status badge */}
+      <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 1 }}>
+        {isLive ? (
           <span className="live-badge">
             <span className="live-dot" />
             LIVE
           </span>
-        </div>
-      )}
-      {isFinished && (
-        <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 1 }}>
+        ) : isFinished ? (
           <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, fontWeight: 700, letterSpacing: '0.10em', color: '#555577', background: '#1a1a2e', border: '1px solid #2a2a44', borderRadius: 3, padding: '2px 6px' }}>
             FINAL
           </span>
-        </div>
-      )}
+        ) : null}
+      </div>
 
       {/* Team matchup */}
       <div
@@ -104,127 +83,64 @@ export default function GameCard({ game, isJoined, joining, onJoin, onContinue }
       >
         <div className="flex flex-col items-center gap-1">
           <span className="team-abbr" style={{ color: awayColor }}>{away}</span>
-          <span
-            style={{
-              fontSize: 9,
-              fontWeight: 700,
-              letterSpacing: '0.10em',
-              color: '#555577',
-              textTransform: 'uppercase',
-            }}
-          >
-            Away
-          </span>
+          <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.10em', color: '#555577', textTransform: 'uppercase' }}>Away</span>
         </div>
-
         <span className="vs-text" style={{ marginBottom: 16 }}>VS</span>
-
         <div className="flex flex-col items-center gap-1">
           <span className="team-abbr" style={{ color: homeColor }}>{home}</span>
-          <span
-            style={{
-              fontSize: 9,
-              fontWeight: 700,
-              letterSpacing: '0.10em',
-              color: '#555577',
-              textTransform: 'uppercase',
-            }}
-          >
-            Home
-          </span>
+          <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.10em', color: '#555577', textTransform: 'uppercase' }}>Home</span>
         </div>
       </div>
 
       {/* Footer */}
       <div
         className="flex items-center justify-between relative mt-auto"
-        style={{
-          padding: '9px 20px 16px',
-          borderTop: '1px solid rgba(0,0,0,0.05)',
-        }}
+        style={{ padding: '9px 20px 16px', borderTop: '1px solid rgba(0,0,0,0.05)' }}
       >
         <div>
           {isLive ? (
-            <span style={{ color: '#ff2d2d', fontSize: 11, fontWeight: 700, letterSpacing: '0.05em' }}>
-              ● IN PROGRESS
-            </span>
+            <>
+              <span style={{ color: '#ff2d2d', fontSize: 11, fontWeight: 700, letterSpacing: '0.05em' }}>
+                ● IN PROGRESS
+              </span>
+              <div style={{ color: '#555577', fontSize: 11, marginTop: 2 }}>
+                {game.participant_count ?? 0} playing
+              </div>
+            </>
           ) : isFinished ? (
             <>
-              <span style={{ color: '#555577', fontSize: 11, fontWeight: 700, letterSpacing: '0.05em' }}>
-                FINAL
-              </span>
+              <span style={{ color: '#555577', fontSize: 11, fontWeight: 700 }}>FINAL</span>
               {game.away_score != null && game.home_score != null && (
-                <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 13, fontWeight: 800, color: '#8888aa', marginTop: 2, display: 'block' }}>
+                <div style={{ fontFamily: 'var(--db-font-mono)', fontSize: 13, fontWeight: 800, color: '#8888aa', marginTop: 2 }}>
                   {game.away_score} - {game.home_score}
-                </span>
+                </div>
               )}
             </>
           ) : (
             <>
               {formatDateLabel(game.starts_at) && (
-                <span style={{
-                  fontFamily: 'var(--db-font-mono)',
-                  fontSize: 9,
-                  fontWeight: 700,
-                  letterSpacing: '0.08em',
-                  color: '#8888aa',
-                  textTransform: 'uppercase',
-                  display: 'block',
-                }}>
+                <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, fontWeight: 700, letterSpacing: '0.08em', color: '#8888aa', textTransform: 'uppercase', display: 'block' }}>
                   {formatDateLabel(game.starts_at)}
                 </span>
               )}
               <span style={{ color: '#555577', fontSize: 11, fontWeight: 600 }}>
                 {formatTipoff(game.starts_at)}
               </span>
+              <div style={{ color: '#555577', fontSize: 11, marginTop: 2 }}>
+                {game.participant_count ?? 0} joined
+              </div>
             </>
           )}
-          <div style={{ color: '#555577', fontSize: 11, marginTop: 2 }}>
-            {game.participant_count ?? 0} joined
-          </div>
         </div>
 
-        {isFinished ? (
-          isJoined ? (
-            <button type="button" onClick={() => onContinue(game.id)} className="btn-joined">
-              VIEW RESULTS
-            </button>
+        {/* Tap prompt */}
+        <div style={{ textAlign: 'right' }}>
+          {isFinished ? (
+            <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 700, color: '#555577', letterSpacing: '0.06em' }}>VIEW →</span>
           ) : (
-            <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 600, color: '#3a3a55', letterSpacing: '0.06em' }}>
-              FINISHED
-            </span>
-          )
-        ) : isLive && !isJoined && !lateEntryOpen ? (
-          <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 600, color: '#3a3a55', letterSpacing: '0.06em' }}>
-            IN PROGRESS
-          </span>
-        ) : isJoined ? (
-          <button type="button" onClick={() => onContinue(game.id)} className="btn-joined">
-            {isLive ? 'PLAYING ✓' : 'JOINED ✓'}
-          </button>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 3 }}>
-            <button
-              type="button"
-              onClick={() => onJoin(game.id)}
-              disabled={joining || !canAfford}
-              className="btn-join"
-              title={!canAfford ? `Need ${ENTRY_COST} Dobs to join (you have ${dobsBalance})` : undefined}
-              style={!canAfford ? { opacity: 0.45, cursor: 'not-allowed' } : undefined}
-            >
-              {joining ? '…' : lateEntryOpen ? 'LATE JOIN' : 'JOIN'}
-            </button>
-            <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, letterSpacing: '0.06em' }}>
-              {isNcaa ? (
-                <span style={{ color: '#22c55e' }}>FREE</span>
-              ) : !canAfford ? (
-                <span style={{ color: '#ff2d2d' }}>need {ENTRY_COST} ◈</span>
-              ) : (
-                <span style={{ color: '#555577' }}>{ENTRY_COST} ◈</span>
-              )}
-            </span>
-          </div>
-        )}
+            <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 700, color: '#ff6b35', letterSpacing: '0.06em' }}>PLAY →</span>
+          )}
+        </div>
       </div>
     </div>
   )

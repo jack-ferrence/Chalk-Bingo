@@ -1,48 +1,42 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { useHomeData } from '../hooks/useHomeData.js'
+import { useCountdown } from '../hooks/useCountdown.js'
 import SportSection from '../components/home/SportSection.jsx'
-import JoinConfirmModal from '../components/home/JoinConfirmModal.jsx'
 import TopPlayers from '../components/home/TopPlayers.jsx'
-import { generateOddsBasedCard } from '../game/oddsCardGenerator.js'
 
-/**
- * Pre-generate a card for a room the player just joined.
- * Fetches odds_pool directly so it works regardless of what useHomeData includes.
- * Non-blocking — if it fails, GamePage will generate on first visit.
- */
-async function preGenerateCard(roomId, userId) {
-  try {
-    const { data: room } = await supabase
-      .from('rooms')
-      .select('odds_status, odds_pool, participant_count')
-      .eq('id', roomId)
-      .maybeSingle()
+function GameCountdown({ date }) {
+  const { total, minutes, seconds, isExpired } = useCountdown(date)
 
-    if (!room || room.odds_status !== 'ready' || !room.odds_pool?.length) return
-    if (room.odds_pool.length < 24) return
-
-    const { data: existing } = await supabase
-      .from('cards')
-      .select('id')
-      .eq('room_id', roomId)
-      .eq('user_id', userId)
-      .maybeSingle()
-
-    if (existing) return
-
-    const playerCount = room.participant_count ?? 1
-    const card = generateOddsBasedCard(room.odds_pool, playerCount)
-    if (!card) return
-
-    await supabase
-      .from('cards')
-      .insert({ room_id: roomId, user_id: userId, squares: card })
-  } catch (err) {
-    console.warn('[LobbyPage] preGenerateCard failed:', err.message)
+  if (!date || isExpired) {
+    return (
+      <div style={{ textAlign: 'right' }}>
+        <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 700, color: '#ff6b35' }}>STARTING SOON</span>
+        <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, color: '#ff6b35', marginTop: 2 }}>TAP TO PLAY →</p>
+      </div>
+    )
   }
+
+  if (total < 60 * 60 * 1000) {
+    return (
+      <div style={{ textAlign: 'right' }}>
+        <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 14, fontWeight: 800, color: '#e0e0f0', letterSpacing: '0.04em' }}>
+          {minutes}:{String(seconds).padStart(2, '0')}
+        </span>
+        <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, color: '#3a3a55', marginTop: 2 }}>TAP TO PLAY →</p>
+      </div>
+    )
+  }
+
+  return (
+    <div style={{ textAlign: 'right' }}>
+      <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 12, fontWeight: 700, color: '#8888aa' }}>
+        {new Date(date).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+      </span>
+      <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, color: '#3a3a55', marginTop: 2 }}>TAP TO PLAY →</p>
+    </div>
+  )
 }
 
 const SPORT_SECTIONS = [
@@ -54,40 +48,30 @@ const SPORT_SECTIONS = [
 export default function LobbyPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
-  const { allRooms, myRooms, loading, error } = useHomeData()
+  const { allRooms, loading, error } = useHomeData()
 
-  const [joiningRoomId, setJoiningRoomId] = useState(null)
-  const [joinError, setJoinError] = useState('')
-  const [pendingJoinRoom, setPendingJoinRoom] = useState(null)
+  const handleOpenGame = (roomId) => {
+    if (!user) { navigate('/login'); return }
+    navigate(`/room/${roomId}`)
+  }
 
-  // Set of room IDs the user has already joined
-  const joinedRoomIds = useMemo(
-    () => new Set(myRooms.map((r) => r.id)),
-    [myRooms]
-  )
-
-  // Mobile: flat priority-sorted list (live+joined first, then finished, then upcoming)
+  // Mobile: flat priority-sorted list (live first, then finished, then lobby)
   const mobileSortedGames = useMemo(() => {
-    const all = allRooms.filter((r) => r.status === 'live' || r.status === 'lobby' || r.status === 'finished')
-    return all.sort((a, b) => {
-      const aJoined = joinedRoomIds.has(a.id) ? 1 : 0
-      const bJoined = joinedRoomIds.has(b.id) ? 1 : 0
+    return [...allRooms].sort((a, b) => {
       const aLive = a.status === 'live' ? 1 : 0
       const bLive = b.status === 'live' ? 1 : 0
       const aFinished = a.status === 'finished' ? 1 : 0
       const bFinished = b.status === 'finished' ? 1 : 0
-      // Priority: live+joined=5, live=4, finished+joined=3, finished=2, lobby+joined=1, lobby=0
-      const aPriority = aLive * 4 + aFinished * 2 + aJoined
-      const bPriority = bLive * 4 + bFinished * 2 + bJoined
+      const aPriority = aLive * 4 + aFinished * 2
+      const bPriority = bLive * 4 + bFinished * 2
       if (bPriority !== aPriority) return bPriority - aPriority
-      // Within same priority: soonest first
       const aTime = a.starts_at ? new Date(a.starts_at).getTime() : Infinity
       const bTime = b.starts_at ? new Date(b.starts_at).getTime() : Infinity
       return aTime - bTime
     })
-  }, [allRooms, joinedRoomIds])
+  }, [allRooms])
 
-  // Desktop: group all public rooms by sport, sorted: live → lobby → finished
+  // Desktop: group by sport, sorted live → lobby → finished
   const roomsBySport = useMemo(() => {
     const statusRank = (r) => r.status === 'live' ? 0 : r.status === 'lobby' ? 1 : 2
     const groups = Object.fromEntries(SPORT_SECTIONS.map((s) => [s.sport, []]))
@@ -100,91 +84,12 @@ export default function LobbyPage() {
       groups[sport].sort((a, b) => {
         const rankDiff = statusRank(a) - statusRank(b)
         if (rankDiff !== 0) return rankDiff
-        // Within same status: scheduled by starts_at asc, finished by starts_at desc
         if (a.status === 'finished') return (b.starts_at ?? '') > (a.starts_at ?? '') ? 1 : -1
         return (a.starts_at ?? '') > (b.starts_at ?? '') ? 1 : -1
       })
     }
     return groups
   }, [allRooms])
-
-  const doJoin = async (roomId) => {
-    setJoinError('')
-    setJoiningRoomId(roomId)
-
-    // Charge entry fee before inserting participant row
-    try {
-      const { data: feeResult, error: rpcError } = await supabase.rpc('deduct_entry_fee', {
-        p_user_id: user.id,
-        p_room_id: roomId,
-      })
-
-      if (rpcError) {
-        const isMissing = rpcError.code === 'PGRST202' || rpcError.code === '42883' ||
-          rpcError.message?.toLowerCase().includes('function')
-        if (!isMissing) {
-          setJoinError('Failed to process entry fee: ' + rpcError.message)
-          setJoiningRoomId(null)
-          return
-        }
-        // Function not found — graceful fallback, continue
-        console.warn('[LobbyPage] deduct_entry_fee not found, skipping fee')
-      } else if (feeResult && !feeResult.success) {
-        if (feeResult.reason === 'insufficient_dabs') {
-          setJoinError(`Not enough Dobs! You need 10 but only have ${feeResult.balance}.`)
-        } else if (feeResult.reason === 'profile_not_found') {
-          setJoinError('Profile not found. Try logging out and back in.')
-        } else {
-          setJoinError('Could not join: ' + feeResult.reason)
-        }
-        setJoiningRoomId(null)
-        return
-      }
-    } catch (feeErr) {
-      console.warn('[LobbyPage] deduct_entry_fee threw', feeErr)
-    }
-
-    const { error: err } = await supabase
-      .from('room_participants')
-      .upsert(
-        { room_id: roomId, user_id: user.id },
-        { onConflict: 'room_id,user_id', ignoreDuplicates: true }
-      )
-
-    setJoiningRoomId(null)
-
-    if (err) { setJoinError(err.message); return }
-
-    // Pre-generate card before navigating so late-entry check can't block the player
-    await preGenerateCard(roomId, user.id)
-
-    navigate(`/room/${roomId}`)
-  }
-
-  const handleJoin = (roomId) => {
-    if (!user) { navigate('/login'); return }
-    const room = allRooms.find((r) => r.id === roomId)
-    const isNcaa = room?.sport === 'ncaa'
-    if (isNcaa || !room) {
-      doJoin(roomId)
-    } else {
-      setPendingJoinRoom(room)
-    }
-  }
-
-  const handleConfirmJoin = () => {
-    if (!pendingJoinRoom) return
-    const roomId = pendingJoinRoom.id
-    setPendingJoinRoom(null)
-    doJoin(roomId)
-  }
-
-  const handleCancelJoin = () => {
-    setPendingJoinRoom(null)
-  }
-
-  const handleContinue = (roomId) => navigate(`/room/${roomId}`)
-
 
   const handleTabClick = (sportKey) => {
     const el = document.getElementById(`sport-section-${sportKey}`)
@@ -231,16 +136,7 @@ export default function LobbyPage() {
                 borderRadius: 6,
               }}
             >
-              <span
-                style={{
-                  width: 5,
-                  height: 5,
-                  borderRadius: '50%',
-                  background: '#ff2d2d',
-                  display: 'inline-block',
-                  animation: 'pulse-live 1.4s ease-in-out infinite',
-                }}
-              />
+              <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#ff2d2d', display: 'inline-block', animation: 'pulse-live 1.4s ease-in-out infinite' }} />
               {liveCount} LIVE
             </span>
           )}
@@ -248,19 +144,12 @@ export default function LobbyPage() {
       </div>
 
       {/* Error */}
-      {(error || joinError) && (
+      {error && (
         <div
           className="mb-6 px-4 py-3"
-          style={{
-            background: 'rgba(255,45,45,0.08)',
-            border: '1px solid rgba(255,45,45,0.25)',
-            borderRadius: 6,
-            fontFamily: 'var(--db-font-mono)',
-            fontSize: 12,
-            color: '#ff2d2d',
-          }}
+          style={{ background: 'rgba(255,45,45,0.08)', border: '1px solid rgba(255,45,45,0.25)', borderRadius: 6, fontFamily: 'var(--db-font-mono)', fontSize: 12, color: '#ff2d2d' }}
         >
-          {error || joinError}
+          {error}
         </div>
       )}
 
@@ -269,7 +158,7 @@ export default function LobbyPage() {
         <TopPlayers />
       </div>
 
-      {/* ── Desktop: sport-grouped sections (unchanged) ── */}
+      {/* ── Desktop: sport-grouped sections ── */}
       <div className="hidden md:block space-y-10">
         {SPORT_SECTIONS.map((section, i) => (
           <div key={section.sport} id={`sport-section-${section.sport}`}>
@@ -278,11 +167,7 @@ export default function LobbyPage() {
               label={section.label}
               games={roomsBySport[section.sport] ?? []}
               loading={loading}
-              joinedRoomIds={joinedRoomIds}
-              joiningRoomId={joiningRoomId}
-              onJoin={handleJoin}
-              onContinue={handleContinue}
-
+              onOpenGame={handleOpenGame}
               style={{ animationDelay: `${i * 100}ms` }}
             />
           </div>
@@ -291,7 +176,6 @@ export default function LobbyPage() {
 
       {/* ── Mobile: flat priority-sorted list ── */}
       <div className="block md:hidden">
-        {/* Summary line */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
           {liveCount > 0 && (
             <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, fontWeight: 700, padding: '2px 6px', background: 'rgba(255,45,45,0.12)', color: '#ff2d2d', borderRadius: 3 }}>
@@ -303,7 +187,6 @@ export default function LobbyPage() {
           </span>
         </div>
 
-        {/* Skeleton */}
         {loading && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {Array.from({ length: 4 }).map((_, i) => (
@@ -312,7 +195,6 @@ export default function LobbyPage() {
           </div>
         )}
 
-        {/* Game rows */}
         {!loading && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {mobileSortedGames.length === 0 ? (
@@ -323,78 +205,47 @@ export default function LobbyPage() {
               const nameParts = (room.name || '').split(' vs ')
               const away = nameParts[0]?.trim() || '?'
               const home = nameParts[1]?.trim() || '?'
-              const isJoined = joinedRoomIds.has(room.id)
               const isLive = room.status === 'live'
-              const isNcaa = room.sport === 'ncaa'
-              const tipoff = room.starts_at
-                ? new Date(room.starts_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
-                : 'Upcoming'
+              const isFinished = room.status === 'finished'
 
               return (
                 <div
                   key={room.id}
-                  onClick={() => isJoined ? navigate(`/room/${room.id}`) : handleJoin(room.id)}
+                  onClick={() => handleOpenGame(room.id)}
                   style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                     padding: '12px 14px', background: '#12121e', borderRadius: 6,
-                    borderLeft: isLive ? '3px solid #ff2d2d' : '3px solid transparent',
+                    border: '1px solid #2a2a44',
+                    borderLeft: isLive ? '3px solid #ff2d2d' : isFinished ? '3px solid #555577' : '3px solid transparent',
                     cursor: 'pointer',
                   }}
                 >
-                  {/* Left: teams + info */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: 1 }}>
-                    <div style={{ flexShrink: 0 }}>
+                  {/* Left: teams */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ minWidth: 105 }}>
                       <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 18, fontWeight: 800, color: '#8888aa', letterSpacing: '0.04em' }}>{away}</span>
                       <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, color: '#3a3a55', margin: '0 5px' }}>vs</span>
                       <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 18, fontWeight: 800, color: '#e0e0f0', letterSpacing: '0.04em' }}>{home}</span>
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                      {isLive ? (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, color: '#ff2d2d', fontWeight: 700 }}>● LIVE</span>
-                          {room.game_clock && (
-                            <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, color: '#3a3a55' }}>
-                              {room.game_period ? `Q${room.game_period} ` : ''}{room.game_clock}
-                            </span>
-                          )}
-                        </div>
-                      ) : (
-                        <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, color: '#555577' }}>{tipoff}</span>
-                      )}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, color: '#3a3a55' }}>
-                          {room.participant_count ?? 0} joined
-                        </span>
-                        {isNcaa && (
-                          <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 8, fontWeight: 700, padding: '1px 4px', background: 'rgba(0,200,100,0.10)', color: '#00c864', borderRadius: 2 }}>
-                            NCAA
-                          </span>
-                        )}
-                      </div>
-                    </div>
                   </div>
 
-                  {/* Right: status/action */}
-                  <div style={{ flexShrink: 0, marginLeft: 8 }} onClick={(e) => e.stopPropagation()}>
-                    {isJoined ? (
-                      isLive ? (
-                        <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, fontWeight: 700, color: '#555577', background: '#1a1a2e', padding: '5px 10px', borderRadius: 3 }}>
-                          PLAYING
-                        </span>
-                      ) : (
-                        <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, fontWeight: 700, color: '#ff6b35', border: '1px solid rgba(255,107,53,0.3)', padding: '5px 10px', borderRadius: 3 }}>
-                          JOINED
-                        </span>
-                      )
+                  {/* Right: status */}
+                  <div style={{ textAlign: 'right' }}>
+                    {isLive ? (
+                      <div>
+                        <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 700, color: '#ff2d2d' }}>● LIVE</span>
+                        <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, color: '#ff6b35', marginTop: 2 }}>TAP TO PLAY →</p>
+                      </div>
+                    ) : isFinished ? (
+                      <div>
+                        <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 700, color: '#555577' }}>FINAL</span>
+                        {room.away_score != null && room.home_score != null && (
+                          <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 12, fontWeight: 800, color: '#8888aa', marginTop: 2 }}>{room.away_score} - {room.home_score}</p>
+                        )}
+                        <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, color: '#3a3a55', marginTop: 2 }}>VIEW RESULTS →</p>
+                      </div>
                     ) : (
-                      <button
-                        type="button"
-                        onClick={(e) => { e.stopPropagation(); handleJoin(room.id) }}
-                        disabled={joiningRoomId === room.id}
-                        style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, fontWeight: 700, color: '#0c0c14', background: '#ff6b35', border: 'none', borderRadius: 4, padding: '6px 14px', cursor: joiningRoomId === room.id ? 'wait' : 'pointer' }}
-                      >
-                        {joiningRoomId === room.id ? '...' : 'JOIN'}
-                      </button>
+                      <GameCountdown date={room.starts_at} />
                     )}
                   </div>
                 </div>
@@ -403,17 +254,6 @@ export default function LobbyPage() {
           </div>
         )}
       </div>
-
-      {/* NBA join confirmation modal */}
-      {pendingJoinRoom && (
-        <JoinConfirmModal
-          room={pendingJoinRoom}
-          onConfirm={handleConfirmJoin}
-          onClose={handleCancelJoin}
-        />
-      )}
-
-
     </div>
   )
 }

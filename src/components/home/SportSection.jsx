@@ -91,15 +91,12 @@ function DaySeparator({ label, sub }) {
 // Render a labelled set of cards inside the slider
 // ---------------------------------------------------------------------------
 
-function GameCardItems({ games, joinedRoomIds, joiningRoomId, onJoin, onContinue }) {
+function GameCardItems({ games, onOpenGame }) {
   return games.map((game) => (
     <div key={game.id} style={{ scrollSnapAlign: 'start', flexShrink: 0 }}>
       <GameCard
         game={game}
-        isJoined={joinedRoomIds.has(game.id)}
-        joining={joiningRoomId === game.id}
-        onJoin={onJoin}
-        onContinue={onContinue}
+        onOpenGame={onOpenGame}
       />
     </div>
   ))
@@ -109,7 +106,7 @@ function GameCardItems({ games, joinedRoomIds, joiningRoomId, onJoin, onContinue
 // Mobile: vertical list with day dividers (mobile-only, hidden md:block)
 // ---------------------------------------------------------------------------
 
-function MobileGameList({ games, joinedRoomIds, joiningRoomId, onJoin, onContinue }) {
+function MobileGameList({ games, onOpenGame }) {
   const byStartTime     = (a, b) => new Date(a.starts_at) - new Date(b.starts_at)
   const byStartTimeDesc = (a, b) => new Date(b.starts_at) - new Date(a.starts_at)
 
@@ -129,10 +126,7 @@ function MobileGameList({ games, joinedRoomIds, joiningRoomId, onJoin, onContinu
     <MobileGameRow
       key={room.id}
       room={room}
-      isJoined={joinedRoomIds.has(room.id)}
-      joining={joiningRoomId === room.id}
-      onJoin={onJoin}
-      onContinue={onContinue}
+      onOpenGame={onOpenGame}
     />
   ))
 
@@ -159,7 +153,7 @@ function MobileGameList({ games, joinedRoomIds, joiningRoomId, onJoin, onContinu
 // Desktop: horizontal scroll of GameCards
 // ---------------------------------------------------------------------------
 
-function SliderWithDays({ games, joinedRoomIds, joiningRoomId, onJoin, onContinue }) {
+function SliderWithDays({ games, onOpenGame }) {
   const byStartTime     = (a, b) => new Date(a.starts_at) - new Date(b.starts_at)
   const byStartTimeDesc = (a, b) => new Date(b.starts_at) - new Date(a.starts_at)
 
@@ -182,13 +176,7 @@ function SliderWithDays({ games, joinedRoomIds, joiningRoomId, onJoin, onContinu
     <HorizontalSlider>
       {/* LIVE — always first */}
       {liveGames.length > 0 && (
-        <GameCardItems
-          games={liveGames}
-          joinedRoomIds={joinedRoomIds}
-          joiningRoomId={joiningRoomId}
-          onJoin={onJoin}
-          onContinue={onContinue}
-        />
+        <GameCardItems games={liveGames} onOpenGame={onOpenGame} />
       )}
 
       {/* RECENTLY FINISHED — right after live */}
@@ -198,13 +186,7 @@ function SliderWithDays({ games, joinedRoomIds, joiningRoomId, onJoin, onContinu
             label="FINAL"
             sub={`${recentFinished.length} game${recentFinished.length === 1 ? '' : 's'}`}
           />
-          <GameCardItems
-            games={recentFinished}
-            joinedRoomIds={joinedRoomIds}
-            joiningRoomId={joiningRoomId}
-            onJoin={onJoin}
-            onContinue={onContinue}
-          />
+          <GameCardItems games={recentFinished} onOpenGame={onOpenGame} />
         </>
       )}
 
@@ -214,13 +196,7 @@ function SliderWithDays({ games, joinedRoomIds, joiningRoomId, onJoin, onContinu
           {(liveGames.length > 0 || hasFinished || hasMultipleDays) && (
             <DaySeparator label="TODAY" sub={todayDateStr} />
           )}
-          <GameCardItems
-            games={todayLobby}
-            joinedRoomIds={joinedRoomIds}
-            joiningRoomId={joiningRoomId}
-            onJoin={onJoin}
-            onContinue={onContinue}
-          />
+          <GameCardItems games={todayLobby} onOpenGame={onOpenGame} />
         </>
       )}
 
@@ -228,13 +204,7 @@ function SliderWithDays({ games, joinedRoomIds, joiningRoomId, onJoin, onContinu
       {tomorrowLobby.length > 0 && (
         <>
           <DaySeparator label="TOMORROW" sub={tomorrowDateStr} />
-          <GameCardItems
-            games={tomorrowLobby}
-            joinedRoomIds={joinedRoomIds}
-            joiningRoomId={joiningRoomId}
-            onJoin={onJoin}
-            onContinue={onContinue}
-          />
+          <GameCardItems games={tomorrowLobby} onOpenGame={onOpenGame} />
         </>
       )}
 
@@ -245,13 +215,7 @@ function SliderWithDays({ games, joinedRoomIds, joiningRoomId, onJoin, onContinu
             label="UPCOMING"
             sub={fmtDate(pacificDateStr(new Date(futureLobby[0].starts_at)))}
           />
-          <GameCardItems
-            games={futureLobby}
-            joinedRoomIds={joinedRoomIds}
-            joiningRoomId={joiningRoomId}
-            onJoin={onJoin}
-            onContinue={onContinue}
-          />
+          <GameCardItems games={futureLobby} onOpenGame={onOpenGame} />
         </>
       )}
 
@@ -272,10 +236,7 @@ export default function SportSection({
   label,
   games,
   loading,
-  joinedRoomIds,
-  joiningRoomId,
-  onJoin,
-  onContinue,
+  onOpenGame,
   style,
 }) {
   const hasUpcoming = games.some((g) => g.status === 'live' || g.status === 'lobby')
@@ -353,25 +314,13 @@ export default function SportSection({
           <>
             <div className="mb-3 px-1">
               <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 11, color: '#555577' }}>
-                No upcoming games right now — showing your recent results.
+                No upcoming games right now — showing recent results.
               </p>
             </div>
-            <SliderWithDays
-              games={games}
-              joinedRoomIds={joinedRoomIds}
-              joiningRoomId={joiningRoomId}
-              onJoin={onJoin}
-              onContinue={onContinue}
-            />
+            <SliderWithDays games={games} onOpenGame={onOpenGame} />
           </>
         ) : (
-          <SliderWithDays
-            games={games}
-            joinedRoomIds={joinedRoomIds}
-            joiningRoomId={joiningRoomId}
-            onJoin={onJoin}
-            onContinue={onContinue}
-          />
+          <SliderWithDays games={games} onOpenGame={onOpenGame} />
         )}
       </div>
 
@@ -384,13 +333,7 @@ export default function SportSection({
             ))}
           </div>
         ) : (
-          <MobileGameList
-            games={games}
-            joinedRoomIds={joinedRoomIds}
-            joiningRoomId={joiningRoomId}
-            onJoin={onJoin}
-            onContinue={onContinue}
-          />
+          <MobileGameList games={games} onOpenGame={onOpenGame} />
         )}
       </div>
     </section>

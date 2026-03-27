@@ -106,6 +106,18 @@ function GamePage() {
       setLoadingCard(true)
       setError('')
 
+      // ── Auto-join: insert participant row if not already joined ─────────────
+      try {
+        await supabase
+          .from('room_participants')
+          .upsert(
+            { room_id: roomId, user_id: user.id },
+            { onConflict: 'room_id,user_id', ignoreDuplicates: true }
+          )
+      } catch (joinErr) {
+        if (debug) console.warn('[GamePage] auto-join failed:', joinErr.message)
+      }
+
       // ── Step 1: Check if card already exists ────────────────────────────────
       let existingCard = null
       let cardAlreadyExists = false
@@ -154,45 +166,7 @@ function GamePage() {
         }
       }
 
-      // ── Step 2: Charge entry fee (skip for returning users) ─────────────────
-      if (!cardAlreadyExists) {
-        try {
-          const { data: feeResult, error: feeError } = await supabase.rpc('deduct_entry_fee', {
-            p_user_id: user.id,
-            p_room_id: roomId,
-          })
-
-          if (feeError) {
-            const missing = feeError.code === 'PGRST202' || feeError.code === '42883' ||
-              feeError.message?.toLowerCase().includes('function')
-            if (!missing) {
-              setError('Failed to process entry fee: ' + feeError.message)
-              setLoadingCard(false)
-              return
-            }
-            if (debug) console.warn('[GamePage] deduct_entry_fee not found, skipping', feeError.message)
-          } else if (feeResult && !feeResult.success) {
-            if (feeResult.reason === 'insufficient_dabs') {
-              setError(`Not enough Dobs! You need 10 but only have ${feeResult.balance}. Play more games to earn Dobs.`)
-              setLoadingCard(false)
-              return
-            } else if (feeResult.reason === 'profile_not_found') {
-              setError('Profile not found. Try logging out and back in.')
-              setLoadingCard(false)
-              return
-            } else {
-              setError('Could not join: ' + feeResult.reason)
-              setLoadingCard(false)
-              return
-            }
-          }
-          // already_charged and march_madness_free are expected — continue silently
-        } catch (feeErr) {
-          if (debug) console.warn('[GamePage] deduct_entry_fee threw', feeErr)
-        }
-      }
-
-      // ── Step 3: Get odds pool from room (server-managed by refresh-odds) ──────
+      // ── Step 2: Get odds pool from room (server-managed by refresh-odds) ──────
       const roomOddsPool = room.odds_pool ?? []
       const oddsReady    = room.odds_status === 'ready' && roomOddsPool.length >= MIN_PROPS_FOR_CARD
 
@@ -212,7 +186,7 @@ function GamePage() {
         return
       }
 
-      // ── Step 4: Generate card from server-managed odds pool ───────────────────
+      // ── Step 3: Generate card from server-managed odds pool ───────────────────
       if (!oddsReady) {
         // GameRoom renders a context-aware placeholder based on room.odds_status
         // ('pending' → animated grid, 'insufficient' → "not enough props" + CHECK AGAIN)
