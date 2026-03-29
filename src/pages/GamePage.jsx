@@ -24,6 +24,25 @@ function GamePage() {
   const [gameStartedNotification, setGameStartedNotification] = useState(false)
   const prevStatusRef = useRef(null)
 
+  // Re-fetch full room when odds become ready — realtime patch may not include odds_pool
+  useEffect(() => {
+    if (room?.odds_status === 'ready' && !card && !loadingCard) {
+      const refetch = async () => {
+        const { data } = await supabase
+          .from('rooms_with_counts')
+          .select('*')
+          .eq('id', roomId)
+          .maybeSingle()
+        if (data) {
+          setRoom(data)
+          setRetryCount((c) => c + 1)
+        }
+      }
+      refetch()
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [room?.odds_status])
+
   const {
     roomPatch,
     cardPatch,
@@ -257,7 +276,6 @@ function GamePage() {
         setLoadingCard(false)
       } catch (cardErr) {
         if (debug) console.error('[GamePage] card generation threw', cardErr)
-        setError('Error generating card. Please try again.')
         setLoadingCard(false)
       }
     }

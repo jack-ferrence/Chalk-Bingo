@@ -311,14 +311,9 @@ function GameRoom({
           <Badge variant={statusVariant} pulse={room?.status === 'live'}>
             {statusLabel}
           </Badge>
-          {room?.participant_count != null && !room?.cards_locked && room?.status === 'lobby' && (
+          {room?.participant_count != null && room?.status === 'lobby' && (
             <span className="hidden text-[10px] text-text-muted sm:inline">
-              {room.participant_count} player{room.participant_count === 1 ? '' : 's'} — cards lock at T-10
-            </span>
-          )}
-          {room?.cards_locked && room?.player_count_at_lock != null && (
-            <span className="hidden text-[10px] text-text-muted sm:inline">
-              Locked for {room.player_count_at_lock} player{room.player_count_at_lock === 1 ? '' : 's'}
+              {room.participant_count} player{room.participant_count === 1 ? '' : 's'}
             </span>
           )}
           {room?.status === 'lobby' && room?.starts_at && (
@@ -531,66 +526,58 @@ function GameRoom({
                 </div>
               )}
             </>
-          ) : room?.odds_status === 'pending' ? (
-            // Animated grid placeholder — odds are being built server-side
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, width: '100%', maxWidth: 512 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 4, width: '100%', opacity: 0.3 }}>
+          ) : (
+            // No card yet — unified friendly waiting state
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, width: '100%', maxWidth: 512, padding: '20px 0' }}>
+              {/* Ghost grid */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 4, width: '100%', opacity: 0.25 }}>
                 {Array.from({ length: 25 }).map((_, i) => (
                   <div
                     key={i}
                     style={{
                       aspectRatio: '1',
-                      background: 'rgba(255,255,255,0.04)',
-                      border: '1px solid rgba(255,255,255,0.07)',
+                      background: 'rgba(255,255,255,0.03)',
+                      border: '1px solid rgba(255,255,255,0.06)',
                       borderRadius: 6,
                       animation: `pulse 1.8s ease-in-out ${(i % 5) * 0.12}s infinite`,
                     }}
                   />
                 ))}
               </div>
-              <span style={{ fontFamily: 'var(--db-font-display)', fontSize: 12, letterSpacing: '0.1em', color: 'rgba(255,255,255,0.2)' }}>
-                BUILDING YOUR CARD...
-              </span>
-            </div>
-          ) : room?.odds_status === 'insufficient' ? (
-            // Not enough props yet — friendly waiting state, not an error
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-              <span style={{ fontSize: 28 }}>⏳</span>
-              <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 12, fontWeight: 700, color: '#8888aa', letterSpacing: '0.08em' }}>
-                PROPS COMING SOON
-              </span>
-              <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, color: '#555577', textAlign: 'center', maxWidth: 280, lineHeight: 1.5 }}>
-                Player props for this game aren&apos;t available yet. They&apos;ll appear as game time approaches. Check back soon!
-              </span>
-              {onRetryCard && (
+
+              {/* Status message */}
+              <div style={{ textAlign: 'center' }}>
+                <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 12, fontWeight: 700, color: '#8888aa', letterSpacing: '0.08em', margin: '0 0 6px' }}>
+                  {room?.odds_status === 'ready' ? 'GENERATING CARD...' : 'WAITING FOR PROPS'}
+                </p>
+                <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, color: '#555577', margin: 0, lineHeight: 1.5 }}>
+                  {room?.odds_status === 'ready'
+                    ? 'Your card is being generated. Tap below to retry.'
+                    : "You're in! Your card will appear when player props are available."}
+                </p>
+              </div>
+
+              {/* Joined confirmation */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)', borderRadius: 4 }}>
+                <span style={{ color: '#22c55e', fontSize: 12 }}>✓</span>
+                <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 700, color: '#22c55e', letterSpacing: '0.06em' }}>JOINED</span>
+                {room?.participant_count > 0 && (
+                  <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, color: '#555577', marginLeft: 4 }}>
+                    · {room.participant_count} player{room.participant_count === 1 ? '' : 's'}
+                  </span>
+                )}
+              </div>
+
+              {/* Retry — only when odds are ready but card gen failed */}
+              {room?.odds_status === 'ready' && onRetryCard && (
                 <button
                   type="button"
                   onClick={onRetryCard}
-                  style={{ background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.35)', border: '1px solid rgba(255,255,255,0.09)', borderRadius: 8, fontFamily: 'var(--db-font-ui)', fontSize: 12, fontWeight: 600, padding: '7px 18px', cursor: 'pointer', transition: 'background 120ms ease' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = 'rgba(255,255,255,0.6)' }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = 'rgba(255,255,255,0.35)' }}
+                  style={{ background: '#ff6b35', color: '#0c0c14', border: 'none', borderRadius: 4, fontFamily: 'var(--db-font-mono)', fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', padding: '10px 20px', cursor: 'pointer' }}
                 >
-                  Check again
+                  GENERATE CARD
                 </button>
               )}
-            </div>
-          ) : (
-            // No card available — props weren't posted or generation failed
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '40px 20px' }}>
-              <span style={{ fontSize: 28 }}>🎯</span>
-              <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 12, fontWeight: 700, color: '#8888aa', letterSpacing: '0.08em' }}>
-                CARD NOT AVAILABLE
-              </span>
-              <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, color: '#555577', textAlign: 'center', maxWidth: 280, lineHeight: 1.5 }}>
-                Props weren&apos;t available for this game. Try joining another game from the lobby!
-              </span>
-              <button
-                type="button"
-                onClick={() => navigate('/')}
-                style={{ marginTop: 8, background: '#ff6b35', color: '#0c0c14', border: 'none', borderRadius: 4, fontFamily: 'var(--db-font-mono)', fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', padding: '10px 20px', cursor: 'pointer' }}
-              >
-                BACK TO LOBBY
-              </button>
             </div>
           )}
         </div>

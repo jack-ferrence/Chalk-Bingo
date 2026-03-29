@@ -153,7 +153,7 @@ export async function handler() {
 
     const { data: existingRooms, error: fetchErr } = await supabase
       .from('rooms')
-      .select('game_id, sport')
+      .select('id, game_id, sport, name')
       .eq('room_type', 'public')
       .in('status', ['lobby', 'live'])
       .in('game_id', actionableIds)
@@ -168,7 +168,15 @@ export async function handler() {
 
     for (const game of actionable) {
       const key = `${game.id}:${game.sport}`
-      if (existingKeys.has(key)) continue
+      if (existingKeys.has(key)) {
+        // Update room name if it changed (e.g., TBD teams were resolved)
+        const existing = (existingRooms ?? []).find(r => `${r.game_id}:${r.sport}` === key)
+        if (existing && existing.name !== game.roomName && !game.roomName.includes('TBD')) {
+          await supabase.from('rooms').update({ name: game.roomName }).eq('id', existing.id)
+          log.push(`${game.id}: updated name "${existing.name}" → "${game.roomName}"`)
+        }
+        continue
+      }
 
       // Skip games where teams haven't been determined yet — no roster, no odds possible
       if (game.roomName.includes('TBD')) {
