@@ -114,10 +114,6 @@ export async function handler() {
         }
       }
 
-      // Don't update rooms that are past T-10 (lock step handles them)
-      const startsAt = room.starts_at ? new Date(room.starts_at) : null
-      if (startsAt && startsAt - now < LOCK_WINDOW_MS) continue
-
       const match = findRoomOddsInBatch(room, batchData)
       if (!match) {
         if (room.odds_status === 'pending') {
@@ -182,7 +178,6 @@ export async function handler() {
     statusCode: 200,
     body: JSON.stringify({
       refreshed,
-      locked,
       apiCallsMade: ctx.apiCallsMade,
       sportsProcessed: roomsBySport.size,
       totalRooms: rooms?.length ?? 0,

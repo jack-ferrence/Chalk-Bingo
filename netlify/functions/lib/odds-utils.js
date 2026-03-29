@@ -16,6 +16,45 @@ export const SPORT_KEY_MAP = { nba: 'basketball_nba', ncaa: 'basketball_ncaab', 
 export const VIG_FACTOR = 1.05
 export const MIN_UNIQUE_CONFLICT_KEYS = 16
 
+// Batch markets — used by the sport-level /sports/{key}/odds endpoint.
+// The batch endpoint does NOT support _alternate markets (returns 422), so
+// these constants intentionally omit them. ALL_MARKETS / MLB_MARKETS below
+// are only used by the per-event fetchOddsForRoom which still accepts alternates.
+export const BATCH_NBA_MARKETS = [
+  'player_points',
+  'player_rebounds',
+  'player_assists',
+  'player_threes',
+  'player_steals',
+  'player_blocks',
+  'player_points_rebounds_assists',
+  'player_points_rebounds',
+  'player_points_assists',
+  'player_rebounds_assists',
+].join(',')
+
+export const BATCH_MLB_MARKETS = [
+  'batter_home_runs',
+  'batter_hits',
+  'batter_total_bases',
+  'batter_rbis',
+  'batter_runs_scored',
+  'batter_hits_runs_rbis',
+  'batter_singles',
+  'batter_doubles',
+  'batter_walks',
+  'batter_strikeouts',
+  'pitcher_strikeouts',
+  'pitcher_hits_allowed',
+  'pitcher_walks',
+  'pitcher_earned_runs',
+  'pitcher_outs',
+].join(',')
+
+function getBatchMarketsForSport(sport) {
+  return sport === 'mlb' ? BATCH_MLB_MARKETS : BATCH_NBA_MARKETS
+}
+
 // All markets in one string — TheOddsAPI counts a single /events/{id}/odds call
 // regardless of how many markets are requested, so combining saves API budget.
 export const ALL_MARKETS = [
@@ -458,7 +497,7 @@ export async function getEventList(sport, apiKey, ctx, supabase) {
  */
 export async function fetchAllOddsForSport(sport, apiKey, ctx, supabase, cacheTtlMs = 20 * 60 * 1000) {
   const sportKey  = SPORT_KEY_MAP[sport] ?? SPORT_KEY_MAP.nba
-  const markets   = getMarketsForSport(sport)
+  const markets   = getBatchMarketsForSport(sport)   // no _alternate — batch endpoint rejects them
   const marketMap = getMarketMapForSport(sport)
   const cacheKey  = `odds_batch_${sport}`
 
