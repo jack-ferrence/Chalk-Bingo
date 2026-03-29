@@ -118,18 +118,20 @@ export default function LobbyPage() {
     navigate(`/room/${roomId}`)
   }
 
-  // Mobile: flat priority-sorted list (playing live > new live > finished > today > tomorrow)
+  // Mobile: flat priority-sorted list — live > today > tomorrow > finished (last)
   const mobileSortedGames = useMemo(() => {
+    const getPriority = (r) => {
+      if (r.status === 'live') return 3
+      if (r.status === 'finished') return 0
+      if (isTomorrow(r.starts_at)) return 1
+      return 2  // today lobby
+    }
     return [...allRooms].sort((a, b) => {
-      const aLive = a.status === 'live' ? 1 : 0
-      const bLive = b.status === 'live' ? 1 : 0
-      const aFinished = a.status === 'finished' ? 1 : 0
-      const bFinished = b.status === 'finished' ? 1 : 0
-      const aPriority = aLive * 4 + aFinished * 2
-      const bPriority = bLive * 4 + bFinished * 2
+      const aPriority = getPriority(a)
+      const bPriority = getPriority(b)
       if (bPriority !== aPriority) return bPriority - aPriority
-      // Within same status: playing games sort before new games
-      if (aLive && bLive) {
+      // Within live: playing games sort before new ones
+      if (a.status === 'live' && b.status === 'live') {
         const aPlaying = myRoomIds.has(a.id) ? 1 : 0
         const bPlaying = myRoomIds.has(b.id) ? 1 : 0
         if (bPlaying !== aPlaying) return bPlaying - aPlaying
@@ -140,9 +142,14 @@ export default function LobbyPage() {
     })
   }, [allRooms, myRoomIds])
 
-  // Desktop: group by sport, sorted live → lobby → finished
+  // Desktop: group by sport, sorted live → today lobby → tomorrow lobby → finished (last)
   const roomsBySport = useMemo(() => {
-    const statusRank = (r) => r.status === 'live' ? 0 : r.status === 'lobby' ? 1 : 2
+    const statusRank = (r) => {
+      if (r.status === 'live') return 0
+      if (r.status === 'finished') return 3
+      if (isTomorrow(r.starts_at)) return 2
+      return 1  // today lobby
+    }
     const groups = Object.fromEntries(SPORT_SECTIONS.map((s) => [s.sport, []]))
     for (const room of allRooms) {
       const sport = room.sport ?? 'nba'
@@ -153,8 +160,9 @@ export default function LobbyPage() {
       groups[sport].sort((a, b) => {
         const rankDiff = statusRank(a) - statusRank(b)
         if (rankDiff !== 0) return rankDiff
-        if (a.status === 'finished') return (b.starts_at ?? '') > (a.starts_at ?? '') ? 1 : -1
-        return (a.starts_at ?? '') > (b.starts_at ?? '') ? 1 : -1
+        const aTime = a.starts_at ? new Date(a.starts_at).getTime() : Infinity
+        const bTime = b.starts_at ? new Date(b.starts_at).getTime() : Infinity
+        return aTime - bTime
       })
     }
     return groups

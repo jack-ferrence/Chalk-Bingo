@@ -551,70 +551,104 @@ function GameRoom({
               )}
             </>
           ) : (
-            // No card yet — unified friendly waiting state
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, width: '100%', maxWidth: 512, padding: '20px 0' }}>
-              {/* Ghost grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 4, width: '100%', opacity: 0.25 }}>
-                {Array.from({ length: 25 }).map((_, i) => (
-                  <div
-                    key={i}
+            // No card yet — full-board overlay on top of ghost grid
+            <div className="relative w-full" style={{ maxWidth: 'min(440px, 100%)' }}>
+              {/* Ghost grid underneath */}
+              <div
+                style={{
+                  background: 'linear-gradient(180deg, #0f0f1c 0%, #0a0a14 100%)',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  borderRadius: 12,
+                  padding: 10,
+                }}
+              >
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 7, opacity: 0.18 }}>
+                  {Array.from({ length: 25 }).map((_, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        aspectRatio: '1 / 0.9',
+                        background: 'rgba(255,255,255,0.04)',
+                        border: '1px solid rgba(255,255,255,0.07)',
+                        borderRadius: 6,
+                        animation: `pulse 1.8s ease-in-out ${(i % 5) * 0.12}s infinite`,
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Overlay */}
+              <div
+                style={{
+                  position: 'absolute', inset: 0, zIndex: 15, borderRadius: 12,
+                  background: 'rgba(8,8,18,0.93)', backdropFilter: 'blur(6px)',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center',
+                  justifyContent: 'center', padding: 24,
+                }}
+              >
+                <div style={{ textAlign: 'center', maxWidth: 280 }}>
+                  {/* Checkmark circle */}
+                  <div style={{
+                    width: 52, height: 52, borderRadius: '50%',
+                    background: 'rgba(34,197,94,0.12)', border: '2px solid rgba(34,197,94,0.3)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    margin: '0 auto 16px',
+                  }}>
+                    <span style={{ fontSize: 24, color: '#22c55e' }}>✓</span>
+                  </div>
+
+                  <h2 style={{ fontFamily: 'var(--db-font-display)', fontSize: 26, letterSpacing: '0.08em', color: '#e0e0f0', margin: '0 0 10px', lineHeight: 1 }}>
+                    YOU&apos;RE IN
+                  </h2>
+
+                  <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, color: '#8888aa', lineHeight: 1.7, margin: '0 0 18px' }}>
+                    {room?.sport === 'mlb'
+                      ? "Your card will be generated once MLB lineups are posted — usually about an hour before first pitch."
+                      : "Your card will be generated as soon as player props are available. Check back closer to game time!"}
+                  </p>
+
+                  {/* Game time + player count */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 20 }}>
+                    {room?.starts_at && (
+                      <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, color: '#555577', margin: 0 }}>
+                        Game starts {new Date(room.starts_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                      </p>
+                    )}
+                    {room?.participant_count > 0 && (
+                      <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, color: '#555577', margin: 0 }}>
+                        {room.participant_count} player{room.participant_count === 1 ? '' : 's'} joined
+                      </p>
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => navigate('/')}
                     style={{
-                      aspectRatio: '1',
-                      background: 'rgba(255,255,255,0.03)',
-                      border: '1px solid rgba(255,255,255,0.06)',
-                      borderRadius: 6,
-                      animation: `pulse 1.8s ease-in-out ${(i % 5) * 0.12}s infinite`,
+                      background: '#ff6b35', color: '#0c0c14', border: 'none', borderRadius: 4,
+                      fontFamily: 'var(--db-font-mono)', fontSize: 11, fontWeight: 700,
+                      letterSpacing: '0.06em', padding: '11px 0', cursor: 'pointer', width: '100%',
                     }}
-                  />
-                ))}
-              </div>
+                  >
+                    BACK TO LOBBY
+                  </button>
 
-              {/* Status message — sport-aware */}
-              <div style={{ textAlign: 'center' }}>
-                <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 12, fontWeight: 700, color: '#8888aa', letterSpacing: '0.08em', margin: '0 0 6px' }}>
-                  {room?.odds_status === 'ready'
-                    ? 'GENERATING CARD...'
-                    : room?.sport === 'mlb'
-                      ? 'MLB LINEUPS PENDING'
-                      : 'WAITING FOR PROPS'}
-                </p>
-                <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, color: '#555577', margin: 0, lineHeight: 1.5, maxWidth: 280 }}>
-                  {room?.odds_status === 'ready'
-                    ? 'Your card is being generated. Tap below to retry.'
-                    : room?.sport === 'mlb'
-                      ? "MLB lineups are posted closer to game time. We'll build your card automatically once they're available!"
-                      : "You're in! Your card will appear when player props are available."}
-                </p>
-              </div>
-
-              {/* Joined confirmation */}
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)', borderRadius: 4 }}>
-                  <span style={{ color: '#22c55e', fontSize: 12 }}>✓</span>
-                  <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 10, fontWeight: 700, color: '#22c55e', letterSpacing: '0.06em' }}>JOINED</span>
-                  {room?.participant_count > 0 && (
-                    <span style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, color: '#555577', marginLeft: 4 }}>
-                      · {room.participant_count} player{room.participant_count === 1 ? '' : 's'}
-                    </span>
+                  {room?.odds_status === 'ready' && onRetryCard && (
+                    <button
+                      type="button"
+                      onClick={onRetryCard}
+                      style={{
+                        background: 'none', border: 'none', cursor: 'pointer',
+                        fontFamily: 'var(--db-font-mono)', fontSize: 9,
+                        color: '#555577', marginTop: 10, textDecoration: 'underline',
+                      }}
+                    >
+                      Odds are available — tap to generate card
+                    </button>
                   )}
                 </div>
-                {room?.sport === 'mlb' && room?.odds_status !== 'ready' && (
-                  <p style={{ fontFamily: 'var(--db-font-mono)', fontSize: 9, color: '#3a3a55', margin: 0, textAlign: 'center' }}>
-                    Check back ~1 hour before first pitch
-                  </p>
-                )}
               </div>
-
-              {/* Retry — only when odds are ready but card gen failed */}
-              {room?.odds_status === 'ready' && onRetryCard && (
-                <button
-                  type="button"
-                  onClick={onRetryCard}
-                  style={{ background: '#ff6b35', color: '#0c0c14', border: 'none', borderRadius: 4, fontFamily: 'var(--db-font-mono)', fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', padding: '10px 20px', cursor: 'pointer' }}
-                >
-                  GENERATE CARD
-                </button>
-              )}
             </div>
           )}
         </div>
